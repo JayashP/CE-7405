@@ -17,7 +17,7 @@ Order is fixed by the spec:
 | ID | Milestone | Target dates | Status |
 |---|---|---|---|
 | M1 | Element, assembly, supports, static solve, reactions, nodal-load force recovery, Benchmark A | Oct 28 – Nov 1 | **Done.** 26/26 tests pass in GNU Octave 8.4.0 (V-001) and MATLAB R2026b (V-002) |
-| M2 | Indeterminate beams: span mesher, propped cantilever, two-span continuous, UDL, Benchmarks C and D | Nov 2 – 7 | **Done in GNU Octave 8.4.0** (46/46 tests incl. M1; V-003). MATLAB run NOT RUN, pending the user. Branch `claude/m2-indeterminate-beams` |
+| M2 | Indeterminate beams: span mesher, propped cantilever, two-span continuous, UDL, Benchmarks C and D | Nov 2 – 7 | **Done.** 46/46 tests (incl. M1) pass in GNU Octave 8.4.0 (V-003) and MATLAB (V-004). Merged to `main` |
 | M3 | Point loads anywhere inside elements (Hermite), interior V/M/deflection recovery, Benchmark B | Nov 8 – 10 | **Next** |
 | M4 | Multi-axle vehicle, position stepping, envelopes, critical positions, step refinement | Nov 10 – 13 | Not started |
 | M5 | Steel / RCC input layer (E_s·I_s, E_c·I_eff) and equal-EI equivalence test | Nov 14 – 15 | Not started |
@@ -39,12 +39,12 @@ Order is fixed by the spec:
 
 **MATLAB confirmation:** done by the user in R2026b, 26/26 tests (VERIFICATION_LOG.md V-002).
 
-## M2 — indeterminate beams (done in Octave; MATLAB confirmation pending)
+## M2 — indeterminate beams (done; Octave V-003, MATLAB V-004)
 
 **Delivered (2026-10-29):** `meshSpans`, `elementsBetween`, `addUniformLoad`, `equivalentDistributedLoad`, `elementLoadVectors`, `assembleLoadVector` and `sampleInternalForces`. `recoverElementForces` now uses f_e = k_e·q_e − f_e0. Twenty new tests are in `testMeshSpansAndLoads`, `testUniformLoadBeams`, `testProppedCantilever` and `testContinuousBeam`.
 The gate is met in Octave: Benchmarks C and D errors are ≤ 4e‑11 %, the point-load indeterminate checks are within 0.1 %, and all 26 M1 tests still pass (VERIFICATION_LOG.md V-003).
 
-**Open action for the user:** run `runAllTests` in MATLAB on branch `claude/m2-indeterminate-beams` and report the summary. The branch is then merged into `main`.
+**MATLAB confirmation:** 46/46 tests passed on the user's computer (V-004). Merged into `main`.
 
 The original plan for M2 is kept below for traceability.
 

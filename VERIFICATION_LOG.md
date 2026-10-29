@@ -178,7 +178,7 @@ octave-cli --no-gui --norc --eval "runAllTests;"
 | Item | Value |
 |---|---|
 | Platform | **GNU Octave 8.4.0** (`octave-cli`), Linux 6.18 x86_64, Ubuntu 24.04.5 cloud container |
-| MATLAB | **NOT RUN** for the M2 tests. The user needs to run them; record the result as V-004 |
+| MATLAB | Not run in this entry. The user's MATLAB run of the same 46 tests is recorded as **V-004** |
 | Code version | Branch `claude/m2-indeterminate-beams` |
 | Command (repo root) | `octave-cli --no-gui --norc --eval "runAllTests;"` |
 | Raw log | `results/verification/2026-10-29_M2_octave-8.4.0_runAllTests.log` |
@@ -263,7 +263,7 @@ octave-cli --no-gui --norc --eval "runAllTests;"
 
 ### Limits of this evidence
 
-- These results are from **GNU Octave only.** The M2 tests have **not** been run in MATLAB.
+- Numeric values in this entry come from GNU Octave. MATLAB PASS/FAIL confirmation of the same tests is in **V-004**.
 - **Not implemented, so NOT RUN:**
   - point loads inside elements and Benchmark B (M3)
   - deflection between nodes
@@ -279,3 +279,23 @@ git fetch origin && git checkout claude/m2-indeterminate-beams
 ```bash
 matlab -batch "runAllTests"
 ```
+
+---
+
+## V-004 — 2026-10-29 — Milestone M2 in MATLAB (run by the user)
+
+| Item | Value |
+|---|---|
+| Platform | MATLAB on the user's computer. The screenshot is cropped above the summary, so the "Platform" line is **not visible**. It is most likely the same R2026b installation as V-002, but this is **not confirmed** |
+| Run by | The user. Claude Code has no MATLAB |
+| Code version | Branch `claude/m2-indeterminate-beams` at commit `2d10bd7`, downloaded as a ZIP of that branch |
+| Runner | `runAllTests` (MATLAB branch, `matlab.unittest`) |
+| Overall result | **46 passed, 0 failed, 46 tests** |
+| Evidence | Screenshot of the end of the TEST SUMMARY: `results/verification/2026-10-29_M2_matlab_summary_screenshot.png` |
+
+**What this entry shows**
+- The visible lines show PASS for every test in `testSimplySupportedBeam`, `testSupportsAndStability` and `testUniformLoadBeams`, then the total line `Total: 46 passed, 0 failed, 46 tests`.
+- A total of 46 means the 20 M2 tests (`testMeshSpansAndLoads`, `testUniformLoadBeams`, `testProppedCantilever`, `testContinuousBeam`) ran and passed. That includes Benchmarks C and D against their 0.5 % criteria.
+- As with V-002, the MATLAB comparison tables were not sent, so this entry records PASS/FAIL, not MATLAB's numbers.
+
+**Status of M2:** verified in GNU Octave 8.4.0 (V-003, with numbers) and in MATLAB (V-004, pass/fail). The gate is met, so the branch is merged into `main`.

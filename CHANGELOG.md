@@ -35,7 +35,7 @@ Milestone M2: indeterminate beams with uniform loads. Source and tests were writ
 
 ### Verified
 - **GNU Octave 8.4.0:** 46 of 46 tests passed. Benchmarks C and D errors are ≤ about 4e‑11 % (target 0.5 %). Mutation check: 12 of 12 faults detected.
-- **MATLAB:** M1 26/26 (R2026b, V-002). **M2 tests: NOT RUN.**
+- **MATLAB:** M1 26/26 (R2026b, V-002). M2 46/46 (V-004, run by the user after the branch was pushed).
 
 ### Known limitations
 - Point loads inside elements: not implemented (M3).
