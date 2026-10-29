@@ -17,8 +17,15 @@ mutations = [
   ('M2: member-load term f_e0 not subtracted in recovery', 'src/solver/recoverElementForces.m', "* U(dofMap(e, :))).' - f0(e, :);", "* U(dofMap(e, :))).';"),
   ('M2: consistent-load end moments swapped in sign', 'src/loads/equivalentDistributedLoad.m', 'fe0 = w * [Le/2; Le^2/12; Le/2; -Le^2/12];', 'fe0 = w * [Le/2; -Le^2/12; Le/2; Le^2/12];'),
   ('M2: element loads left out of the global load vector', 'src/solver/solveStaticModel.m', 'F = assembleLoadVector(model);', 'F = assembleNodalLoadVector(model);'),
-  ('M2: parabolic moment term sign flipped in sampling', 'src/postprocess/sampleInternalForces.m', 's.M(idx) = Mi + Vi * t + w(e) * t.^2 / 2;', 's.M(idx) = Mi + Vi * t - w(e) * t.^2 / 2;'),
+  ('M2: parabolic moment term sign flipped in sampling', 'src/postprocess/sampleInternalForces.m', 'M = Mi + Vi * tRows + w(e) * tRows.^2 / 2;', 'M = Mi + Vi * tRows - w(e) * tRows.^2 / 2;'),
   ('M2: element load uses a unit element length', 'src/loads/elementLoadVectors.m', 'f0(e, :) = equivalentDistributedLoad(w(e), Le).\';', 'f0(e, :) = equivalentDistributedLoad(w(e), 1).\';'),
+  # M3 (point loads inside elements, deflection between nodes)
+  ('M3: N2 shape-function coefficient wrong', 'src/elements/beamShapeFunctions.m', 'Le * (r - 2*r.^2 + r.^3)', 'Le * (r - r.^2 + r.^3)'),
+  ('M3: point-load shear jump sign flipped in sampling', 'src/postprocess/sampleInternalForces.m', 'V = V + PK(j) * acts;', 'V = V - PK(j) * acts;'),
+  ('M3: UDL particular solution omitted in deflection', 'src/postprocess/evaluateDeflection.m', 'vk = vk + w(e) * s^2 * (Le - s)^2 / (24 * EI(e));', 'vk = vk;'),
+  ('M3: point-load particular solution omitted (s <= a)', 'src/postprocess/evaluateDeflection.m', 'vk = vk + loc.P(j) * b^2 * s^2 * (3*a*Le - (3*a + b)*s) / (6 * EI(e) * Le^3);', 'vk = vk;'),
+  ('M3: point load located in the wrong element', 'src/loads/locatePointLoads.m', "e = find(x(1:end-1) < loc.x(k), 1, 'last');", "e = find(x(1:end-1) < loc.x(k), 1, 'first');"),
+  ('M3: point loads at nodes dropped from F', 'src/loads/assembleLoadVector.m', 'F(2*n - 1) = F(2*n - 1) + loc.P(k);', 'F(2*n - 1) = F(2*n - 1);'),
 ]
 for name, rel, old, new in mutations:
     d = work / re.sub(r'[^a-z0-9]+', '_', name.lower())

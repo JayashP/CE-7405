@@ -6,7 +6,7 @@ This is a MATLAB direct-stiffness solver for a **2D equivalent Euler–Bernoulli
 - **Deadline:** 24 Nov 2026.
 - **Authoritative requirements:** `PROJECT_SPEC.md`.
 
-## Current status (2026-10-29, milestone M2)
+## Current status (2026-10-29, milestone M3 on branch `claude/m3-in-element-point-loads`)
 
 | Capability | State |
 |---|---|
@@ -15,7 +15,9 @@ This is a MATLAB direct-stiffness solver for a **2D equivalent Euler–Bernoulli
 | Benchmark A (simple span, central load: R = 50 kN, M_max = 500 kN·m, δ = 8.333 mm) | **PASS** in GNU Octave 8.4.0 (error ≤ about 1e‑9 %) and in MATLAB R2026b (26/26 tests; VERIFICATION_LOG V-002) |
 | Multi-span mesher, uniform loads (consistent loads, f_e = k_e q_e − f_e0), sampled V/M diagrams | Implemented (M2); tested in GNU Octave 8.4.0 and MATLAB (46/46; V-004) |
 | Benchmark C (propped cantilever, UDL) and D (two-span, UDL), plus point-load and pattern-load indeterminate checks | **PASS** in Octave (error ≤ about 4e‑11 %, target 0.5 %) and in MATLAB (V-004) |
-| Point loads inside elements, deflection between nodes, moving loads, envelopes, vehicles | Not implemented (M3 next, then M4) |
+| Point loads at any position (Hermite consistent loads, not snapped), shear jumps, deflection at any x | Implemented (M3); tested in GNU Octave 8.4.0; **MATLAB NOT RUN yet** |
+| Benchmark B (single load at 88 positions on a coarse 8-element span) | **PASS in Octave**, error ≤ about 7e‑12 % (target 0.5 %); **MATLAB NOT RUN yet** |
+| Multi-axle vehicles, moving-load stepping, envelopes, critical positions | Not implemented (M4, next) |
 | Steel/RCC input layer, GUI, Stage 2 damage, Stages 3/4 | Not implemented |
 
 See `VERIFICATION_LOG.md` for the actual numbers and `DEVELOPMENT_PLAN.md` for what comes next.
@@ -71,6 +73,19 @@ s = sampleInternalForces(model, res.U, 8);           % s.x, s.V, s.M for diagram
 min(s.M)                                             % -2.5e5 N*m = -qL^2/8 over the middle support
 ```
 
+Point load between nodes (no snapping), deflection at a sensor location:
+
+```matlab
+model = createBeamModel(generateUniformMesh(20, 8), EI);   % 2.5 m elements
+model = addSupport(model, 1, 'pin');
+model = addSupport(model, 9, 'roller');
+model = addPointLoad(model, 7.77, -100e3);                 % 100 kN down at 7.77 m
+res = solveStaticModel(model);
+res.R(1)                                                   % R_A = 61.15e3 N
+s = sampleInternalForces(model, res.U, 4);                 % V jumps by -100 kN at 7.77 m
+evaluateDeflection(model, res.U, [5 7.77 10])              % deflection [m] at any x
+```
+
 Main functions (see `help <name>`):
 
 | Function | Purpose |
@@ -91,7 +106,11 @@ Main functions (see `help <name>`):
 | `solveStaticModel(model)` | Full solve; returns a results struct |
 | `recoverReactions(K, U, F, restrainedDofs)` | Support reactions |
 | `recoverElementForces(model, U)` | Element end forces (k_e q_e − f_e0), end shear and moment |
-| `sampleInternalForces(model, U, n)` | V and M at n+1 points per element (linear/parabolic under uniform load) |
+| `addPointLoad(model, x, Fv)` | Point load at any coordinate x [m]; Fv [N] (+ up, so downward is negative) |
+| `beamShapeFunctions(r, Le)` / `equivalentPointLoad(P, a, Le)` | Hermite shape functions / consistent point-load vector |
+| `locatePointLoads(model)` | Node or element (and local position) carrying each point load |
+| `sampleInternalForces(model, U, n)` | V and M at n+1 points per element plus both sides of every interior point load |
+| `evaluateDeflection(model, U, xq)` | Deflection at any coordinates (sensors), exact inside loaded elements |
 
 **Conventions** (DECISIONS.md D-002/D-003):
 - SI units inside the engine.
@@ -109,11 +128,11 @@ VERIFICATION_LOG.md    executed test evidence only
 CHANGELOG.md           change history
 addProjectPaths.m      path setup
 runAllTests.m          test runner (MATLAB and Octave)
-src/elements/          beamElementStiffness
+src/elements/          beamElementStiffness, beamShapeFunctions
 src/model/             mesh, model struct, supports, loads, validation, DOF map, assembly
 src/loads/             nodal, uniform-element and global load vectors
 src/solver/            DOF partition, static solve, reactions, element forces
-src/postprocess/       sampled shear and moment diagrams
+src/postprocess/       sampled shear and moment diagrams, deflection at any x
 src/util/              input-validation helpers
 tests/                 script-based unit and benchmark tests (test*.m)
 tests/helpers/         comparison/report helpers, portable runner, benchmark model builder

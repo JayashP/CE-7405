@@ -2,6 +2,52 @@
 
 This file records every notable change to the source, tests and project records. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Dates are ISO 8601.
 
+## [0.3.0-M3] — 2026-10-29 (branch `claude/m3-in-element-point-loads`)
+
+Milestone M3: point loads at any position inside elements, shear jumps, deflection between nodes, and Benchmark B. Source and tests were written by Claude Code.
+
+### Added — engine
+- `src/elements/beamShapeFunctions.m`: cubic Hermite N1–N4 at normalized positions r in [0, 1].
+- `src/loads/equivalentPointLoad.m`: consistent vector P·[N1 N2 N3 N4]ᵀ for a load at distance a inside an element.
+- `src/model/addPointLoad.m`: point load at any global x (+ up); off-beam positions throw `BridgeFE:offBeam`.
+- `src/loads/locatePointLoads.m`: resolves each load to a node (within 1e‑9·L) or to an element and local position.
+- `src/postprocess/evaluateDeflection.m`: deflection at any x, as the Hermite interpolation plus the exact fixed-fixed particular solution for uniform and point loads.
+
+### Changed — engine
+- `createBeamModel`: new field `model.loads.point` (NP-by-2 `[x Fv]`); `meta.formatVersion` changed from 2 to 3.
+- `validateModel`: validates point loads, including that every load is on the beam.
+- `elementLoadVectors`: includes the Hermite vectors of interior point loads.
+- `assembleLoadVector`: adds point loads that sit on nodes.
+- `sampleInternalForces`: rewritten to add point-load jumps in V and kinks in M, sampling both sides of each load.
+- `recoverElementForces`: help text only (V_j and M_j are the limits at x_j⁻).
+- `solveStaticModel`: returns `results.pointLoads`.
+- `runAllTests`: no longer echoes `ans = 1xN struct array` when called as a command.
+
+### Added — tests and tools (15 new tests; 61 in total)
+- `tests/testShapeFunctionsAndPointLoads.m` (8 tests): shape-function nodal values, rigid-body reproduction, fractions at r = 1/3 and end slopes; fixed-end actions; resultants; load location; F assembly; invalid input.
+- `tests/testMovingPointLoad.m` (2 tests): **Benchmark B** over 88 positions on an 8-element mesh, plus continuity across a node.
+- `tests/testPointLoadsInElements.m` (5 tests):
+  - two loads inside one simply supported element
+  - an indeterminate propped cantilever with a load inside an element
+  - deflection between nodes for uniform and point loads
+  - equilibrium of mixed loads and the size of the shear jumps
+  - a load exactly on a support
+- `tools/mutation_check.py`: 6 M3 faults added (18 in total). The M2 sampling mutant was moved to the rewritten code line; it injects the same fault.
+
+### Added — records
+- DECISIONS D-017 (point loads at arbitrary positions) and D-018 (Benchmark B setup). D-005, D-009 and D-014 updated.
+- VERIFICATION_LOG V-005 (M3 in Octave).
+- Raw evidence: `results/verification/2026-10-29_M3_octave-8.4.0_runAllTests.log` and `results/verification/2026-10-29_M3_mutation_check_octave-8.4.0.txt`.
+
+### Verified
+- **GNU Octave 8.4.0:** 61 of 61 tests passed. Benchmark B errors are ≤ about 7e‑12 % (target 0.5 %). Mutation check: 18 of 18 faults detected.
+- **MATLAB:** M1 (V-002) and M2 (V-004) confirmed by the user. **M3 tests: NOT RUN.**
+
+### Known limitations
+- Point couples inside elements are not supported (none are needed for vehicles).
+- `evaluateDeflection` gives deflection only, not rotation, between nodes.
+- Multi-axle vehicles, position stepping, envelopes and step refinement: M4.
+
 ## [0.2.0-M2] — 2026-10-29 (branch `claude/m2-indeterminate-beams`)
 
 Milestone M2: indeterminate beams with uniform loads. Source and tests were written by Claude Code.

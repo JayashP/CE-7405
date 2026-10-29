@@ -1,0 +1,55 @@
+# Command: python3 -I tools/mutation_check.py <repo_root> <scratch_dir>   (GNU Octave 8.4.0; 18 single-fault mutants: 7 M1 + 5 M2 + 6 M3; repo itself unchanged)
+MUTATION: k22 coefficient 4->3
+  exit=1 summary=[('33', '28')]
+  detected by: testAssembly / Two equal unit elements assemble to the hand-computed 6x6 matrix; testAssembly / Assembled K is symmetric with exactly two rigid-body modes; testBeamStiffness / Exact matrix for EI = 2e9 N*m^2 and Le = 2 m (hand-computed literals); testBeamStiffness / Unit EI and unit length give the integer coefficient matrix exactly; testBeamStiffness / Spec mesh example Le = 1.5 m with steel E = 200 GPa and I = 0.01 m^4; testBeamStiffness / Rigid-body modes lie in the null space and ke is positive semi-definite of rank 2 ...
+MUTATION: rotation-coupling sign flipped (k12,k21)
+  exit=1 summary=[('33', '28')]
+  detected by: testAssembly / Two equal unit elements assemble to the hand-computed 6x6 matrix; testAssembly / Assembled K is symmetric with exactly two rigid-body modes; testBeamStiffness / Exact matrix for EI = 2e9 N*m^2 and Le = 2 m (hand-computed literals); testBeamStiffness / Unit EI and unit length give the integer coefficient matrix exactly; testBeamStiffness / Spec mesh example Le = 1.5 m with steel E = 200 GPa and I = 0.01 m^4; testBeamStiffness / Rigid-body modes lie in the null space and ke is positive semi-definite of rank 2 ...
+MUTATION: DOF map v/theta swapped
+  exit=1 summary=[('33', '28')]
+  detected by: testAssembly / Element DOF map is [v_i theta_i v_j theta_j] with node n owning DOFs 2n-1 and 2n; testAssembly / Two equal unit elements assemble to the hand-computed 6x6 matrix; testAssembly / Unequal lengths and EI match K = sum(A_e'*k_e*A_e) with explicit Boolean A_e; testAssembly / Assembled K is symmetric with exactly two rigid-body modes; testCantileverTipLoad / Cantilever with a tip load and 10 elements; testContinuousBeam / Two equal spans with a point load at each midspan ...
+MUTATION: end-moment sign at node i
+  exit=1 summary=[('45', '16')]
+  detected by: testCantileverTipLoad / Cantilever with a tip load and 10 elements; testContinuousBeam / Two equal spans with a point load at each midspan; testContinuousBeam / Benchmark D two equal spans with uniform load on both spans; testContinuousBeam / Uniform load on one span only gives uplift at the far support; testContinuousBeam / Unequal spans of 10 m and 15 m under uniform load (three-moment equation); testMovingPointLoad / Benchmark B over 88 load positions with an 8-element mesh ...
+MUTATION: reactions ignore loads at restrained DOFs
+  exit=1 summary=[('49', '12')]
+  detected by: testContinuousBeam / Benchmark D two equal spans with uniform load on both spans; testContinuousBeam / Uniform load on one span only gives uplift at the far support; testContinuousBeam / Unequal spans of 10 m and 15 m under uniform load (three-moment equation); testMovingPointLoad / Benchmark B over 88 load positions with an 8-element mesh; testPointLoadsInElements / Two loads inside ONE simply supported element are not moved to the nodes; testPointLoadsInElements / A point load on a support goes straight into that reaction ...
+MUTATION: no under-restraint check
+  exit=1 summary=[('59', '2')]
+  detected by: testSupportsAndStability / Under-restrained models are rejected with BridgeFE:underRestrained; testSupportsAndStability / Stability rule agrees with the numerical rank of Kff for many support layouts
+MUTATION: assembly uses wrong element length (x_j only)
+  exit=1 summary=[('44', '17')]
+  detected by: testAssembly / Unequal lengths and EI match K = sum(A_e'*k_e*A_e) with explicit Boolean A_e; testAssembly / Assembled K is symmetric with exactly two rigid-body modes; testContinuousBeam / Two equal spans with a point load at each midspan; testContinuousBeam / Benchmark D two equal spans with uniform load on both spans; testContinuousBeam / Uniform load on one span only gives uplift at the far support; testContinuousBeam / Unequal spans of 10 m and 15 m under uniform load (three-moment equation) ...
+MUTATION: M2: member-load term f_e0 not subtracted in recovery
+  exit=1 summary=[('48', '13')]
+  detected by: testContinuousBeam / Benchmark D two equal spans with uniform load on both spans; testContinuousBeam / Uniform load on one span only gives uplift at the far support; testContinuousBeam / Unequal spans of 10 m and 15 m under uniform load (three-moment equation); testMovingPointLoad / Benchmark B over 88 load positions with an 8-element mesh; testPointLoadsInElements / Two loads inside ONE simply supported element are not moved to the nodes; testPointLoadsInElements / Propped cantilever with a load inside an element (indeterminate) ...
+MUTATION: M2: consistent-load end moments swapped in sign
+  exit=1 summary=[('49', '12')]
+  detected by: testContinuousBeam / Benchmark D two equal spans with uniform load on both spans; testContinuousBeam / Uniform load on one span only gives uplift at the far support; testContinuousBeam / Unequal spans of 10 m and 15 m under uniform load (three-moment equation); testMeshSpansAndLoads / Consistent uniform-load vector matches hand-written values; testMeshSpansAndLoads / Consistent load vector equals Gauss integration of w*N over the element; testMeshSpansAndLoads / Uniform loads superpose and assemble into the hand-written global vector ...
+MUTATION: M2: element loads left out of the global load vector
+  exit=1 summary=[('47', '14')]
+  detected by: testContinuousBeam / Benchmark D two equal spans with uniform load on both spans; testContinuousBeam / Uniform load on one span only gives uplift at the far support; testContinuousBeam / Unequal spans of 10 m and 15 m under uniform load (three-moment equation); testMovingPointLoad / Benchmark B over 88 load positions with an 8-element mesh; testMovingPointLoad / Results are continuous as the load crosses a node; testPointLoadsInElements / Two loads inside ONE simply supported element are not moved to the nodes ...
+MUTATION: M2: parabolic moment term sign flipped in sampling
+  exit=1 summary=[('53', '8')]
+  detected by: testContinuousBeam / Benchmark D two equal spans with uniform load on both spans; testContinuousBeam / Uniform load on one span only gives uplift at the far support; testPointLoadsInElements / Mixed loads close element equilibrium and show a jump of P at each interior load; testProppedCantilever / Benchmark C propped cantilever under uniform load with 16 elements; testUniformLoadBeams / Simply supported beam under uniform load, 10 elements; testUniformLoadBeams / Fixed-fixed single element has no free DOF and its forces come only from -f_e0 ...
+MUTATION: M2: element load uses a unit element length
+  exit=1 summary=[('50', '11')]
+  detected by: testContinuousBeam / Benchmark D two equal spans with uniform load on both spans; testContinuousBeam / Uniform load on one span only gives uplift at the far support; testContinuousBeam / Unequal spans of 10 m and 15 m under uniform load (three-moment equation); testMeshSpansAndLoads / Assembled uniform load keeps the resultant force and moment on a nonuniform mesh; testPointLoadsInElements / Deflection between nodes is exact for uniform and point loads; testPointLoadsInElements / Mixed loads close element equilibrium and show a jump of P at each interior load ...
+MUTATION: M3: N2 shape-function coefficient wrong
+  exit=1 summary=[('50', '11')]
+  detected by: testMovingPointLoad / Benchmark B over 88 load positions with an 8-element mesh; testMovingPointLoad / Results are continuous as the load crosses a node; testPointLoadsInElements / Two loads inside ONE simply supported element are not moved to the nodes; testPointLoadsInElements / Propped cantilever with a load inside an element (indeterminate); testPointLoadsInElements / Deflection between nodes is exact for uniform and point loads; testPointLoadsInElements / Mixed loads close element equilibrium and show a jump of P at each interior load ...
+MUTATION: M3: point-load shear jump sign flipped in sampling
+  exit=1 summary=[('59', '2')]
+  detected by: testPointLoadsInElements / Two loads inside ONE simply supported element are not moved to the nodes; testPointLoadsInElements / Mixed loads close element equilibrium and show a jump of P at each interior load
+MUTATION: M3: UDL particular solution omitted in deflection
+  exit=1 summary=[('60', '1')]
+  detected by: testPointLoadsInElements / Deflection between nodes is exact for uniform and point loads
+MUTATION: M3: point-load particular solution omitted (s <= a)
+  exit=1 summary=[('58', '3')]
+  detected by: testMovingPointLoad / Benchmark B over 88 load positions with an 8-element mesh; testPointLoadsInElements / Two loads inside ONE simply supported element are not moved to the nodes; testPointLoadsInElements / Propped cantilever with a load inside an element (indeterminate)
+MUTATION: M3: point load located in the wrong element
+  exit=1 summary=[('54', '7')]
+  detected by: testMovingPointLoad / Benchmark B over 88 load positions with an 8-element mesh; testMovingPointLoad / Results are continuous as the load crosses a node; testPointLoadsInElements / Propped cantilever with a load inside an element (indeterminate); testPointLoadsInElements / Deflection between nodes is exact for uniform and point loads; testPointLoadsInElements / Mixed loads close element equilibrium and show a jump of P at each interior load; testShapeFunctionsAndPointLoads / Point loads at nodes are nodal loads and interior loads keep their position ...
+MUTATION: M3: point loads at nodes dropped from F
+  exit=1 summary=[('57', '4')]
+  detected by: testMovingPointLoad / Benchmark B over 88 load positions with an 8-element mesh; testMovingPointLoad / Results are continuous as the load crosses a node; testPointLoadsInElements / A point load on a support goes straight into that reaction; testShapeFunctionsAndPointLoads / Assembled F is the nodal load at a node and the Hermite vector inside an element

@@ -11,7 +11,9 @@ function validateModel(model)
 %     - supports sit on existing nodes, at most one per node, with restraint
 %       flags that match their type;
 %     - nodal loads act on existing nodes with real, finite values;
-%     - the uniform element load intensities are a real, finite NE-by-1 vector.
+%     - the uniform element load intensities are a real, finite NE-by-1 vector;
+%     - point loads are a real, finite NP-by-2 [x Fv] matrix with every x on
+%       the beam (within 1e-9 times its length).
 %   Kinematic stability is checked separately by PARTITIONDOFS.
 %
 %   See also CREATEBEAMMODEL, PARTITIONDOFS.
@@ -23,7 +25,7 @@ if ~(isstruct(model) && isscalar(model))
 end
 required = {{'nodes', 'x'}, {'elements', 'conn'}, {'elements', 'EI'}, ...
     {'supports', 'node'}, {'supports', 'type'}, {'supports', 'restraint'}, ...
-    {'loads', 'nodal'}, {'loads', 'elementUDL'}};
+    {'loads', 'nodal'}, {'loads', 'elementUDL'}, {'loads', 'point'}};
 for k = 1:numel(required)
     p = required{k};
     if ~(isfield(model, p{1}) && isstruct(model.(p{1})) && isfield(model.(p{1}), p{2}))
@@ -94,5 +96,15 @@ end
 w = model.loads.elementUDL;
 if ~(isnumeric(w) && isreal(w) && isequal(size(w), [ne, 1]) && all(isfinite(w)))
     error(id, 'model.loads.elementUDL must be a real, finite %d-by-1 vector [N/m].', ne);
+end
+
+% Point loads at arbitrary coordinates
+Lp = model.loads.point;
+if ~(isnumeric(Lp) && isreal(Lp) && ndims(Lp) == 2 && size(Lp, 2) == 2 && all(isfinite(Lp(:))))
+    error(id, 'model.loads.point must be a real, finite NP-by-2 matrix [x Fv].');
+end
+tol = 1e-9 * (x(end) - x(1));
+if any(Lp(:, 1) < x(1) - tol | Lp(:, 1) > x(end) + tol)
+    error(id, 'model.loads.point has a load outside the beam [%g, %g] m.', x(1), x(end));
 end
 end

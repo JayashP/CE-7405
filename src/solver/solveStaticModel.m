@@ -16,6 +16,7 @@ function results = solveStaticModel(model)
 %     F               2NN-by-1 equivalent nodal loads [N, N*m] (nodal +
 %                     consistent element loads; see ASSEMBLELOADVECTOR)
 %     elementLoads    NE-by-4 consistent load vectors f_e0 of the element loads
+%     pointLoads      where each point load was applied (LOCATEPOINTLOADS)
 %     K               sparse unrestrained global stiffness matrix
 %     ke              4-by-4-by-NE element stiffness matrices
 %     freeDofs        free DOF indices
@@ -79,6 +80,7 @@ results.v = U(1:2:end);
 results.theta = U(2:2:end);
 results.F = F;
 results.elementLoads = elementLoadVectors(model);
+results.pointLoads = locatePointLoads(model);
 results.K = K;
 results.ke = ke;
 results.freeDofs = freeDofs;

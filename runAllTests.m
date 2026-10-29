@@ -71,4 +71,7 @@ fprintf('======================================================\n');
 if nFailed > 0
     error('BridgeFE:testsFailed', '%d of %d tests failed.', nFailed, numel(summary));
 end
+if nargout == 0
+    clear summary   % no 'ans = 1xN struct array' echo when called as a command
+end
 end

@@ -5,8 +5,8 @@ function ef = recoverElementForces(model, U)
 %   from the full global displacement vector U. f_e0 is the consistent
 %   (equivalent nodal) load vector of the loads acting inside element e
 %   (ELEMENTLOADVECTORS); it is zero for an element without member loads.
-%   Supported member loads: uniform load per element (model.loads.elementUDL).
-%   Point loads inside elements are not yet supported (milestone M3).
+%   Member loads: uniform load per element (model.loads.elementUDL) and
+%   point loads strictly inside elements (model.loads.point).
 %
 %   EF fields (SI units):
 %     endActions  NE-by-4 [F_i M_i F_j M_j], the forces [N] and couples [N*m]
@@ -18,8 +18,10 @@ function ef = recoverElementForces(model, U)
 %   Internal force convention (DECISIONS.md D-003): M positive sagging;
 %   V(x) = sum of upward forces to the left of the section, so dM/dx = V:
 %       V_i = F_i,   M_i = -M_i(end action),   V_j = -F_j,   M_j = M_j(end action).
-%   Inside an element with uniform load w (+ up), V is linear and M is
-%   parabolic; use SAMPLEINTERNALFORCES for values between the ends.
+%   Between the ends, V is linear under a uniform load and jumps at interior
+%   point loads, and M is parabolic / piecewise; use SAMPLEINTERNALFORCES.
+%   V_j and M_j are the limits just left of node j (x_j-), so they include
+%   every load inside the element but not a load applied at node j itself.
 %
 %   See also SOLVESTATICMODEL, ELEMENTLOADVECTORS, SAMPLEINTERNALFORCES.
 

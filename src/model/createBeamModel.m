@@ -17,12 +17,15 @@ function model = createBeamModel(x, EI)
 %     model.loads.nodal        NL-by-3 [node, Fv [N] (+ up), Mz [N*m] (+ CCW)]
 %     model.loads.elementUDL   NE-by-1 uniform load intensity w [N/m] on each
 %                              element (+ up; a downward load is negative)
+%     model.loads.point        NP-by-2 [x [m], Fv [N] (+ up)] point loads at any
+%                              coordinate, not necessarily a node (ADDPOINTLOAD)
 %     model.units              labels of the internal SI units (D-002)
 %     model.conventions        sign-convention labels (D-003)
 %     model.meta               model format version
 %
-%   Add supports with ADDSUPPORT, nodal loads with ADDNODALLOAD and uniform
-%   element loads with ADDUNIFORMLOAD. MESHSPANS builds node coordinates for
+%   Add supports with ADDSUPPORT, nodal loads with ADDNODALLOAD, uniform
+%   element loads with ADDUNIFORMLOAD and point loads anywhere along the
+%   beam with ADDPOINTLOAD. MESHSPANS builds node coordinates for
 %   multi-span beams with a node at every support.
 %
 %   Example (20 m simply supported span, 20 elements, E = 200 GPa, I = 0.01 m^4):
@@ -31,7 +34,7 @@ function model = createBeamModel(x, EI)
 %     model = addSupport(model, 21, 'roller');
 %
 %   See also GENERATEUNIFORMMESH, MESHSPANS, ADDSUPPORT, ADDNODALLOAD,
-%   ADDUNIFORMLOAD, VALIDATEMODEL.
+%   ADDUNIFORMLOAD, ADDPOINTLOAD, VALIDATEMODEL.
 
 if ~(isnumeric(x) && isreal(x) && isvector(x) && numel(x) >= 2 && all(isfinite(x)))
     error('BridgeFE:invalidInput', ...
@@ -61,6 +64,7 @@ model.supports.type = cell(0, 1);
 model.supports.restraint = false(0, 2);
 model.loads.nodal = zeros(0, 3);
 model.loads.elementUDL = zeros(ne, 1);
+model.loads.point = zeros(0, 2);
 model.units = struct('length', 'm', 'force', 'N', 'moment', 'N*m', ...
     'rotation', 'rad', 'EI', 'N*m^2');
 model.conventions = struct( ...
@@ -69,7 +73,7 @@ model.conventions = struct( ...
     'theta', 'rotation and nodal couple positive counterclockwise (theta = dv/dx)', ...
     'moment', 'internal bending moment positive sagging (tension in bottom fibre)', ...
     'shear', 'internal shear V(x) = sum of upward forces left of the section (dM/dx = V)');
-model.meta.formatVersion = 2;
+model.meta.formatVersion = 3;
 
 validateModel(model);
 end

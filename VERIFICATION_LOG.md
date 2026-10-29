@@ -299,3 +299,103 @@ matlab -batch "runAllTests"
 - As with V-002, the MATLAB comparison tables were not sent, so this entry records PASS/FAIL, not MATLAB's numbers.
 
 **Status of M2:** verified in GNU Octave 8.4.0 (V-003, with numbers) and in MATLAB (V-004, pass/fail). The gate is met, so the branch is merged into `main`.
+
+---
+
+## V-005 — 2026-10-29 — Milestone M3 (point loads inside elements, deflection between nodes) in GNU Octave
+
+| Item | Value |
+|---|---|
+| Platform | **GNU Octave 8.4.0** (`octave-cli`), Linux 6.18 x86_64, Ubuntu 24.04.5 cloud container |
+| MATLAB | **NOT RUN** for the M3 tests. The user needs to run them; record the result as V-006 |
+| Code version | Branch `claude/m3-in-element-point-loads` (from `main` at `b0e3d72`) |
+| Command (repo root) | `octave-cli --no-gui --norc --eval "runAllTests;"` |
+| Raw log | `results/verification/2026-10-29_M3_octave-8.4.0_runAllTests.log` |
+| Overall result (Octave) | **61 passed, 0 failed, 61 tests.** That is 46 earlier tests plus 15 new: testShapeFunctionsAndPointLoads 8, testMovingPointLoad 2, testPointLoadsInElements 5. octave-cli exit status 0 |
+| Regression | All 46 M1/M2 tests still pass. The Benchmark A table is identical to V-001 |
+| Determinism | Two consecutive runs printed identical comparison tables |
+
+**Common inputs:** EI = 2×10⁹ N·m², loads downward. Signs: v up +, M sagging +. The **actual** values are copied from the Octave log.
+
+### Benchmark B — single point load moving on a simple span (spec §10)
+
+**Setup**
+- L = 20 m, P = 100 kN, pin at x = 0, roller at x = 20 m.
+- Mesh of **8 elements of 2.5 m** (deliberately coarse).
+- **88 load positions**, of which 79 are inside elements. They are a 0.25 m grid plus 0.1, 1.234, 7.77, 12.3456 and 19.99 m and 5 m ± 1e‑7 m.
+
+**Selected positions**
+
+| a [m] | R_A [kN] actual / exact | M under load [kN·m] actual / exact | v under load [mm] actual / exact |
+|---|---|---|---|
+| 0.1 | 99.500000 / 99.500000 | 9.950000 / 9.950000 | −0.0033001 / −0.0033001 |
+| 1.234 | 93.830000 / 93.830000 | 115.786220 / 115.786220 | −0.4468816 / −0.4468816 |
+| 2.5 (node) | 87.500000 / 87.500000 | 218.750000 / 218.750000 | −1.5950521 / −1.5950521 |
+| 7.77 | 61.150000 / 61.150000 | 475.135500 / 475.135500 | −7.5251248 / −7.5251248 |
+| 10 (node, L/2) | 50.000000 / 50.000000 | 500.000000 / 500.000000 | −8.3333333 / −8.3333333 |
+| 12.3456 | 38.272000 / 38.272000 | 472.490803 / 472.490803 | −7.4415853 / −7.4415853 |
+| 19.99 | 0.050000 / 0.050000 | 0.999500 / 0.999500 | −0.0000333 / −0.0000333 |
+
+**Summary over all 88 positions**
+
+| Quantity | Actual (Octave) | Criterion | Result |
+|---|---|---|---|
+| Largest relative error of R_A [%] | 6.98e‑12 | ≤ 0.5 % | PASS |
+| Largest relative error of R_B [%] | 2.48e‑12 | ≤ 0.5 % | PASS |
+| Largest relative error of M under the load [%] | 2.42e‑12 | ≤ 0.5 % | PASS |
+| Largest relative error of v under the load [%] | 2.07e‑12 | ≤ 0.5 % | PASS |
+| Largest relative error of the shear jump vs P [%] | 6.72e‑12 | ≤ 0.5 % | PASS |
+| Largest gap between the maximum sampled M and M under the load, / (PL/4) | 0 | ≤ 1e‑9 | PASS |
+| Load at a = 0: R_A / R_B [kN] | 100 / 0 | exact | PASS |
+| Load at a = L: R_B [kN] | 100 | exact | PASS |
+| Critical position a* for maximum M [m] | 10 (= L/2) | < 0.5 % | PASS |
+| Maximum M over positions [kN·m] | 500 (error 8.9e‑13 %) | < 0.5 % | PASS |
+| Largest \|ΣF_v\| / \|ΣM about 0\| over positions | 3.5e‑12 kN / 1.9e‑11 kN·m | abs | PASS |
+
+**Continuity across a node:** the load was placed at x = 5 m (on node 3) and 1e‑7 m to either side (inside elements 2 and 3).
+- Largest change in U: 1.64e‑8 of max|U|, for both sides.
+- R_A(5 + δ) − R_A(5 − δ) = 0.0010000001639 N, against the exact 2Pδ/L = 0.001 N.
+
+### Other M3 checks (Octave, all PASS)
+
+| Test | Analytical reference | Key actual result | Largest rel. error % |
+|---|---|---|---|
+| **Two loads inside one element** (simple span of one 10 m element; 50 kN at 3 m, 80 kN at 7 m) | R_A = 59, R_B = 71 kN; M(3) = 177, M(7) = 213 kN·m; V = 59 → 9 → −71 kN; v from superposed closed forms | All exact to ≤ 8e‑14 %. Deflection v(3) = −0.8595 mm, v(7) = −0.8955 mm; largest field error over 41 points is 3e‑16 | 7.9e‑14 |
+| **Propped cantilever, 100 kN at 3.7 m** (inside element 2 of 4) | R_B = Pa²(3L − a)/(2L³) = 18.00235 kN, M_A = −189.9765 kN·m, M(a) = 113.414805 kN·m, jump 100 kN, v(a) from the elastic curve | 18.00235, −189.9765, 113.414805, 100; v(a) = −0.3040756574625 mm | 3.2e‑13 |
+| **Deflection between nodes** | Simple span with UDL on only 2 elements, at 41 points; simple span with P at 7.3 m on 4 elements; fixed-fixed beam as one element (U = 0, pure particular solution) | Field errors 5.0e‑16 and 6.2e‑15. Fixed-fixed v(L/2) = −0.26041666666667 mm (= −qL⁴/384EI) and v(L/4) = −0.146484375 mm, both exact | 5.7e‑13 |
+| **Mixed loads in one model** (fixed + roller; UDL on elements 2–4; loads at 4.5 m down and 5.2 m up in the same element; load at a node; nodal couple) | Element-end equilibrium of the sampled diagrams; jumps −60 and +25 kN | Normalized end gaps 6.1e‑17 (V) and 1.9e‑16 (M); jumps −60 and +25 kN exactly | 0 |
+| **Load exactly on the pin** | U = 0, R_A = 50 kN, R_B = 0 | U = 0 exactly, R_A = 50, R_B = 0 | 0 |
+| **Shape functions and point-load vectors** | Nodal values; rigid-body reproduction; N(1/3) = [20/27, 4L_e/27, 7/27, −2L_e/27]; end slopes; fixed-end actions Pab²/L², −Pa²b/L², P b²(3a+b)/L³, P a²(a+3b)/L³; resultant force and moment for 5 positions | All match | ≤ 2e‑14 |
+| **Load location and F assembly** | Loads at 0, 2.5 and 10 m go to nodes 1, 2, 5; 2.5 m + 1e‑12 goes to node 2; 3.7 m to element 2 at a = 1.2 m; 9.9 m to element 4 at a = 2.4 m. A point load at a node gives the same F as a nodal load; an interior load gives F equal to the Hermite vector | Exact | — |
+| Invalid input | r outside [0, 1], a outside the element, loads off the beam, Inf load, broken `loads.point` | Expected error IDs | — |
+
+### Test-sensitivity (mutation) check — 2026-10-29, Octave 8.4.0
+
+- **Command:** `python3 -I tools/mutation_check.py <repo> <scratch_dir>`.
+- **Result: 18 of 18 faults detected** (7 M1 + 5 M2 + 6 M3). For every mutant, `runAllTests` exited with status 1.
+- **Raw output:** `results/verification/2026-10-29_M3_mutation_check_octave-8.4.0.txt`.
+
+| M3 injected fault | Tests failed (of 61) |
+|---|---|
+| N2 shape-function coefficient wrong | 11 |
+| Sign of the point-load shear jump flipped in sampling | 2 |
+| UDL particular solution left out of the deflection | 1 |
+| Point-load particular solution left out (s ≤ a) | 3 |
+| Point load located in the wrong element | 7 |
+| Point loads at nodes dropped from F | 4 |
+
+### Limits of this evidence
+
+- These results are from **GNU Octave only.** The M3 tests have **not** been run in MATLAB.
+- **Not implemented, so NOT RUN:** multi-axle vehicles, position stepping, envelopes and step refinement (M4); the materials layer (M5); GUI (M6); Stage 2 (M7).
+
+### Command for the MATLAB confirmation (V-006)
+
+Download a ZIP of branch `claude/m3-in-element-point-loads` from GitHub (or `fetch` and `switchBranch` in MATLAB). Then, in its folder:
+
+```matlab
+restoredefaultpath
+runAllTests
+```
+
+Expected last line: `Total: 61 passed, 0 failed, 61 tests`.

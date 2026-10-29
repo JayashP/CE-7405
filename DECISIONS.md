@@ -99,7 +99,7 @@ The model is a plain struct-of-arrays built by `createBeamModel(x, EI)`. Fields 
 - **The model struct stores inputs only.** Derived values (element lengths, K) are recomputed so they cannot go stale.
 - **Supports:** `model.supports.{node, type, restraint}`, with at most one support per node.
 - **Loads:** nodal loads as `model.loads.nodal = [node Fv Mz]` (M1). From M2 there is also a uniform load per element, `model.loads.elementUDL` (see D-015). Point loads inside elements arrive in M3.
-- **Format version:** `model.meta.formatVersion = 2` since M2 (added `loads.elementUDL`). Models are built in code, not stored, so there is no migration.
+- **Format version:** `model.meta.formatVersion` is 2 since M2 (added `loads.elementUDL`) and 3 since M3 (added `loads.point`, see D-017). Models are built in code, not stored, so there is no migration.
 
 ## D-006 — Supports and kinematic stability (2026-10-29) — ACCEPTED
 
@@ -144,7 +144,11 @@ Otherwise the code throws `BridgeFE:underRestrained`, naming the free mode. The 
 - Since M2, the element end actions are `f_e = k_e·q_e − f_e0`. Here f_e0 is the consistent load vector of the loads acting inside element e (`elementLoadVectors`); it is zero for unloaded elements. The end actions are converted to end shear and moment using D-003.
   - In M1 there were only nodal loads, so f_e0 was always zero.
 - **Inside an element** with uniform load w (+ up), `sampleInternalForces` uses exact element equilibrium from the left-end values: V(s) = V_i + w·s and M(s) = M_i + V_i·s + w·s²/2. This gives the linear shear and parabolic moment of the real load, not just the end values.
-- **Still to do (M3):** point loads inside elements need their own f_e0 (Hermite, spec §5.2). Their shear jump and piecewise-linear moment between the ends must also be added to `sampleInternalForces`. Deflection between nodes is not recovered yet. It will also need the in-element particular solution, because Hermite interpolation of nodal values alone is not exact inside a loaded element.
+- **Point loads inside elements (M3):**
+  - Their f_e0 is the Hermite vector P·[N1 N2 N3 N4]ᵀ, included in `elementLoadVectors`.
+  - `sampleInternalForces` adds the jump of size P to V(s) and the term P·(s − a) to M(s). Each load position is sampled twice, as the left limit then the right limit, so the jump is visible.
+  - The end values V_j and M_j are the limits just left of node j (x_j⁻).
+- **Deflection between nodes (M3):** `evaluateDeflection` adds the exact fixed-fixed particular solution of each in-element load (uniform or point) to the Hermite interpolation of the nodal DOFs. Hermite interpolation alone is not exact inside a loaded element.
 
 ## D-010 — Verification policy and tolerances (2026-10-29) — ACCEPTED
 
@@ -197,7 +201,7 @@ None of these block M1.
 | GUI workflow (one span field vs spans array, support coordinates, mesh auto-alignment) | Engine uses node coordinates plus `findNodeAtX` (errors if no node is there). Since M2, `meshSpans(spanLengths, elementsPerSpan)` gives exact nodes at every support, so a GUI can take a spans array |
 | Variable EI and nonuniform mesh | Both are already supported by the data model and assembly (tested). Uniform EI is still the benchmark default |
 | Uniform dead load as core or later | **Decided:** implemented in M2 as a consistent element load (D-015) |
-| Vehicle reference axle and the policy for axles exactly at supports | Not decided. Needed in M3/M4 |
+| Vehicle reference axle and the policy for axles exactly at supports | Partly decided in M3 (D-017): a load exactly at a node or support is applied at that node, so a load on a support goes straight into the reaction; loads off the beam are rejected (`BridgeFE:offBeam`). The vehicle reference axle and the rule for skipping axles off the bridge are still open (M4) |
 | Field deflection data format | No field data supplied. Stage 3 only |
 | Stage 4 rule sources | Not selected. Stage 4 only |
 | `.mlapp` packaging vs a runnable source GUI | Not decided. Needed in M6 |
@@ -226,3 +230,23 @@ None of these block M1.
   - simple span with a uniform load
 - **Field checks:** sampled M and V along each beam, and nodal v along each beam, are compared with the closed-form diagrams. Errors are normalized by a characteristic value: 5e‑3 for C and D, 1e‑3 elsewhere.
 - **Zero references:** the 1e‑6 × characteristic-magnitude absolute rule (D-010) still applies.
+
+## D-017 — Point loads at arbitrary positions (2026-10-29, M3) — ACCEPTED
+
+- **Storage.** Point loads are stored by **global coordinate** in `model.loads.point = [x Fv]` [m, N], with Fv positive up (a downward axle load Q is entered as −Q). They are added with `addPointLoad`.
+  - Each load is resolved to a node or an element only when loads are assembled (`locatePointLoads`).
+  - A moving vehicle (M4) therefore only needs to replace this list for each position, without touching the mesh.
+- **Load strictly inside an element.** The consistent vector f_e0 = P·[N1 N2 N3 N4]ᵀ is used, with r = a/L_e (spec §5.2). The load is **not snapped** to a node.
+- **Load at a node.** A load within **1e‑9 × beam length** of a node is applied as a nodal force at that node.
+  - At a node the Hermite vector equals a nodal force exactly (N3 = 1 at r = 1, N1 = 1 at r = 0), so this changes no result.
+  - The tolerance only absorbs coordinate round-off. It also keeps element-end values unambiguous: V_j and M_j never include a load that sits on node j.
+  - A load on a supported node goes straight into that reaction.
+- **Off the beam.** A load more than 1e‑9 × beam length outside the beam throws `BridgeFE:offBeam`. Dropping axles that are off the bridge is the vehicle layer's job (M4).
+- **Continuity.** Moving a load 1e‑7 m to either side of a node changes U by only 1.6e‑8 of its size (tested), so there is no discontinuity at element boundaries.
+
+## D-018 — Benchmark B setup (2026-10-29, M3) — PROVISIONAL
+
+- **Mesh.** Benchmark B (spec §10) uses a deliberately **coarse** mesh of 8 elements of 2.5 m on a 20 m span. Most load positions therefore fall inside elements.
+- **Positions.** 88 positions are used: a 0.25 m grid (including every node and both supports), the odd positions 0.1, 1.234, 7.77, 12.3456 and 19.99 m, and 5 m ± 1e‑7 m.
+- **Target.** < 0.5 % (spec) for the maximum relative error over positions of R_A, R_B, M under the load, v under the load and the size of the shear jump. Positions on a support are checked separately, with absolute tolerances.
+- **Critical position.** The test checks that the largest moment under the load occurs at a = L/2. This is the basic critical-position check. Full envelopes and multi-axle critical positions are M4.
