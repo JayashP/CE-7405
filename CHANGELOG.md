@@ -2,6 +2,14 @@
 
 This file records every notable change to the source, tests and project records. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Dates are ISO 8601.
 
+## [Unreleased]
+
+### Changed — records
+- `DECISIONS.md` D-001: the user chose `JayashP/CE-7405` as the home repository (2026-10-29). It was empty when attached, so nothing was merged or overwritten. M1 is the first commit on `main`.
+- `DEVELOPMENT_PLAN.md`: replaced the "not linked to GitHub" risk with the rule to push work to `JayashP/CE-7405`.
+
+No source or test changes.
+
 ## [0.1.0-M1] — 2026-10-29
 
 First verified solver milestone (M1). Source and tests were written by Claude Code.

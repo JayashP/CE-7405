@@ -13,7 +13,7 @@ Owner of this file for technical entries: Claude Code. Claude Cowork reads it an
 
 ---
 
-## D-001 — Session-1 inputs, repository location and coordination (2026-10-29) — NEEDS USER DECISION
+## D-001 — Session-1 inputs, repository location and coordination (2026-10-29) — ACCEPTED (repository decided by the user, 2026-10-29)
 
 **Files actually read in session 1**
 - `PROJECT_SPEC.md`: an exact byte-for-byte copy of the uploaded `CE7405_Complete_Handoff_PROJECT_SPEC.md`, SHA-256 `df8833bd…5bfe`.
@@ -30,10 +30,12 @@ None of these were invented. The record files here were started from scratch.
 - The session working directory was empty and was not a git repository.
 - The GitHub account has two private repositories, `JayashP/CE-7405` and `JayashP/CE7405-Project`. Attaching them to this cloud session was **denied**, so their contents were **not inspected**. Nothing in them was overwritten.
 - A new local git repository was created at `/home/user/CE7405_Bridge_Platform`. It lives in an ephemeral cloud container with **no remote**, so it will be lost when the container is reclaimed unless it is pushed or downloaded.
-- **User decision needed:**
-  1. Which GitHub repository is the project home.
-  2. Whether to push or merge this milestone there.
-  3. Whether any `START_HERE.md`, `DECISIONS.md` or similar files in that repository must be reconciled with these.
+- **Resolution (user decision, 2026-10-29):** `JayashP/CE-7405` is the project home repository.
+  - When it was attached to the session with push access it was **completely empty**: no branches, no commits, no files.
+  - Nothing needed merging and nothing was overwritten.
+  - The M1 commit was pushed there as the first commit on `main`, which is the default branch.
+- `JayashP/CE7405-Project` was **not** inspected and is not used by this project. If it holds earlier material, such as `START_HERE.md` or the proposal, that material still has to be reviewed by hand.
+- The temporary local repository `/home/user/CE7405_Bridge_Platform` is superseded by the GitHub repository.
 
 ## D-002 — Internal units (2026-10-29) — ACCEPTED
 

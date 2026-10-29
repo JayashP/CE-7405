@@ -105,4 +105,4 @@ Order is fixed by the spec:
 
 - In-element load force recovery and interior deflection (M3) is the highest-risk numerical item. It must be verified across element boundaries.
 - No MATLAB in the Claude Code environment. Every MATLAB- or GUI-specific behaviour needs a run by the user.
-- The repository is not yet linked to GitHub (DECISIONS.md D-001). Work in the cloud container is lost unless it is pushed or downloaded.
+- Work done in a cloud container must be pushed to `JayashP/CE-7405` before the session ends (DECISIONS.md D-001).
