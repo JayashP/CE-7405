@@ -18,7 +18,7 @@ Order is fixed by the spec:
 |---|---|---|---|
 | M1 | Element, assembly, supports, static solve, reactions, nodal-load force recovery, Benchmark A | Oct 28 – Nov 1 | **Done.** 26/26 tests pass in GNU Octave 8.4.0 (V-001) and MATLAB R2026b (V-002) |
 | M2 | Indeterminate beams: span mesher, propped cantilever, two-span continuous, UDL, Benchmarks C and D | Nov 2 – 7 | **Done.** 46/46 tests (incl. M1) pass in GNU Octave 8.4.0 (V-003) and MATLAB (V-004). Merged to `main` |
-| M3 | Point loads anywhere inside elements (Hermite), interior V/M/deflection recovery, Benchmark B | Nov 8 – 10 | **Done in GNU Octave 8.4.0** (61/61 tests incl. M1–M2; V-005). MATLAB run NOT RUN, pending the user. Branch `claude/m3-in-element-point-loads` |
+| M3 | Point loads anywhere inside elements (Hermite), interior V/M/deflection recovery, Benchmark B | Nov 8 – 10 | **Done.** 61/61 tests (incl. M1–M2) pass in GNU Octave 8.4.0 (V-005) and MATLAB (V-006). Merged to `main` |
 | M4 | Multi-axle vehicle, position stepping, envelopes, critical positions, step refinement | Nov 10 – 13 | **Next** |
 | M5 | Steel / RCC input layer (E_s·I_s, E_c·I_eff) and equal-EI equivalence test | Nov 14 – 15 | Not started |
 | M6 | Basic App Designer GUI over the verified engine (sage green, conventional supports, matrix inspection) | Nov 13 – 17 | Not started; needs MATLAB |
@@ -66,7 +66,7 @@ The original plan for M2 is kept below for traceability.
 
 **Gate:** Benchmarks C and D within the spec target of 0.5 %, the nodal-load indeterminate checks within 0.1 %, and all M1 tests still passing.
 
-## M3 — point loads inside elements (Benchmark B) — done in Octave; MATLAB confirmation pending
+## M3 — point loads inside elements (Benchmark B) — done (Octave V-005, MATLAB V-006)
 
 **Delivered (2026-10-29):** `beamShapeFunctions`, `equivalentPointLoad`, `addPointLoad`, `locatePointLoads` and `evaluateDeflection` (deflection at any x, exact inside loaded elements). Point loads are now included in `elementLoadVectors` and `assembleLoadVector`, and `sampleInternalForces` shows shear jumps at interior loads.
 
@@ -78,7 +78,7 @@ Tests: 15 new, in `testShapeFunctionsAndPointLoads`, `testMovingPointLoad` (Benc
 - Results are continuous across a node.
 - All 46 earlier tests still pass.
 
-**Open action for the user:** run `runAllTests` in MATLAB on branch `claude/m3-in-element-point-loads` and report the summary (expected `Total: 61 passed`). The branch is then merged into `main`.
+**MATLAB confirmation:** 61/61 tests passed on the user's computer (V-006). Merged into `main`.
 
 The original plan is kept below for traceability.
 

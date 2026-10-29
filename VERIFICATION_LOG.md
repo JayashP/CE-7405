@@ -307,7 +307,7 @@ matlab -batch "runAllTests"
 | Item | Value |
 |---|---|
 | Platform | **GNU Octave 8.4.0** (`octave-cli`), Linux 6.18 x86_64, Ubuntu 24.04.5 cloud container |
-| MATLAB | **NOT RUN** for the M3 tests. The user needs to run them; record the result as V-006 |
+| MATLAB | Not run in this entry. The user's MATLAB run of the same 61 tests is recorded as **V-006** |
 | Code version | Branch `claude/m3-in-element-point-loads` (from `main` at `b0e3d72`) |
 | Command (repo root) | `octave-cli --no-gui --norc --eval "runAllTests;"` |
 | Raw log | `results/verification/2026-10-29_M3_octave-8.4.0_runAllTests.log` |
@@ -386,7 +386,7 @@ matlab -batch "runAllTests"
 
 ### Limits of this evidence
 
-- These results are from **GNU Octave only.** The M3 tests have **not** been run in MATLAB.
+- Numeric values in this entry come from GNU Octave. MATLAB PASS/FAIL confirmation of the same tests is in **V-006**.
 - **Not implemented, so NOT RUN:** multi-axle vehicles, position stepping, envelopes and step refinement (M4); the materials layer (M5); GUI (M6); Stage 2 (M7).
 
 ### Command for the MATLAB confirmation (V-006)
@@ -399,3 +399,24 @@ runAllTests
 ```
 
 Expected last line: `Total: 61 passed, 0 failed, 61 tests`.
+
+---
+
+## V-006 — 2026-10-29 — Milestone M3 in MATLAB (run by the user)
+
+| Item | Value |
+|---|---|
+| Platform | MATLAB on the user's computer. The screenshot starts below the summary header, so the "Platform" line is **not visible**. It is most likely the same R2026b installation as V-002, but this is **not confirmed** |
+| Run by | The user. Claude Code has no MATLAB |
+| Code version | Branch `claude/m3-in-element-point-loads` at commit `46fda13` |
+| Runner | `runAllTests` (MATLAB branch, `matlab.unittest`) |
+| Overall result | **61 passed, 0 failed, 61 tests** |
+| Evidence | Screenshot of the end of the TEST SUMMARY: `results/verification/2026-10-29_M3_matlab_summary_screenshot.png` |
+
+**What this entry shows**
+- The visible lines show PASS for every test in `testSimplySupportedBeam`, `testSupportsAndStability` and `testUniformLoadBeams`, then `Total: 61 passed, 0 failed, 61 tests`.
+- A total of 61 means the 15 M3 tests (`testShapeFunctionsAndPointLoads`, `testMovingPointLoad`, `testPointLoadsInElements`) ran and passed in MATLAB. That includes Benchmark B against its 0.5 % criterion.
+- The `>>` prompt follows the summary directly, with no `ans = 1x61 struct array` echo. This confirms in MATLAB the M3 change to `runAllTests`.
+- As in V-002 and V-004, the MATLAB comparison tables were not sent, so this entry records PASS/FAIL, not MATLAB's numbers.
+
+**Status of M3:** verified in GNU Octave 8.4.0 (V-005, with numbers) and in MATLAB (V-006, pass/fail). The gate is met, so the branch is merged into `main`.

@@ -6,7 +6,7 @@ This is a MATLAB direct-stiffness solver for a **2D equivalent Euler–Bernoulli
 - **Deadline:** 24 Nov 2026.
 - **Authoritative requirements:** `PROJECT_SPEC.md`.
 
-## Current status (2026-10-29, milestone M3 on branch `claude/m3-in-element-point-loads`)
+## Current status (2026-10-29, milestone M3)
 
 | Capability | State |
 |---|---|
@@ -15,8 +15,8 @@ This is a MATLAB direct-stiffness solver for a **2D equivalent Euler–Bernoulli
 | Benchmark A (simple span, central load: R = 50 kN, M_max = 500 kN·m, δ = 8.333 mm) | **PASS** in GNU Octave 8.4.0 (error ≤ about 1e‑9 %) and in MATLAB R2026b (26/26 tests; VERIFICATION_LOG V-002) |
 | Multi-span mesher, uniform loads (consistent loads, f_e = k_e q_e − f_e0), sampled V/M diagrams | Implemented (M2); tested in GNU Octave 8.4.0 and MATLAB (46/46; V-004) |
 | Benchmark C (propped cantilever, UDL) and D (two-span, UDL), plus point-load and pattern-load indeterminate checks | **PASS** in Octave (error ≤ about 4e‑11 %, target 0.5 %) and in MATLAB (V-004) |
-| Point loads at any position (Hermite consistent loads, not snapped), shear jumps, deflection at any x | Implemented (M3); tested in GNU Octave 8.4.0; **MATLAB NOT RUN yet** |
-| Benchmark B (single load at 88 positions on a coarse 8-element span) | **PASS in Octave**, error ≤ about 7e‑12 % (target 0.5 %); **MATLAB NOT RUN yet** |
+| Point loads at any position (Hermite consistent loads, not snapped), shear jumps, deflection at any x | Implemented (M3); tested in GNU Octave 8.4.0 and MATLAB (61/61; V-006) |
+| Benchmark B (single load at 88 positions on a coarse 8-element span) | **PASS** in Octave (error ≤ about 7e‑12 %, target 0.5 %) and in MATLAB (V-006) |
 | Multi-axle vehicles, moving-load stepping, envelopes, critical positions | Not implemented (M4, next) |
 | Steel/RCC input layer, GUI, Stage 2 damage, Stages 3/4 | Not implemented |
 

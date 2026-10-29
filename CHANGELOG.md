@@ -41,7 +41,7 @@ Milestone M3: point loads at any position inside elements, shear jumps, deflecti
 
 ### Verified
 - **GNU Octave 8.4.0:** 61 of 61 tests passed. Benchmark B errors are ≤ about 7e‑12 % (target 0.5 %). Mutation check: 18 of 18 faults detected.
-- **MATLAB:** M1 (V-002) and M2 (V-004) confirmed by the user. **M3 tests: NOT RUN.**
+- **MATLAB:** M1 (V-002), M2 (V-004) and M3 (V-006, 61/61, recorded after the user's run) confirmed by the user.
 
 ### Known limitations
 - Point couples inside elements are not supported (none are needed for vehicles).
