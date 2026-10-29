@@ -2,7 +2,48 @@
 
 This file records every notable change to the source, tests and project records. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Dates are ISO 8601.
 
-## [Unreleased]
+## [0.2.0-M2] — 2026-10-29 (branch `claude/m2-indeterminate-beams`)
+
+Milestone M2: indeterminate beams with uniform loads. Source and tests were written by Claude Code.
+
+### Added — engine
+- `src/model/meshSpans.m`: node coordinates for multi-span beams, with an exact node at every support.
+- `src/model/elementsBetween.m`: element indices between two node coordinates.
+- `src/model/addUniformLoad.m`: uniform load w [N/m] (+ up) on all or selected elements; repeated loads superpose.
+- `src/loads/equivalentDistributedLoad.m`: consistent element load vector w·[L/2, L²/12, L/2, −L²/12].
+- `src/loads/elementLoadVectors.m`: the NE-by-4 matrix of f_e0 for all elements.
+- `src/loads/assembleLoadVector.m`: global equivalent load vector, nodal plus element loads.
+- `src/postprocess/sampleInternalForces.m`: sampled V(x) and M(x) per element; parabolic M under uniform load, jumps at nodes kept.
+
+### Changed — engine
+- `createBeamModel`: new field `model.loads.elementUDL` (NE-by-1, zeros); `meta.formatVersion` changed from 1 to 2.
+- `validateModel`: validates `loads.elementUDL`.
+- `recoverElementForces`: f_e = k_e·q_e − f_e0, which removes the M1 nodal-loads-only limitation for uniform loads.
+- `solveStaticModel`: assembles F with `assembleLoadVector` and returns `results.elementLoads`.
+
+### Added — tests and tools (20 new tests; 46 in total)
+- `tests/testMeshSpansAndLoads.m` (9 tests): meshing, element selection, consistent load vector (checked against literals and Gauss integration), superposition, load resultants, invalid input.
+- `tests/testUniformLoadBeams.m` (4 tests): simple span and fixed-fixed beam under uniform load, including the single-element case with no free DOFs; element-end equilibrium of the sampled diagrams.
+- `tests/testProppedCantilever.m` (3 tests): central point load; **Benchmark C**; mesh independence for ne = 1, 2, 4, 16.
+- `tests/testContinuousBeam.m` (4 tests): point loads at both midspans; **Benchmark D**; one span loaded (uplift); unequal spans checked by the three-moment equation.
+- `tools/mutation_check.py`: 5 M2 faults added, 12 in total.
+
+### Added — records
+- DECISIONS D-015 (uniform load) and D-016 (indeterminate benchmark set). D-005, D-009, D-012 and D-014 updated.
+- VERIFICATION_LOG V-002 (M1 in MATLAB R2026b, run by the user) and V-003 (M2 in Octave).
+- Raw evidence in `results/verification/`: the M1 MATLAB summary screenshot, the M2 Octave log and the M2 mutation output.
+
+### Verified
+- **GNU Octave 8.4.0:** 46 of 46 tests passed. Benchmarks C and D errors are ≤ about 4e‑11 % (target 0.5 %). Mutation check: 12 of 12 faults detected.
+- **MATLAB:** M1 26/26 (R2026b, V-002). **M2 tests: NOT RUN.**
+
+### Known limitations
+- Point loads inside elements: not implemented (M3).
+- Deflection between nodes is not recovered.
+- Loads must start and end on nodes.
+- Prescribed nonzero support settlement is not supported.
+
+## [0.1.1] — 2026-10-29
 
 ### Changed — records
 - `DECISIONS.md` D-001: the user chose `JayashP/CE-7405` as the home repository (2026-10-29). It was empty when attached, so nothing was merged or overwritten. M1 is the first commit on `main`.

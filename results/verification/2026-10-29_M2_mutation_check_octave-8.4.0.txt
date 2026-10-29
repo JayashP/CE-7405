@@ -1,0 +1,37 @@
+# Command: python3 -I tools/mutation_check.py <repo_root> <scratch_dir>   (GNU Octave 8.4.0; 12 single-fault mutants: 7 M1 + 5 M2; repo itself unchanged)
+MUTATION: k22 coefficient 4->3
+  exit=1 summary=[('24', '22')]
+  detected by: testAssembly / Two equal unit elements assemble to the hand-computed 6x6 matrix; testAssembly / Assembled K is symmetric with exactly two rigid-body modes; testBeamStiffness / Exact matrix for EI = 2e9 N*m^2 and Le = 2 m (hand-computed literals); testBeamStiffness / Unit EI and unit length give the integer coefficient matrix exactly; testBeamStiffness / Spec mesh example Le = 1.5 m with steel E = 200 GPa and I = 0.01 m^4; testBeamStiffness / Rigid-body modes lie in the null space and ke is positive semi-definite of rank 2 ...
+MUTATION: rotation-coupling sign flipped (k12,k21)
+  exit=1 summary=[('24', '22')]
+  detected by: testAssembly / Two equal unit elements assemble to the hand-computed 6x6 matrix; testAssembly / Assembled K is symmetric with exactly two rigid-body modes; testBeamStiffness / Exact matrix for EI = 2e9 N*m^2 and Le = 2 m (hand-computed literals); testBeamStiffness / Unit EI and unit length give the integer coefficient matrix exactly; testBeamStiffness / Spec mesh example Le = 1.5 m with steel E = 200 GPa and I = 0.01 m^4; testBeamStiffness / Rigid-body modes lie in the null space and ke is positive semi-definite of rank 2 ...
+MUTATION: DOF map v/theta swapped
+  exit=1 summary=[('25', '21')]
+  detected by: testAssembly / Element DOF map is [v_i theta_i v_j theta_j] with node n owning DOFs 2n-1 and 2n; testAssembly / Two equal unit elements assemble to the hand-computed 6x6 matrix; testAssembly / Unequal lengths and EI match K = sum(A_e'*k_e*A_e) with explicit Boolean A_e; testAssembly / Assembled K is symmetric with exactly two rigid-body modes; testCantileverTipLoad / Cantilever with a tip load and 10 elements; testContinuousBeam / Two equal spans with a point load at each midspan ...
+MUTATION: end-moment sign at node i
+  exit=1 summary=[('33', '13')]
+  detected by: testCantileverTipLoad / Cantilever with a tip load and 10 elements; testContinuousBeam / Two equal spans with a point load at each midspan; testContinuousBeam / Benchmark D two equal spans with uniform load on both spans; testContinuousBeam / Uniform load on one span only gives uplift at the far support; testContinuousBeam / Unequal spans of 10 m and 15 m under uniform load (three-moment equation); testProppedCantilever / Propped cantilever with a central point load at a node ...
+MUTATION: reactions ignore loads at restrained DOFs
+  exit=1 summary=[('37', '9')]
+  detected by: testContinuousBeam / Benchmark D two equal spans with uniform load on both spans; testContinuousBeam / Uniform load on one span only gives uplift at the far support; testContinuousBeam / Unequal spans of 10 m and 15 m under uniform load (three-moment equation); testProppedCantilever / Benchmark C propped cantilever under uniform load with 16 elements; testProppedCantilever / Benchmark C mesh independence with 1, 2, 4 and 16 elements; testSimplySupportedBeam / A load applied at a support node goes directly into that reaction ...
+MUTATION: no under-restraint check
+  exit=1 summary=[('44', '2')]
+  detected by: testSupportsAndStability / Under-restrained models are rejected with BridgeFE:underRestrained; testSupportsAndStability / Stability rule agrees with the numerical rank of Kff for many support layouts
+MUTATION: assembly uses wrong element length (x_j only)
+  exit=1 summary=[('35', '11')]
+  detected by: testAssembly / Unequal lengths and EI match K = sum(A_e'*k_e*A_e) with explicit Boolean A_e; testAssembly / Assembled K is symmetric with exactly two rigid-body modes; testContinuousBeam / Two equal spans with a point load at each midspan; testContinuousBeam / Benchmark D two equal spans with uniform load on both spans; testContinuousBeam / Uniform load on one span only gives uplift at the far support; testContinuousBeam / Unequal spans of 10 m and 15 m under uniform load (three-moment equation) ...
+MUTATION: M2: member-load term f_e0 not subtracted in recovery
+  exit=1 summary=[('37', '9')]
+  detected by: testContinuousBeam / Benchmark D two equal spans with uniform load on both spans; testContinuousBeam / Uniform load on one span only gives uplift at the far support; testContinuousBeam / Unequal spans of 10 m and 15 m under uniform load (three-moment equation); testProppedCantilever / Benchmark C propped cantilever under uniform load with 16 elements; testProppedCantilever / Benchmark C mesh independence with 1, 2, 4 and 16 elements; testUniformLoadBeams / Simply supported beam under uniform load, 10 elements ...
+MUTATION: M2: consistent-load end moments swapped in sign
+  exit=1 summary=[('35', '11')]
+  detected by: testContinuousBeam / Benchmark D two equal spans with uniform load on both spans; testContinuousBeam / Uniform load on one span only gives uplift at the far support; testContinuousBeam / Unequal spans of 10 m and 15 m under uniform load (three-moment equation); testMeshSpansAndLoads / Consistent uniform-load vector matches hand-written values; testMeshSpansAndLoads / Consistent load vector equals Gauss integration of w*N over the element; testMeshSpansAndLoads / Uniform loads superpose and assemble into the hand-written global vector ...
+MUTATION: M2: element loads left out of the global load vector
+  exit=1 summary=[('38', '8')]
+  detected by: testContinuousBeam / Benchmark D two equal spans with uniform load on both spans; testContinuousBeam / Uniform load on one span only gives uplift at the far support; testContinuousBeam / Unequal spans of 10 m and 15 m under uniform load (three-moment equation); testProppedCantilever / Benchmark C propped cantilever under uniform load with 16 elements; testProppedCantilever / Benchmark C mesh independence with 1, 2, 4 and 16 elements; testUniformLoadBeams / Simply supported beam under uniform load, 10 elements ...
+MUTATION: M2: parabolic moment term sign flipped in sampling
+  exit=1 summary=[('39', '7')]
+  detected by: testContinuousBeam / Benchmark D two equal spans with uniform load on both spans; testContinuousBeam / Uniform load on one span only gives uplift at the far support; testProppedCantilever / Benchmark C propped cantilever under uniform load with 16 elements; testUniformLoadBeams / Simply supported beam under uniform load, 10 elements; testUniformLoadBeams / Fixed-fixed single element has no free DOF and its forces come only from -f_e0; testUniformLoadBeams / Fixed-fixed beam with 16 elements matches the exact moment and deflection ...
+MUTATION: M2: element load uses a unit element length
+  exit=1 summary=[('37', '9')]
+  detected by: testContinuousBeam / Benchmark D two equal spans with uniform load on both spans; testContinuousBeam / Uniform load on one span only gives uplift at the far support; testContinuousBeam / Unequal spans of 10 m and 15 m under uniform load (three-moment equation); testMeshSpansAndLoads / Assembled uniform load keeps the resultant force and moment on a nonuniform mesh; testProppedCantilever / Benchmark C propped cantilever under uniform load with 16 elements; testProppedCantilever / Benchmark C mesh independence with 1, 2, 4 and 16 elements ...

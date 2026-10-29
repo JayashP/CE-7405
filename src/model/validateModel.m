@@ -10,7 +10,8 @@ function validateModel(model)
 %     - EI is real, finite and positive for every element;
 %     - supports sit on existing nodes, at most one per node, with restraint
 %       flags that match their type;
-%     - nodal loads act on existing nodes with real, finite values.
+%     - nodal loads act on existing nodes with real, finite values;
+%     - the uniform element load intensities are a real, finite NE-by-1 vector.
 %   Kinematic stability is checked separately by PARTITIONDOFS.
 %
 %   See also CREATEBEAMMODEL, PARTITIONDOFS.
@@ -22,7 +23,7 @@ if ~(isstruct(model) && isscalar(model))
 end
 required = {{'nodes', 'x'}, {'elements', 'conn'}, {'elements', 'EI'}, ...
     {'supports', 'node'}, {'supports', 'type'}, {'supports', 'restraint'}, ...
-    {'loads', 'nodal'}};
+    {'loads', 'nodal'}, {'loads', 'elementUDL'}};
 for k = 1:numel(required)
     p = required{k};
     if ~(isfield(model, p{1}) && isstruct(model.(p{1})) && isfield(model.(p{1}), p{2}))
@@ -87,5 +88,11 @@ end
 loadNodes = Ln(:, 1);
 if any(loadNodes ~= round(loadNodes)) || any(loadNodes < 1) || any(loadNodes > nn)
     error(id, 'model.loads.nodal(:,1) must contain integer node indices between 1 and %d.', nn);
+end
+
+% Uniform element loads
+w = model.loads.elementUDL;
+if ~(isnumeric(w) && isreal(w) && isequal(size(w), [ne, 1]) && all(isfinite(w)))
+    error(id, 'model.loads.elementUDL must be a real, finite %d-by-1 vector [N/m].', ne);
 end
 end

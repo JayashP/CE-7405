@@ -1,6 +1,7 @@
 function results = solveStaticModel(model)
 %SOLVESTATICMODEL Linear static solution of a bending-beam model.
-%   RESULTS = SOLVESTATICMODEL(MODEL) assembles K and F, partitions the DOFs
+%   RESULTS = SOLVESTATICMODEL(MODEL) assembles K and the equivalent nodal
+%   load vector F (nodal loads plus consistent element loads), partitions the DOFs
 %   (zero prescribed displacement at restrained DOFs), solves
 %       Kff * Uf = Ff
 %   with MATLAB backslash (never inv), and recovers reactions and element
@@ -12,7 +13,9 @@ function results = solveStaticModel(model)
 %   RESULTS fields:
 %     U               2NN-by-1 displacements [v1 theta1 v2 theta2 ...] [m, rad]
 %     v, theta        NN-by-1 nodal v [m] (+ up) and theta [rad] (+ CCW)
-%     F               2NN-by-1 applied nodal loads [N, N*m]
+%     F               2NN-by-1 equivalent nodal loads [N, N*m] (nodal +
+%                     consistent element loads; see ASSEMBLELOADVECTOR)
+%     elementLoads    NE-by-4 consistent load vectors f_e0 of the element loads
 %     K               sparse unrestrained global stiffness matrix
 %     ke              4-by-4-by-NE element stiffness matrices
 %     freeDofs        free DOF indices
@@ -22,7 +25,9 @@ function results = solveStaticModel(model)
 %     elementForces   output of RECOVERELEMENTFORCES
 %     diagnostics     rcondKff, maxResidual (max |Kff*Uf - Ff|), and
 %                     sumVerticalForce [N] and sumMomentAboutOrigin [N*m]
-%                     (loads + reactions; both should vanish)
+%                     (loads + reactions; both should vanish; the consistent
+%                     vector of a uniform load has the same resultant force
+%                     and moment as the load itself)
 %     units           model.units
 %
 %   Example:
@@ -33,12 +38,12 @@ function results = solveStaticModel(model)
 %     res = solveStaticModel(model);
 %     res.v(11)          % midspan deflection [m], negative = downward
 %
-%   See also ASSEMBLEGLOBALK, ASSEMBLENODALLOADVECTOR, PARTITIONDOFS,
+%   See also ASSEMBLEGLOBALK, ASSEMBLELOADVECTOR, PARTITIONDOFS,
 %   RECOVERREACTIONS, RECOVERELEMENTFORCES.
 
 validateModel(model);
 [K, ke] = assembleGlobalK(model);
-F = assembleNodalLoadVector(model);
+F = assembleLoadVector(model);
 [freeDofs, restrainedDofs] = partitionDofs(model);
 
 nDof = numel(F);
@@ -73,6 +78,7 @@ results.U = U;
 results.v = U(1:2:end);
 results.theta = U(2:2:end);
 results.F = F;
+results.elementLoads = elementLoadVectors(model);
 results.K = K;
 results.ke = ke;
 results.freeDofs = freeDofs;

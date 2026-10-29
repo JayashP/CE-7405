@@ -170,3 +170,112 @@ octave-cli --no-gui --norc --eval "runAllTests;"
 - App Designer: still not applicable (no GUI yet).
 
 **Status of M1:** verified in GNU Octave 8.4.0 (V-001, with numbers) and in MATLAB R2026b (V-002, pass/fail).
+
+---
+
+## V-003 — 2026-10-29 — Milestone M2 (indeterminate beams, uniform loads) in GNU Octave
+
+| Item | Value |
+|---|---|
+| Platform | **GNU Octave 8.4.0** (`octave-cli`), Linux 6.18 x86_64, Ubuntu 24.04.5 cloud container |
+| MATLAB | **NOT RUN** for the M2 tests. The user needs to run them; record the result as V-004 |
+| Code version | Branch `claude/m2-indeterminate-beams` |
+| Command (repo root) | `octave-cli --no-gui --norc --eval "runAllTests;"` |
+| Raw log | `results/verification/2026-10-29_M2_octave-8.4.0_runAllTests.log` |
+| Overall result (Octave) | **46 passed, 0 failed, 46 tests.** This is the 26 M1 tests plus 20 new: testMeshSpansAndLoads 9, testUniformLoadBeams 4, testProppedCantilever 3, testContinuousBeam 4. octave-cli exit status 0 |
+| M1 regression | All 26 M1 tests still pass, and their numeric tables are unchanged from V-001 |
+| Determinism | Two consecutive runs printed identical comparison tables |
+
+**Common inputs:** EI = 200 GPa × 0.01 m⁴ = 2×10⁹ N·m², q = 20 kN/m downward, P = 100 kN downward. Signs: v up +, θ CCW +, M sagging +. The **actual** values below are copied from the Octave log.
+
+### Benchmark C — propped cantilever, uniform load (spec §10)
+
+**Setup:** L = 10 m, fixed at x = 0, roller at x = 10 m, 16 elements. Solver diagnostics: rcond(K_ff) = 3.689×10⁻⁵; max residual 1.49×10⁻⁸.
+
+| Quantity | Expected | Actual (Octave) | Rel. error % | Criterion | Result |
+|---|---|---|---|---|---|
+| R_A [kN] = 5qL/8 | 125 | 125.00000000002 | 1.25e‑11 | <0.5 % | PASS |
+| R_B [kN] = 3qL/8 | 75 | 75.000000000013 | 1.74e‑11 | <0.5 % | PASS |
+| M_A [kN·m] = −qL²/8 | −250 | −250.00000000005 | 2.00e‑11 | <0.5 % | PASS |
+| Reaction couple at A [kN·m] (CCW) | +250 | 250.00000000005 | 2.00e‑11 | <0.5 % | PASS |
+| Max sagging M [kN·m] = 9qL²/128 | 140.625 | 140.62500000005 | 3.31e‑11 | <0.5 % | PASS |
+| x of max sagging M [m] = 5L/8 | 6.25 | 6.25 | 0 | <0.5 % | PASS |
+| θ_B [rad] = qL³/(48EI) | 2.0833333e‑4 | 2.0833333333339e‑4 | 2.65e‑11 | <0.5 % | PASS |
+| v(L/2) [mm] = −qL⁴/(192EI) | −0.52083333333333 | −0.52083333333347 | 2.66e‑11 | <0.5 % | PASS |
+| M at roller [kN·m] | 0 | 7.8e‑13 | n/a | abs ≤ 2.5e‑4 | PASS |
+
+**Further Benchmark C checks**
+- **Displacement field.** Nodal v at all 17 nodes matches the exact curve: largest error 2.8e‑13 of qL⁴/(192EI).
+- **Sampled diagrams.** M and V at 144 points match the exact parabola and line: largest errors 2.0e‑13 of qL²/8 and 1.9e‑13 of 5qL/8.
+- **Restraints.** v_A = θ_A = 0 at the fixed end and v_B = 0 at the prop, all exactly zero.
+- **Equilibrium.** ΣF_v = 2.9e‑11 kN and ΣM = 1.8e‑10 kN·m.
+- **Mesh independence.** ne = 1, 2, 4 and 16 all reproduce R_A, R_B, M_A and θ_B. The largest error is 2.6e‑11 %, at ne = 16. With ne = 1 the errors are 0 to 1e‑14 %.
+
+### Benchmark D — two equal 10 m spans, uniform load on both (spec §10, optional)
+
+**Setup:** pin at x = 0, rollers at x = 10 m and x = 20 m, 16 elements per span. Solver diagnostics: rcond(K_ff) = 1.581×10⁻⁵; max residual 2.19×10⁻⁸.
+
+| Quantity | Expected | Actual (Octave) | Rel. error % | Criterion | Result |
+|---|---|---|---|---|---|
+| R_A [kN] = 3qL/8 | 75 | 75 | 0 | <0.5 % | PASS |
+| R_B [kN] = 5qL/4 | 250 | 250.00000000001 | 2.42e‑12 | <0.5 % | PASS |
+| R_C [kN] = 3qL/8 | 75 | 75.000000000014 | 1.86e‑11 | <0.5 % | PASS |
+| M_B [kN·m] = −qL²/8, from span 1 / span 2 | −250 | −250.00000000001 / −250.00000000001 | 5.4e‑12 | <0.5 % | PASS |
+| Max sagging M, span 1 / span 2 [kN·m] = 9qL²/128 | 140.625 | 140.62499999998 / 140.62500000003 | ≤ 2.25e‑11 | <0.5 % | PASS |
+| x of max sagging M [m] | 3.75 / 16.25 | 3.75 / 16.25 | 0 | <0.5 % | PASS |
+| θ_A [rad] = −qL³/(48EI) | −2.0833333e‑4 | −2.0833333333331e‑4 | 1.33e‑11 | <0.5 % | PASS |
+| θ_B [rad] | 0 | −3.7e‑17 | n/a | abs ≤ 2.1e‑10 | PASS |
+
+**Further Benchmark D checks**
+- **Displacement field.** Nodal v at all 33 nodes: largest error 3.2e‑13 of qL⁴/(192EI).
+- **Sampled diagrams.** M and V at 288 points: largest errors 1.7e‑13 of qL²/8 and 1.7e‑13 of 5qL/8.
+- **Equilibrium.** ΣF_v = 2.0e‑11 kN and ΣM = 3.4e‑10 kN·m.
+
+### Supplementary checks (Octave, all PASS)
+
+| Test | Analytical reference | Key actual result | Largest rel. error % |
+|---|---|---|---|
+| Propped cantilever, P at L/2 (16 elements) | R_A = 11P/16 = 68.75 kN, R_B = 5P/16 = 31.25 kN, M_A = −3PL/16 = −187.5 kN·m, M(L/2) = 5PL/32 = 156.25 kN·m, v(L/2) = −7PL³/(768EI) = −0.455729 mm | 68.750000000013, 31.250000000011, −187.50000000004, 156.25000000003, −0.45572916666678 mm; V jump and M field errors ≤ 2.3e‑13 | 3.6e‑11 |
+| Two spans, P at each midspan | R_A = R_C = 5P/16, R_B = 11P/8 = 137.5 kN, M_B = −3PL/16 = −187.5 kN·m, v(L/2) = −7PL³/(768EI) | R_B = 137.50000000001 kN, M_B = −187.50000000001 kN·m from both sides, θ_B = −3.2e‑17 rad | 3.0e‑11 |
+| Two spans, q on span AB only | R_A = 7qL/16 = 87.5 kN, R_B = 5qL/8 = 125 kN, **R_C = −qL/16 = −12.5 kN (uplift)**, M_B = −qL²/16 = −125 kN·m | 87.500000000002, 125, −12.500000000006, −124.99999999999 | 4.5e‑11 |
+| Unequal spans 10 m + 15 m, q on both (three-moment equation) | M_B = −q(L₁³+L₂³)/(8(L₁+L₂)) = −437.5 kN·m, R_A = 56.25, R_B = 322.9167, R_C = 120.8333 kN | −437.50000000003, 56.249999999997, 322.91666666668, 120.83333333334 | 6.5e‑12 |
+| Simple span, uniform q (10 elements) | R = qL/2 = 100 kN, M_mid = qL²/8 = 250 kN·m, v_mid = −5qL⁴/(384EI) = −1.30208 mm, θ_A = −qL³/(24EI) | 100, 250.00000000001, −1.3020833333334 mm; v, M and V fields ≤ 1e‑3 | 4.7e‑12 |
+| Fixed-fixed beam, **one element** (no free DOFs; forces come only from −f_e0) | R = qL/2 = 100 kN, reaction couples ±qL²/12 = ±166.667 kN·m, M ends = −qL²/12, M_mid = +qL²/24 = 83.333 kN·m | 100, ±166.66666666667, −166.66666666667, 83.333333333333 | 1.7e‑14 |
+| Fixed-fixed beam, 16 elements | M(0) = −166.667, M(L/2) = 83.333 kN·m, v_mid = −qL⁴/(384EI) = −0.260417 mm | −166.66666666668, 83.333333333346, −0.2604166666667 mm; v and M fields ≤ 1.2e‑13 | 1.6e‑11 |
+| Sampled diagrams close element equilibrium (fixed + roller, uniform load on 4 elements, nodal force and couple) | V(L_e) = V_j, M(L_e) = M_j | Largest normalized differences 7.3e‑17 (V) and 3.3e‑16 (M) | — |
+| Consistent load vector | Hand literals for w = −12 kN/m, L_e = 2 m; Gauss integral of w·N_i | Literals exact; Gauss difference 1.8e‑16 | 0 |
+| Resultants on a nonuniform 6-node mesh (uniform load plus a nodal force and couple) | ΣF = wL − 8 kN; ΣM about 0 = wL²/2 − 8 kN·x₃ + 2 kN·m | Matched | 0 |
+| meshSpans, elementsBetween, invalid input | Hand-written coordinates and element lists; error IDs | Exact; all invalid inputs rejected with the expected IDs | — |
+
+### Test-sensitivity (mutation) check — 2026-10-29, Octave 8.4.0
+
+- **Command:** `python3 -I tools/mutation_check.py <repo> <scratch_dir>`.
+- **Result: 12 of 12 faults detected** (the 7 M1 faults plus 5 new M2 faults). For every mutant, `runAllTests` exited with status 1.
+- **Raw output:** `results/verification/2026-10-29_M2_mutation_check_octave-8.4.0.txt`.
+
+| M2 injected fault | Tests failed (of 46) |
+|---|---|
+| f_e0 not subtracted in force recovery | 9 |
+| Signs of the consistent-load end moments swapped | 11 |
+| Element loads left out of the global F | 8 |
+| Sign of the parabolic term flipped in sampling | 7 |
+| Element load computed with L_e = 1 | 9 |
+
+### Limits of this evidence
+
+- These results are from **GNU Octave only.** The M2 tests have **not** been run in MATLAB.
+- **Not implemented, so NOT RUN:**
+  - point loads inside elements and Benchmark B (M3)
+  - deflection between nodes
+  - moving and multi-axle loads, envelopes (M4)
+  - the materials layer (M5), GUI (M6) and Stage 2 (M7)
+
+### Command for the MATLAB confirmation (V-004)
+
+```bash
+git fetch origin && git checkout claude/m2-indeterminate-beams
+```
+
+```bash
+matlab -batch "runAllTests"
+```

@@ -1,14 +1,12 @@
 function ef = recoverElementForces(model, U)
 %RECOVERELEMENTFORCES Element end actions and end shear / bending moment.
 %   EF = RECOVERELEMENTFORCES(MODEL, U) computes, for every element e,
-%       f_e = k_e * q_e,      q_e = U(ELEMENTDOFS(e)),
-%   from the full global displacement vector U.
-%
-%   LIMITATION (milestone M1): the model has nodal loads only, so no load
-%   acts inside an element and the formula above is complete. Once in-element
-%   loads exist (DEVELOPMENT_PLAN.md M2/M3) this must become
-%   f_e = k_e*q_e - f_e0 (f_e0 = consistent load vector of the member loads),
-%   and diagrams must include the in-element loads between the ends.
+%       f_e = k_e * q_e - f_e0,      q_e = U(ELEMENTDOFS(e)),
+%   from the full global displacement vector U. f_e0 is the consistent
+%   (equivalent nodal) load vector of the loads acting inside element e
+%   (ELEMENTLOADVECTORS); it is zero for an element without member loads.
+%   Supported member loads: uniform load per element (model.loads.elementUDL).
+%   Point loads inside elements are not yet supported (milestone M3).
 %
 %   EF fields (SI units):
 %     endActions  NE-by-4 [F_i M_i F_j M_j], the forces [N] and couples [N*m]
@@ -20,9 +18,10 @@ function ef = recoverElementForces(model, U)
 %   Internal force convention (DECISIONS.md D-003): M positive sagging;
 %   V(x) = sum of upward forces to the left of the section, so dM/dx = V:
 %       V_i = F_i,   M_i = -M_i(end action),   V_j = -F_j,   M_j = M_j(end action).
-%   Without member loads, V is constant and M is linear along an element.
+%   Inside an element with uniform load w (+ up), V is linear and M is
+%   parabolic; use SAMPLEINTERNALFORCES for values between the ends.
 %
-%   See also SOLVESTATICMODEL, BEAMELEMENTSTIFFNESS.
+%   See also SOLVESTATICMODEL, ELEMENTLOADVECTORS, SAMPLEINTERNALFORCES.
 
 validateModel(model);
 x = model.nodes.x;
@@ -34,11 +33,12 @@ if ~(isnumeric(U) && isvector(U) && numel(U) == 2 * numel(x))
 end
 U = U(:);
 dofMap = elementDofs(conn);
+f0 = elementLoadVectors(model);
 
 endActions = zeros(ne, 4);
 for e = 1:ne
     Le = x(conn(e, 2)) - x(conn(e, 1));
-    endActions(e, :) = (beamElementStiffness(EI(e), Le) * U(dofMap(e, :))).';
+    endActions(e, :) = (beamElementStiffness(EI(e), Le) * U(dofMap(e, :))).' - f0(e, :);
 end
 
 ef.endActions = endActions;

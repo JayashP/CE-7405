@@ -98,7 +98,8 @@ The model is a plain struct-of-arrays built by `createBeamModel(x, EI)`. Fields 
   - Material labels, separate E and I inputs, and the steel/RCC equal-EI test are deferred to milestone M5 (`DEVELOPMENT_PLAN.md`).
 - **The model struct stores inputs only.** Derived values (element lengths, K) are recomputed so they cannot go stale.
 - **Supports:** `model.supports.{node, type, restraint}`, with at most one support per node.
-- **Loads:** only nodal loads exist in M1, as `model.loads.nodal = [node Fv Mz]`. In-element loads arrive in M2/M3.
+- **Loads:** nodal loads as `model.loads.nodal = [node Fv Mz]` (M1). From M2 there is also a uniform load per element, `model.loads.elementUDL` (see D-015). Point loads inside elements arrive in M3.
+- **Format version:** `model.meta.formatVersion = 2` since M2 (added `loads.elementUDL`). Models are built in code, not stored, so there is no migration.
 
 ## D-006 — Supports and kinematic stability (2026-10-29) — ACCEPTED
 
@@ -138,13 +139,12 @@ Otherwise the code throws `BridgeFE:underRestrained`, naming the free mode. The 
 - A load applied directly at a restrained DOF therefore goes straight into the reaction. This is tested.
 - Whole-structure equilibrium (ΣF_v and ΣM about x = 0, loads plus reactions) is returned in `results.diagnostics` and checked in the benchmarks.
 
-## D-009 — Element force recovery (2026-10-29) — ACCEPTED, with an M1 limitation
+## D-009 — Element force recovery (2026-10-29; updated for M2) — ACCEPTED
 
-- `f_e = k_e·q_e` gives the element end actions. These are converted to end shear and moment using D-003.
-- **Limitation:** this is complete only because M1 has nodal loads only.
-- When in-element loads are added (M2 for UDL, M3 for Hermite point loads), recovery **must** become `f_e = k_e·q_e − f_e0`. Here f_e0 is the consistent load vector of the member loads.
-- The interior V(x) and M(x) must also include the real in-element loads: shear jumps under point loads and the correct piecewise or parabolic moment (spec §5.2).
-- This limitation is stated in the help text of `recoverElementForces`.
+- Since M2, the element end actions are `f_e = k_e·q_e − f_e0`. Here f_e0 is the consistent load vector of the loads acting inside element e (`elementLoadVectors`); it is zero for unloaded elements. The end actions are converted to end shear and moment using D-003.
+  - In M1 there were only nodal loads, so f_e0 was always zero.
+- **Inside an element** with uniform load w (+ up), `sampleInternalForces` uses exact element equilibrium from the left-end values: V(s) = V_i + w·s and M(s) = M_i + V_i·s + w·s²/2. This gives the linear shear and parabolic moment of the real load, not just the end values.
+- **Still to do (M3):** point loads inside elements need their own f_e0 (Hermite, spec §5.2). Their shear jump and piecewise-linear moment between the ends must also be added to `sampleInternalForces`. Deflection between nodes is not recovered yet. It will also need the in-element particular solution, because Hermite interpolation of nodal values alone is not exact inside a loaded element.
 
 ## D-010 — Verification policy and tolerances (2026-10-29) — ACCEPTED
 
@@ -177,6 +177,10 @@ Otherwise the code throws `BridgeFE:underRestrained`, naming the free mode. The 
 - `src/util/` holds three small input-validation helpers.
 - `src/model/` also holds `addSupport`, `addNodalLoad`, `findNodeAtX`, `supportRestraint`, `elementDofs` and `generateUniformMesh`.
 - No empty Stage 2/3/4, GUI or visualization files were created.
+- M2 additions follow the spec's suggested names where one exists (`loads/equivalentDistributedLoad.m`).
+  - `src/loads/` also holds `elementLoadVectors` and `assembleLoadVector`.
+  - `src/model/` also holds `meshSpans`, `elementsBetween` and `addUniformLoad`.
+  - `src/postprocess/sampleInternalForces.m` covers V and M only, which is why it is not named `evaluateBeamResponse` (that spec name implies deflection too).
 - Error identifiers use the `BridgeFE:` namespace, for example `BridgeFE:invalidInput`, `BridgeFE:invalidModel`, `BridgeFE:underRestrained`, `BridgeFE:duplicateSupport`, `BridgeFE:invalidSupportType` and `BridgeFE:notOnNode`.
 
 ## D-013 — Deadline (2026-10-29) — ACCEPTED
@@ -190,10 +194,35 @@ None of these block M1.
 | Item | Current default / note |
 |---|---|
 | MATLAB release; App Designer and test runtime | Not available to Claude Code. User to state their local release |
-| GUI workflow (one span field vs spans array, support coordinates, mesh auto-alignment) | Engine uses node coordinates plus `findNodeAtX` (errors if no node is there). A span-based mesher that aligns nodes with supports comes in M2 |
+| GUI workflow (one span field vs spans array, support coordinates, mesh auto-alignment) | Engine uses node coordinates plus `findNodeAtX` (errors if no node is there). Since M2, `meshSpans(spanLengths, elementsPerSpan)` gives exact nodes at every support, so a GUI can take a spans array |
 | Variable EI and nonuniform mesh | Both are already supported by the data model and assembly (tested). Uniform EI is still the benchmark default |
-| Uniform dead load as core or later | Needed for Benchmarks C and D. Planned for M2 as a consistent element load |
+| Uniform dead load as core or later | **Decided:** implemented in M2 as a consistent element load (D-015) |
 | Vehicle reference axle and the policy for axles exactly at supports | Not decided. Needed in M3/M4 |
 | Field deflection data format | No field data supplied. Stage 3 only |
 | Stage 4 rule sources | Not selected. Stage 4 only |
 | `.mlapp` packaging vs a runnable source GUI | Not decided. Needed in M6 |
+
+## D-015 — Uniformly distributed load (2026-10-29, M2) — ACCEPTED
+
+- **Storage.** A uniform load is stored per element as an intensity w [N/m] in `model.loads.elementUDL` (NE-by-1, + up). A downward load of magnitude q is entered as **w = −q**, following D-003.
+  - `addUniformLoad(model, w, elements)` superposes onto all elements, or onto the listed ones. `elementsBetween(model, x1, x2)` selects a span or a node-to-node range.
+  - Partial-element loads are not supported. Loaded regions must start and end on nodes, the same rule as for supports and nodal loads (D-005).
+- **Equivalent nodal load.** The consistent (work-equivalent) vector is f_e0 = w·[L_e/2, L_e²/12, L_e/2, −L_e²/12]ᵀ, the integral of w·N_i over the Hermite shape functions. A test checks it against Gauss integration.
+  - It is assembled into F (`assembleLoadVector`) and subtracted in force recovery (D-009).
+  - Because the Hermite functions are the exact homogeneous solutions, nodal displacements and end forces are exact for any mesh. Benchmark C even holds with one element.
+- **Equilibrium diagnostic.** The global check in `solveStaticModel` uses the equivalent F. For a uniform load this F has the same resultant force and moment as the real load, so the check stays meaningful. This is tested on a nonuniform mesh.
+- **Reactions.** Equivalent loads that land on restrained DOFs pass into the reactions through R = K·U − F (D-008).
+
+## D-016 — Indeterminate benchmark set and tolerances (2026-10-29, M2) — PROVISIONAL
+
+- **Benchmark C** (spec §10): propped cantilever with a uniform load. Target **< 0.5 %** (spec).
+- **Benchmark D** (spec §10, listed as optional): two equal spans with a uniform load. The same 0.5 % target is used; the spec gives no separate target for D.
+- **Supplementary indeterminate checks, target < 0.1 %:**
+  - propped cantilever with a central point load
+  - two spans with a point load at each midspan
+  - two spans with only one span loaded (gives uplift at the far support)
+  - unequal 10 m + 15 m spans checked by the three-moment equation
+  - fixed-fixed beam with a uniform load, including the single-element case with no free DOFs
+  - simple span with a uniform load
+- **Field checks:** sampled M and V along each beam, and nodal v along each beam, are compared with the closed-form diagrams. Errors are normalized by a characteristic value: 5e‑3 for C and D, 1e‑3 elsewhere.
+- **Zero references:** the 1e‑6 × characteristic-magnitude absolute rule (D-010) still applies.
