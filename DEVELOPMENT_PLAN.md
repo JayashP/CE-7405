@@ -16,7 +16,7 @@ Order is fixed by the spec:
 
 | ID | Milestone | Target dates | Status |
 |---|---|---|---|
-| M1 | Element, assembly, supports, static solve, reactions, nodal-load force recovery, Benchmark A | Oct 28 – Nov 1 | **Done in GNU Octave 8.4.0 (26/26 tests). MATLAB run NOT RUN, pending the user** |
+| M1 | Element, assembly, supports, static solve, reactions, nodal-load force recovery, Benchmark A | Oct 28 – Nov 1 | **Done.** 26/26 tests pass in GNU Octave 8.4.0 (V-001) and MATLAB R2026b (V-002) |
 | M2 | Indeterminate beams: span mesher, propped cantilever, two-span continuous, UDL, Benchmarks C and D | Nov 2 – 7 | Next |
 | M3 | Point loads anywhere inside elements (Hermite), interior V/M/deflection recovery, Benchmark B | Nov 8 – 10 | Not started |
 | M4 | Multi-axle vehicle, position stepping, envelopes, critical positions, step refinement | Nov 10 – 13 | Not started |
@@ -28,7 +28,7 @@ Order is fixed by the spec:
 | — | Stabilize, demo recording, final documentation | Nov 21 – 23 | — |
 | — | **Submission** | **Nov 24** | — |
 
-## M1 — done (Octave evidence), MATLAB confirmation pending
+## M1 — done (Octave V-001 and MATLAB R2026b V-002)
 
 **Delivered**
 - `beamElementStiffness`, `elementDofs`, `assembleGlobalK`
@@ -37,7 +37,7 @@ Order is fixed by the spec:
 - `partitionDofs` (with an exact under-restraint check), `solveStaticModel`, `recoverReactions`, `recoverElementForces`
 - 26 script-based tests, the runner, and the mutation check
 
-**Open action for the user:** run `matlab -batch "runAllTests"` locally. Then record a V-002 entry in `VERIFICATION_LOG.md`.
+**MATLAB confirmation:** done by the user in R2026b, 26/26 tests (VERIFICATION_LOG.md V-002).
 
 ## M2 — indeterminate beams (next gate)
 

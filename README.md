@@ -12,7 +12,7 @@ This is a MATLAB direct-stiffness solver for a **2D equivalent Euler–Bernoulli
 |---|---|
 | 4×4 beam element stiffness, global assembly, pin/roller/fixed supports, under-restraint detection | Implemented; tested in GNU Octave 8.4.0 |
 | Linear static solve (K_ff U_f = F_f), reactions, element end shear/moment (nodal loads only) | Implemented; tested in GNU Octave 8.4.0 |
-| Benchmark A (simple span, central load: R = 50 kN, M_max = 500 kN·m, δ = 8.333 mm) | **PASS in Octave**, error ≤ about 1e‑9 %; **MATLAB NOT RUN** |
+| Benchmark A (simple span, central load: R = 50 kN, M_max = 500 kN·m, δ = 8.333 mm) | **PASS** in GNU Octave 8.4.0 (error ≤ about 1e‑9 %) and in MATLAB R2026b (26/26 tests; VERIFICATION_LOG V-002) |
 | Propped/continuous benchmarks C and D, UDL | Not implemented (M2, next) |
 | Point loads inside elements, moving loads, envelopes, vehicles | Not implemented (M3/M4) |
 | Steel/RCC input layer, GUI, Stage 2 damage, Stages 3/4 | Not implemented |

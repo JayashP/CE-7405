@@ -13,7 +13,7 @@
 | Item | Value |
 |---|---|
 | Platform | **GNU Octave 8.4.0** (`octave-cli`), Linux 6.18 x86_64, Ubuntu 24.04.5 cloud container |
-| MATLAB | **NOT RUN.** MATLAB is not installed in the Claude Code environment (D-011) |
+| MATLAB | Not run in this entry; MATLAB is not installed in the Claude Code environment (D-011). The user's MATLAB run is recorded as **V-002** |
 | App Designer | Not applicable. No GUI exists yet |
 | Command (repo root) | `octave-cli --no-gui --norc --eval "runAllTests;"` |
 | Raw log | `results/verification/2026-10-29_M1_octave-8.4.0_runAllTests.log` |
@@ -114,7 +114,7 @@ The last fault does not show up in Benchmark A itself, because L_e = 1 m there. 
 
 ### Limits of this evidence
 
-- These results were produced by **GNU Octave, not MATLAB.** The `.m` source is the same, and results are expected to agree to round-off. Official MATLAB confirmation is still **NOT RUN**.
+- These results were produced by **GNU Octave, not MATLAB.** The `.m` source is the same, and results are expected to agree to round-off. MATLAB confirmation of the same 26 tests is recorded in **V-002**.
 - Only **nodal** loads and **determinate** structures (simple span, cantilever) were analytically benchmarked.
   - The indeterminate benchmarks C (propped cantilever) and D (two-span continuous) are **NOT RUN**, because they are not implemented yet (M2).
   - Benchmark B (moving point load) is **NOT RUN** (M3).
@@ -147,4 +147,26 @@ matlab -batch "runAllTests"
 octave-cli --no-gui --norc --eval "runAllTests;"
 ```
 
-When the MATLAB run is done, add a V-002 entry with the MATLAB release, the date and the summary line. Mark any differences from V-001.
+---
+
+## V-002 — 2026-10-29 — Milestone M1 in MATLAB (run by the user)
+
+| Item | Value |
+|---|---|
+| Platform | **MATLAB 26.2.0.3386108 (R2026b)**, on the user's own computer |
+| Run by | The user (Jayash Pradhananga). Claude Code has no MATLAB, so it did not run this |
+| Code version | `main` at commit `4dced60`; the source and tests are identical to `dbb8588`, the commit tested in V-001 |
+| Runner | `runAllTests`, MATLAB branch, using `matlab.unittest`. MATLAB converted each `%%` section title into a test identifier |
+| Timestamp printed by the runner | 2026-10-29 13:57:39 (the user's local clock) |
+| Overall result | **26 passed, 0 failed, 26 tests** |
+| Evidence | Screenshot of the runner's TEST SUMMARY block: `results/verification/2026-10-29_M1_matlab-R2026b_summary_screenshot.png` |
+
+**Per-test result:** every one of the 26 tests listed in V-001 printed **PASS** in MATLAB. They are the same five test files with the same sections, under MATLAB's identifier names.
+
+**What this entry does and does not show**
+- The pass criteria are written in the test files, so they are the same as in V-001. Every comparison therefore met its criterion in MATLAB, including Benchmark A within 0.1 %.
+- The individual MATLAB numbers (the comparison tables) were **not** sent back. So this entry records PASS/FAIL against the criteria, not MATLAB's actual values.
+- If the exact MATLAB numbers are needed for the report, save the full Command Window output as `results/verification/<date>_M1_matlab-R2026b_runAllTests.log`.
+- App Designer: still not applicable (no GUI yet).
+
+**Status of M1:** verified in GNU Octave 8.4.0 (V-001, with numbers) and in MATLAB R2026b (V-002, pass/fail).
