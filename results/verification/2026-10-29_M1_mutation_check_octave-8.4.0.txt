@@ -1,0 +1,22 @@
+# Command: python3 -I tools/mutation_check.py <repo_root> <scratch_dir>   (GNU Octave 8.4.0; 7 single-fault mutants; repo itself unchanged)
+MUTATION: k22 coefficient 4->3
+  exit=1 summary=[('14', '12')]
+  detected by: testAssembly / Two equal unit elements assemble to the hand-computed 6x6 matrix; testAssembly / Assembled K is symmetric with exactly two rigid-body modes; testBeamStiffness / Exact matrix for EI = 2e9 N*m^2 and Le = 2 m (hand-computed literals); testBeamStiffness / Unit EI and unit length give the integer coefficient matrix exactly; testBeamStiffness / Spec mesh example Le = 1.5 m with steel E = 200 GPa and I = 0.01 m^4; testBeamStiffness / Rigid-body modes lie in the null space and ke is positive semi-definite of rank 2 ...
+MUTATION: rotation-coupling sign flipped (k12,k21)
+  exit=1 summary=[('14', '12')]
+  detected by: testAssembly / Two equal unit elements assemble to the hand-computed 6x6 matrix; testAssembly / Assembled K is symmetric with exactly two rigid-body modes; testBeamStiffness / Exact matrix for EI = 2e9 N*m^2 and Le = 2 m (hand-computed literals); testBeamStiffness / Unit EI and unit length give the integer coefficient matrix exactly; testBeamStiffness / Spec mesh example Le = 1.5 m with steel E = 200 GPa and I = 0.01 m^4; testBeamStiffness / Rigid-body modes lie in the null space and ke is positive semi-definite of rank 2 ...
+MUTATION: DOF map v/theta swapped
+  exit=1 summary=[('17', '9')]
+  detected by: testAssembly / Element DOF map is [v_i theta_i v_j theta_j] with node n owning DOFs 2n-1 and 2n; testAssembly / Two equal unit elements assemble to the hand-computed 6x6 matrix; testAssembly / Unequal lengths and EI match K = sum(A_e'*k_e*A_e) with explicit Boolean A_e; testAssembly / Assembled K is symmetric with exactly two rigid-body modes; testCantileverTipLoad / Cantilever with a tip load and 10 elements; testSimplySupportedBeam / Benchmark A with 20 elements ...
+MUTATION: end-moment sign at node i
+  exit=1 summary=[('24', '2')]
+  detected by: testCantileverTipLoad / Cantilever with a tip load and 10 elements; testSimplySupportedBeam / Benchmark A with 20 elements
+MUTATION: reactions ignore loads at restrained DOFs
+  exit=1 summary=[('25', '1')]
+  detected by: testSimplySupportedBeam / A load applied at a support node goes directly into that reaction
+MUTATION: no under-restraint check
+  exit=1 summary=[('24', '2')]
+  detected by: testSupportsAndStability / Under-restrained models are rejected with BridgeFE:underRestrained; testSupportsAndStability / Stability rule agrees with the numerical rank of Kff for many support layouts
+MUTATION: assembly uses wrong element length (x_j only)
+  exit=1 summary=[('23', '3')]
+  detected by: testAssembly / Unequal lengths and EI match K = sum(A_e'*k_e*A_e) with explicit Boolean A_e; testAssembly / Assembled K is symmetric with exactly two rigid-body modes; testSimplySupportedBeam / Mesh independence with 2, 4, 8, 20 and 40 elements

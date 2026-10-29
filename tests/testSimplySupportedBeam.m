@@ -1,0 +1,109 @@
+%TESTSIMPLYSUPPORTEDBEAM Benchmark A: simply supported beam under a central point load.
+%   Script-based test file (see runAllTests). PROJECT_SPEC.md section 10,
+%   Benchmark A, with L = 20 m, P = 100 kN (downward), E = 200 GPa,
+%   I = 0.01 m^4. Analytical references (fixed; never edit them to make a
+%   test pass):
+%     R_A = R_B = P/2 = 50 kN
+%     M_max = P*L/4 = 500 kN*m (sagging, at midspan)
+%     |delta_mid| = P*L^3/(48*E*I) = 8.3333... mm (downward, so v_mid < 0)
+%     theta_A = -P*L^2/(16*E*I) = -1.25e-3 rad, theta_B = +1.25e-3 rad
+%     V = +P/2 on the left half and -P/2 on the right half
+%     v(x) = -P*x*(3L^2 - 4x^2)/(48EI), theta(x) = -P*(L^2 - 4x^2)/(16EI), x <= L/2
+%   Acceptance: < 0.1 % error for nonzero references (spec section 10).
+%   Zero references use an absolute tolerance of 1e-6 times the
+%   characteristic magnitude of the quantity (DECISIONS.md D-010).
+L = 20;            % span [m]
+P = 100e3;         % central load magnitude [N], acts downward
+E = 200e9;         % [Pa]
+I = 0.01;          % [m^4]
+EI = E * I;        % [N*m^2]
+relTolPct = 0.1;
+RA_ref = P / 2;                  % [N]
+Mmax_ref = P * L / 4;            % [N*m]
+delta_ref = P * L^3 / (48*EI);   % [m], magnitude
+thetaA_ref = -P * L^2 / (16*EI); % [rad]
+
+%% Analytical references reproduce the values stated in PROJECT_SPEC.md
+reportComparisons('Closed-form references vs the Benchmark A numbers in PROJECT_SPEC.md', [ ...
+    compareToReference('P/2 [kN] vs spec 50 kN', RA_ref/1e3, 50, 1e-12), ...
+    compareToReference('PL/4 [kN*m] vs spec 500 kN*m', Mmax_ref/1e3, 500, 1e-12), ...
+    compareToReference('PL^3/(48EI) [mm] vs spec 8.333... = 25/3 mm', delta_ref * 1e3, 25/3, 1e-12)]);
+
+%% Benchmark A with 20 elements
+ne = 20;
+model = buildSimplySupportedCentralLoad(L, ne, EI, P);
+res = solveStaticModel(model);
+ef = res.elementForces;
+mid = findNodeAtX(model, L/2);
+B = findNodeAtX(model, L);
+leftOfMid = mid - 1;     % element whose right end is at midspan
+rightOfMid = mid;        % element whose left end is at midspan
+[Mmax, idx] = max(ef.moment(:));
+leftShear = ef.shear(1:leftOfMid, :);
+rightShear = ef.shear(rightOfMid:end, :);
+fprintf('  rcond(Kff) = %.3e, max|Kff*Uf - Ff| = %.3e\n', res.diagnostics.rcondKff, res.diagnostics.maxResidual);
+reportComparisons(sprintf('Benchmark A: L = %g m, P = %g kN, E = %g GPa, I = %g m^4, %d elements', ...
+    L, P/1e3, E/1e9, I, ne), [ ...
+    compareToReference('R_A [kN] (+ up)', res.R(1)/1e3, RA_ref/1e3, relTolPct), ...
+    compareToReference('R_B [kN] (+ up)', res.R(2*B - 1)/1e3, RA_ref/1e3, relTolPct), ...
+    compareToReference('M_max over element ends [kN*m] (+ sagging)', Mmax/1e3, Mmax_ref/1e3, relTolPct), ...
+    compareToReference('x of M_max [m]', ef.x(idx), L/2, relTolPct), ...
+    compareToReference('M(midspan-), left element [kN*m]', ef.moment(leftOfMid, 2)/1e3, Mmax_ref/1e3, relTolPct), ...
+    compareToReference('M(midspan+), right element [kN*m]', ef.moment(rightOfMid, 1)/1e3, Mmax_ref/1e3, relTolPct), ...
+    compareToReference('M at pin A [kN*m]', ef.moment(1, 1)/1e3, 0, [], 1e-6 * Mmax_ref/1e3), ...
+    compareToReference('M at roller B [kN*m]', ef.moment(end, 2)/1e3, 0, [], 1e-6 * Mmax_ref/1e3), ...
+    compareToReference('v_mid [mm] (+ up)', res.v(mid) * 1e3, -delta_ref * 1e3, relTolPct), ...
+    compareToReference('|delta_mid| [mm]', abs(res.v(mid)) * 1e3, delta_ref * 1e3, relTolPct), ...
+    compareToReference('theta_A [rad] (+ CCW)', res.theta(1), thetaA_ref, relTolPct), ...
+    compareToReference('theta_B [rad] (+ CCW)', res.theta(B), -thetaA_ref, relTolPct), ...
+    compareToReference('theta_mid [rad]', res.theta(mid), 0, [], 1e-6 * abs(thetaA_ref)), ...
+    compareToReference('min V, left half [kN]', min(leftShear(:))/1e3, RA_ref/1e3, relTolPct), ...
+    compareToReference('max V, left half [kN]', max(leftShear(:))/1e3, RA_ref/1e3, relTolPct), ...
+    compareToReference('min V, right half [kN]', min(rightShear(:))/1e3, -RA_ref/1e3, relTolPct), ...
+    compareToReference('max V, right half [kN]', max(rightShear(:))/1e3, -RA_ref/1e3, relTolPct), ...
+    compareToReference('sum Fv, loads + reactions [kN]', res.diagnostics.sumVerticalForce/1e3, 0, [], 1e-6 * P/1e3), ...
+    compareToReference('sum M about x = 0 [kN*m]', res.diagnostics.sumMomentAboutOrigin/1e3, 0, [], 1e-6 * Mmax_ref/1e3)]);
+
+%% Mesh independence with 2, 4, 8, 20 and 40 elements
+rows = [];
+for ne = [2 4 8 20 40]
+    model = buildSimplySupportedCentralLoad(L, ne, EI, P);
+    res = solveStaticModel(model);
+    mid = findNodeAtX(model, L/2);
+    rows = [rows, ...
+        compareToReference(sprintf('ne = %2d: R_A [kN]', ne), res.R(1)/1e3, RA_ref/1e3, relTolPct), ...
+        compareToReference(sprintf('ne = %2d: M_max [kN*m]', ne), max(res.elementForces.moment(:))/1e3, Mmax_ref/1e3, relTolPct), ...
+        compareToReference(sprintf('ne = %2d: |delta_mid| [mm]', ne), abs(res.v(mid)) * 1e3, delta_ref * 1e3, relTolPct)]; %#ok<AGROW>
+end
+reportComparisons('Benchmark A mesh independence', rows);
+
+%% Nodal deflections and rotations match the analytical elastic curve along the span
+ne = 20;
+model = buildSimplySupportedCentralLoad(L, ne, EI, P);
+res = solveStaticModel(model);
+x = model.nodes.x;
+xs = min(x, L - x);                                   % distance from the nearer support
+side = sign(L/2 - x);                                 % +1 left half, -1 right half, 0 at midspan
+vRef = -P .* xs .* (3*L^2 - 4*xs.^2) / (48*EI);       % [m]
+thetaRef = -side .* P .* (L^2 - 4*xs.^2) / (16*EI);   % [rad]
+fprintf('  %8s %16s %16s %12s %14s %14s\n', 'x [m]', 'v FE [mm]', 'v exact [mm]', 'err [mm]', 'theta FE', 'theta exact');
+for n = 1:numel(x)
+    fprintf('  %8.2f %16.10f %16.10f %12.3e %14.6e %14.6e\n', ...
+        x(n), res.v(n) * 1e3, vRef(n) * 1e3, (res.v(n) - vRef(n)) * 1e3, res.theta(n), thetaRef(n));
+end
+reportComparisons('Benchmark A elastic curve at all 21 nodes', [ ...
+    compareToReference('max|v - v_exact| / delta_mid [-]', max(abs(res.v - vRef)) / delta_ref, 0, [], 1e-3), ...
+    compareToReference('max|theta - theta_exact| / |theta_A| [-]', max(abs(res.theta - thetaRef)) / abs(thetaA_ref), 0, [], 1e-3)]);
+
+%% A load applied at a support node goes directly into that reaction
+ne = 20;
+model = buildSimplySupportedCentralLoad(L, ne, EI, P);
+base = solveStaticModel(model);
+B = findNodeAtX(model, L);
+Q = 10e3;                                       % extra downward load at roller B [N]
+res = solveStaticModel(addNodalLoad(model, B, -Q, 0));
+reportComparisons('Benchmark A plus an extra 10 kN downward load at roller B (a restrained DOF)', [ ...
+    compareToReference('R_A [kN]', res.R(1)/1e3, RA_ref/1e3, relTolPct), ...
+    compareToReference('R_B [kN]', res.R(2*B - 1)/1e3, (RA_ref + Q)/1e3, relTolPct), ...
+    compareToReference('max|U - U_without_extra_load| [m]', max(abs(res.U - base.U)), 0, [], 1e-15), ...
+    compareToReference('sum Fv, loads + reactions [kN]', res.diagnostics.sumVerticalForce/1e3, 0, [], 1e-6 * P/1e3)]);

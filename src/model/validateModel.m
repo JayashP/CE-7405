@@ -1,0 +1,91 @@
+function validateModel(model)
+%VALIDATEMODEL Check a bending-beam model struct for consistency.
+%   VALIDATEMODEL(MODEL) returns silently if MODEL is a valid model (see
+%   CREATEBEAMMODEL) and otherwise throws 'BridgeFE:invalidModel' with a
+%   message describing the first problem found. It checks:
+%     - all required fields exist;
+%     - node coordinates are real, finite and strictly increasing;
+%     - connectivity is one continuous chain [(1:ne)' (2:ne+1)'] (Option A:
+%       a single equivalent beam, no internal hinges or overlaps);
+%     - EI is real, finite and positive for every element;
+%     - supports sit on existing nodes, at most one per node, with restraint
+%       flags that match their type;
+%     - nodal loads act on existing nodes with real, finite values.
+%   Kinematic stability is checked separately by PARTITIONDOFS.
+%
+%   See also CREATEBEAMMODEL, PARTITIONDOFS.
+
+id = 'BridgeFE:invalidModel';
+
+if ~(isstruct(model) && isscalar(model))
+    error(id, 'model must be a scalar struct created by createBeamModel.');
+end
+required = {{'nodes', 'x'}, {'elements', 'conn'}, {'elements', 'EI'}, ...
+    {'supports', 'node'}, {'supports', 'type'}, {'supports', 'restraint'}, ...
+    {'loads', 'nodal'}};
+for k = 1:numel(required)
+    p = required{k};
+    if ~(isfield(model, p{1}) && isstruct(model.(p{1})) && isfield(model.(p{1}), p{2}))
+        error(id, 'model.%s.%s is missing.', p{1}, p{2});
+    end
+end
+
+% Nodes
+x = model.nodes.x;
+if ~(isnumeric(x) && isreal(x) && iscolumn(x) && numel(x) >= 2 && all(isfinite(x)))
+    error(id, 'model.nodes.x must be a real, finite column vector with at least 2 entries [m].');
+end
+if any(diff(x) <= 0)
+    error(id, 'model.nodes.x must be strictly increasing.');
+end
+nn = numel(x);
+ne = nn - 1;
+
+% Elements
+conn = model.elements.conn;
+if ~(isnumeric(conn) && isequal(size(conn), [ne, 2]) && isequal(conn, [(1:ne)', (2:nn)']))
+    error(id, ['model.elements.conn must be [(1:ne)'' (2:ne+1)'']: one continuous beam ' ...
+        'whose elements join consecutive nodes.']);
+end
+EI = model.elements.EI;
+if ~(isnumeric(EI) && isreal(EI) && isequal(size(EI), [ne, 1]) && all(isfinite(EI)) && all(EI > 0))
+    error(id, 'model.elements.EI must be a real, finite, positive %d-by-1 vector [N*m^2].', ne);
+end
+
+% Supports
+sn = model.supports.node;
+st = model.supports.type;
+sr = model.supports.restraint;
+ns = numel(sn);
+if ~(isnumeric(sn) && isreal(sn) && size(sn, 2) <= 1 && all(isfinite(sn)) ...
+        && all(sn == round(sn)) && all(sn >= 1) && all(sn <= nn))
+    error(id, 'model.supports.node must be a column of integer node indices between 1 and %d.', nn);
+end
+sortedNodes = sort(sn);
+duplicate = sortedNodes(find(diff(sortedNodes) == 0, 1));
+if ~isempty(duplicate)
+    error(id, 'Node %d carries more than one support.', duplicate);
+end
+if ~(iscellstr(st) && numel(st) == ns)
+    error(id, 'model.supports.type must be a cellstr with one entry per support.');
+end
+if ~((islogical(sr) || isnumeric(sr)) && isequal(size(sr), [ns, 2]))
+    error(id, 'model.supports.restraint must be an NS-by-2 [v theta] flag matrix.');
+end
+for s = 1:ns
+    if ~isequal(logical(sr(s, :)), supportRestraint(st{s}))
+        error(id, 'Restraint flags of the support at node %d do not match its type ''%s''.', ...
+            sn(s), st{s});
+    end
+end
+
+% Nodal loads
+Ln = model.loads.nodal;
+if ~(isnumeric(Ln) && isreal(Ln) && ndims(Ln) == 2 && size(Ln, 2) == 3 && all(isfinite(Ln(:))))
+    error(id, 'model.loads.nodal must be a real, finite NL-by-3 matrix [node Fv Mz].');
+end
+loadNodes = Ln(:, 1);
+if any(loadNodes ~= round(loadNodes)) || any(loadNodes < 1) || any(loadNodes > nn)
+    error(id, 'model.loads.nodal(:,1) must contain integer node indices between 1 and %d.', nn);
+end
+end

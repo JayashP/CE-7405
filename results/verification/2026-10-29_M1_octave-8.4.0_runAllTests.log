@@ -1,0 +1,338 @@
+# Command: octave-cli --no-gui --norc --eval "runAllTests;"  (cwd = repository root)
+# Host: Linux 6.18.44-fc-v185 x86_64; "Ubuntu 24.04.5 LTS"
+# NOTE: GNU Octave run, NOT MATLAB. MATLAB status for these tests: NOT RUN.
+
+=== testAssembly / Element DOF map is [v_i theta_i v_j theta_j] with node n owning DOFs 2n-1 and 2n ===
+   1   2   3   4
+   3   4   5   6
+   5   6   7   8
+  PASS elementDofs matches the hand-written DOF map
+--- PASS
+
+=== testAssembly / Two equal unit elements assemble to the hand-computed 6x6 matrix ===
+   12    6  -12    6    0    0
+    6    4   -6    2    0    0
+  -12   -6   24    0  -12    6
+    6    2    0    8   -6    2
+    0    0  -12   -6   12   -6
+    0    0    6    2   -6    4
+  PASS two-element K equals the hand-computed matrix exactly
+--- PASS
+
+=== testAssembly / Unequal lengths and EI match K = sum(A_e'*k_e*A_e) with explicit Boolean A_e ===
+
+Nonuniform 3-element beam: triplet assembly vs explicit A_e assembly
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  max|K - Kref| / max|Kref| [-]                                     0                      0   0.000e+00          n/a abs<=1e-14    PASS
+--- PASS
+
+=== testAssembly / Assembled K is symmetric with exactly two rigid-body modes ===
+
+Global K, 30 m beam, 20 elements, 21 nodes, no supports
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  number of DOFs [-]                                               42                     42   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  max|K - K'| / max|K| [-]                                          0                      0   0.000e+00          n/a abs<=1e-15    PASS
+  rank(K) [-] (DOFs - 2 rigid modes)                               40                     40   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  max|K*translation| / max|K| [-]                                   0                      0   0.000e+00          n/a abs<=1e-12    PASS
+  max|K*rotation| / (max|K|*L) [-]                9.6112489700317e-17                      0   9.611e-17          n/a abs<=1e-12    PASS
+--- PASS
+
+=== testAssembly / Nodal load vector puts forces at v DOFs and couples at theta DOFs and sums repeats ===
+  F = [0 0 -1500 0 0 0 0 250 300 -40]
+  PASS nodal load vector equals the hand-written vector
+--- PASS
+
+=== testAssembly / Invalid model data are rejected ===
+  PASS expected error BridgeFE:invalidInput: x must be strictly increasing (zero-length or reversed elements are not allowed).
+  PASS expected error BridgeFE:invalidInput: x must be strictly increasing (zero-length or reversed elements are not allowed).
+  PASS expected error BridgeFE:invalidInput: x must be a real, finite vector of at least 2 node coordinates [m].
+  PASS expected error BridgeFE:invalidInput: EI must be a real, finite, positive scalar or a vector with one value per element (2) [N*m^2].
+  PASS expected error BridgeFE:invalidInput: EI must be a real, finite, positive scalar or a vector with one value per element (2) [N*m^2].
+  PASS expected error BridgeFE:invalidInput: ne must be an integer scalar >= 1.
+  PASS expected error BridgeFE:invalidInput: L must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidModel: model.elements.EI must be a real, finite, positive 2-by-1 vector [N*m^2].
+  PASS expected error BridgeFE:invalidModel: model.elements.conn must be [(1:ne)' (2:ne+1)']: one continuous beam whose elements join consecutive nodes.
+  PASS expected error BridgeFE:invalidInput: node must be an integer scalar between 1 and 3.
+  PASS expected error BridgeFE:invalidInput: Fv must be a real, finite numeric scalar.
+--- PASS
+
+=== testBeamStiffness / Exact matrix for EI = 2e9 N*m^2 and Le = 2 m (hand-computed literals) ===
+  ke(EI = 2e9 N*m^2, Le = 2 m), DOFs [v1 theta1 v2 theta2]:
+   3.0000e+09   3.0000e+09  -3.0000e+09   3.0000e+09
+   3.0000e+09   4.0000e+09  -3.0000e+09   2.0000e+09
+  -3.0000e+09  -3.0000e+09   3.0000e+09  -3.0000e+09
+   3.0000e+09   2.0000e+09  -3.0000e+09   4.0000e+09
+
+Element stiffness, EI = 2e9 N*m^2, Le = 2 m
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  k11 = 12EI/Le^3 [N/m]                                    3000000000             3000000000   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  k12 = 6EI/Le^2 [N/rad]                                   3000000000             3000000000   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  k13 = -12EI/Le^3 [N/m]                                  -3000000000            -3000000000   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  k22 = 4EI/Le [N*m/rad]                                   4000000000             4000000000   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  k24 = 2EI/Le [N*m/rad]                                   2000000000             2000000000   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  k34 = -6EI/Le^2 [N/rad]                                 -3000000000            -3000000000   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  max|ke - expected| / max|expected| [-]                            0                      0   0.000e+00          n/a abs<=1e-14    PASS
+--- PASS
+
+=== testBeamStiffness / Unit EI and unit length give the integer coefficient matrix exactly ===
+   12    6  -12    6
+    6    4   -6    2
+  -12   -6   12   -6
+    6    2   -6    4
+  PASS beamElementStiffness(1, 1) equals the integer coefficient matrix exactly
+--- PASS
+
+=== testBeamStiffness / Spec mesh example Le = 1.5 m with steel E = 200 GPa and I = 0.01 m^4 ===
+   7.1111e+09   5.3333e+09  -7.1111e+09   5.3333e+09
+   5.3333e+09   5.3333e+09  -5.3333e+09   2.6667e+09
+  -7.1111e+09  -5.3333e+09   7.1111e+09  -5.3333e+09
+   5.3333e+09   2.6667e+09  -5.3333e+09   5.3333e+09
+
+Element stiffness, EI = 2e9 N*m^2, Le = 1.5 m
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  k11 = 12EI/Le^3 [N/m]                               7111111111.1111        7111111111.1111   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  k22 = 4EI/Le [N*m/rad]                              5333333333.3333        5333333333.3333   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  k24 = 2EI/Le [N*m/rad]                              2666666666.6667        2666666666.6667   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  max|ke - expected| / max|expected| [-]                            0                      0   0.000e+00          n/a abs<=1e-14    PASS
+--- PASS
+
+=== testBeamStiffness / Element matrix is exactly symmetric for arbitrary EI and Le ===
+  EI = 2e+09      Le = 1.5      max|ke - ke'| = 0
+  EI = 3.7e+08    Le = 0.37     max|ke - ke'| = 0
+  EI = 1          Le = 1        max|ke - ke'| = 0
+  EI = 5.123e+10  Le = 12.75    max|ke - ke'| = 0
+  EI = 0.001      Le = 1000     max|ke - ke'| = 0
+--- PASS
+
+=== testBeamStiffness / Rigid-body modes lie in the null space and ke is positive semi-definite of rank 2 ===
+  eigenvalues of ke: [-3.99155e-06 -3.67035e-07 2.66667e+09 2.22222e+10]
+
+Element rigid-body modes and definiteness, EI = 2e9 N*m^2, Le = 1.5 m
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  max|ke*translation| / max|ke| [-]                                 0                      0   0.000e+00          n/a abs<=1e-12    PASS
+  max|ke*rotation| / max|ke| [-]                  1.3411045074463e-16                      0   1.341e-16          n/a abs<=1e-12    PASS
+  rank(ke) [-]                                                      2                      2   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  min eigenvalue / max eigenvalue [-]            -1.7961996854061e-16                      0   1.796e-16          n/a abs<=1e-12    PASS
+--- PASS
+
+=== testBeamStiffness / Stiffness scales linearly with EI, as later EI-reduction studies assume ===
+
+Linearity in EI
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  max|k(0.7EI) - 0.7k(EI)| / max|k(EI)| [-]       1.3411045074463e-16                      0   1.341e-16          n/a abs<=1e-14    PASS
+--- PASS
+
+=== testBeamStiffness / Invalid EI or Le inputs are rejected with BridgeFE:invalidInput ===
+  PASS expected error BridgeFE:invalidInput: EI must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: Le must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: EI must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: Le must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: EI must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: Le must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: EI must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: Le must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: EI must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: Le must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: EI must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: Le must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: EI must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: Le must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: EI must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: Le must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: EI must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: Le must be a real, finite, positive numeric scalar.
+--- PASS
+
+=== testCantileverTipLoad / Cantilever with a tip load and 10 elements ===
+
+Cantilever: L = 10 m, P = 50 kN down at tip, EI = 2e+09 N*m^2, 10 elements
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  R_A [kN] (+ up)                                     49.999999999973                     50   2.701e-11    5.402e-11 rel<=0.1%     PASS
+  reaction couple at A [kN*m] (+ CCW)                 499.99999999984                    500   1.593e-10    3.186e-11 rel<=0.1%     PASS
+  M(x = 0) [kN*m] (+ sagging)                        -499.99999999984                   -500   1.593e-10    3.186e-11 rel<=0.1%     PASS
+  M(x = L) [kN*m]                                 -1.862645149231e-12                      0   1.863e-12          n/a abs<=0.0005   PASS
+  max|M - M_ref| over element ends [kN*m]         1.5925616025925e-10                      0   1.593e-10          n/a abs<=0.0005   PASS
+  min V over element ends [kN]                        49.999999999953                     50   4.657e-11    9.314e-11 rel<=0.1%     PASS
+  max V over element ends [kN]                                     50                     50   0.000e+00    0.000e+00 rel<=0.1%     PASS
+  v_tip [mm] (+ up)                                  -8.3333333333312       -8.3333333333333   2.137e-12    2.564e-11 rel<=0.1%     PASS
+  theta_tip [rad] (+ CCW)                         -0.0012499999999997               -0.00125   3.016e-16    2.413e-11 rel<=0.1%     PASS
+  sum Fv, loads + reactions [kN]                 -2.7008354663849e-11                      0   2.701e-11          n/a abs<=5e-05    PASS
+  sum M about x = 0 [kN*m]                       -1.5925616025925e-10                      0   1.593e-10          n/a abs<=0.0005   PASS
+  PASS v_A = theta_A = 0 exactly at the fixed end
+--- PASS
+
+=== testSimplySupportedBeam / Analytical references reproduce the values stated in PROJECT_SPEC.md ===
+
+Closed-form references vs the Benchmark A numbers in PROJECT_SPEC.md
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  P/2 [kN] vs spec 50 kN                                           50                     50   0.000e+00    0.000e+00 rel<=1e-12%   PASS
+  PL/4 [kN*m] vs spec 500 kN*m                                    500                    500   0.000e+00    0.000e+00 rel<=1e-12%   PASS
+  PL^3/(48EI) [mm] vs spec 8.333... = 25/3 mm         8.3333333333333        8.3333333333333   0.000e+00    0.000e+00 rel<=1e-12%   PASS
+--- PASS
+
+=== testSimplySupportedBeam / Benchmark A with 20 elements ===
+  rcond(Kff) = 6.840e-06, max|Kff*Uf - Ff| = 8.941e-08
+
+Benchmark A: L = 20 m, P = 100 kN, E = 200 GPa, I = 0.01 m^4, 20 elements
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  R_A [kN] (+ up)                                     50.000000000039                     50   3.912e-11    7.823e-11 rel<=0.1%     PASS
+  R_B [kN] (+ up)                                     50.000000000054                     50   5.402e-11    1.080e-10 rel<=0.1%     PASS
+  M_max over element ends [kN*m] (+ sagging)          500.00000000031                    500   3.134e-10    6.269e-11 rel<=0.1%     PASS
+  x of M_max [m]                                                   10                     10   0.000e+00    0.000e+00 rel<=0.1%     PASS
+  M(midspan-), left element [kN*m]                    500.00000000031                    500   3.134e-10    6.269e-11 rel<=0.1%     PASS
+  M(midspan+), right element [kN*m]                    500.0000000003                    500   2.963e-10    5.925e-11 rel<=0.1%     PASS
+  M at pin A [kN*m]                               9.3132257461548e-13                      0   9.313e-13          n/a abs<=0.0005   PASS
+  M at roller B [kN*m]                                              0                      0   0.000e+00          n/a abs<=0.0005   PASS
+  v_mid [mm] (+ up)                                  -8.3333333333391       -8.3333333333333   5.809e-12    6.970e-11 rel<=0.1%     PASS
+  |delta_mid| [mm]                                    8.3333333333391        8.3333333333333   5.809e-12    6.970e-11 rel<=0.1%     PASS
+  theta_A [rad] (+ CCW)                           -0.0012500000000009               -0.00125   8.537e-16    6.830e-11 rel<=0.1%     PASS
+  theta_B [rad] (+ CCW)                             0.001250000000001                0.00125   9.602e-16    7.681e-11 rel<=0.1%     PASS
+  theta_mid [rad]                                -7.6304512664243e-17                      0   7.630e-17          n/a abs<=1.25e-09 PASS
+  min V, left half [kN]                               49.999999999978                     50   2.235e-11    4.471e-11 rel<=0.1%     PASS
+  max V, left half [kN]                                50.00000000006                     50   5.961e-11    1.192e-10 rel<=0.1%     PASS
+  min V, right half [kN]                             -50.000000000067                    -50   6.705e-11    1.341e-10 rel<=0.1%     PASS
+  max V, right half [kN]                             -49.999999999965                    -50   3.492e-11    6.985e-11 rel<=0.1%     PASS
+  sum Fv, loads + reactions [kN]                  9.3132257461548e-11                      0   9.313e-11          n/a abs<=0.0001   PASS
+  sum M about x = 0 [kN*m]                         1.080334186554e-09                      0   1.080e-09          n/a abs<=0.0005   PASS
+--- PASS
+
+=== testSimplySupportedBeam / Mesh independence with 2, 4, 8, 20 and 40 elements ===
+
+Benchmark A mesh independence
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  ne =  2: R_A [kN]                                                50                     50   2.842e-14    5.684e-14 rel<=0.1%     PASS
+  ne =  2: M_max [kN*m]                                           500                    500   5.684e-14    1.137e-14 rel<=0.1%     PASS
+  ne =  2: |delta_mid| [mm]                           8.3333333333333        8.3333333333333   0.000e+00    0.000e+00 rel<=0.1%     PASS
+  ne =  4: R_A [kN]                                                50                     50   2.913e-13    5.826e-13 rel<=0.1%     PASS
+  ne =  4: M_max [kN*m]                                           500                    500   2.785e-12    5.571e-13 rel<=0.1%     PASS
+  ne =  4: |delta_mid| [mm]                           8.3333333333333        8.3333333333333   5.329e-14    6.395e-13 rel<=0.1%     PASS
+  ne =  8: R_A [kN]                                   50.000000000001                     50   1.400e-12    2.800e-12 rel<=0.1%     PASS
+  ne =  8: M_max [kN*m]                                           500                    500   3.581e-12    7.162e-13 rel<=0.1%     PASS
+  ne =  8: |delta_mid| [mm]                           8.3333333333333        8.3333333333333   1.421e-14    1.705e-13 rel<=0.1%     PASS
+  ne = 20: R_A [kN]                                   50.000000000039                     50   3.912e-11    7.823e-11 rel<=0.1%     PASS
+  ne = 20: M_max [kN*m]                               500.00000000031                    500   3.134e-10    6.269e-11 rel<=0.1%     PASS
+  ne = 20: |delta_mid| [mm]                           8.3333333333391        8.3333333333333   5.809e-12    6.970e-11 rel<=0.1%     PASS
+  ne = 40: R_A [kN]                                   49.999999999359                     50   6.408e-10    1.282e-09 rel<=0.1%     PASS
+  ne = 40: M_max [kN*m]                               499.99999999655                    500   3.446e-09    6.892e-10 rel<=0.1%     PASS
+  ne = 40: |delta_mid| [mm]                           8.3333333332458        8.3333333333333   8.749e-11    1.050e-09 rel<=0.1%     PASS
+--- PASS
+
+=== testSimplySupportedBeam / Nodal deflections and rotations match the analytical elastic curve along the span ===
+     x [m]        v FE [mm]     v exact [mm]     err [mm]       theta FE    theta exact
+      0.00     0.0000000000    -0.0000000000    0.000e+00  -1.250000e-03  -1.250000e-03
+      1.00    -1.2458333333    -1.2458333333   -8.502e-13  -1.237500e-03  -1.237500e-03
+      2.00    -2.4666666667    -2.4666666667   -1.680e-12  -1.200000e-03  -1.200000e-03
+      3.00    -3.6375000000    -3.6375000000   -2.469e-12  -1.137500e-03  -1.137500e-03
+      4.00    -4.7333333333    -4.7333333333   -3.200e-12  -1.050000e-03  -1.050000e-03
+      5.00    -5.7291666667    -5.7291666667   -3.860e-12  -9.375000e-04  -9.375000e-04
+      6.00    -6.6000000000    -6.6000000000   -4.446e-12  -8.000000e-04  -8.000000e-04
+      7.00    -7.3208333333    -7.3208333333   -4.954e-12  -6.375000e-04  -6.375000e-04
+      8.00    -7.8666666667    -7.8666666667   -5.367e-12  -4.500000e-04  -4.500000e-04
+      9.00    -8.2125000000    -8.2125000000   -5.659e-12  -2.375000e-04  -2.375000e-04
+     10.00    -8.3333333333    -8.3333333333   -5.810e-12  -7.630451e-17  -0.000000e+00
+     11.00    -8.2125000000    -8.2125000000   -5.808e-12   2.375000e-04   2.375000e-04
+     12.00    -7.8666666667    -7.8666666667   -5.650e-12   4.500000e-04   4.500000e-04
+     13.00    -7.3208333333    -7.3208333333   -5.342e-12   6.375000e-04   6.375000e-04
+     14.00    -6.6000000000    -6.6000000000   -4.885e-12   8.000000e-04   8.000000e-04
+     15.00    -5.7291666667    -5.7291666667   -4.289e-12   9.375000e-04   9.375000e-04
+     16.00    -4.7333333333    -4.7333333333   -3.575e-12   1.050000e-03   1.050000e-03
+     17.00    -3.6375000000    -3.6375000000   -2.767e-12   1.137500e-03   1.137500e-03
+     18.00    -2.4666666667    -2.4666666667   -1.887e-12   1.200000e-03   1.200000e-03
+     19.00    -1.2458333333    -1.2458333333   -9.558e-13   1.237500e-03   1.237500e-03
+     20.00     0.0000000000    -0.0000000000    0.000e+00   1.250000e-03   1.250000e-03
+
+Benchmark A elastic curve at all 21 nodes
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  max|v - v_exact| / delta_mid [-]                6.9715067052556e-13                      0   6.972e-13          n/a abs<=0.001    PASS
+  max|theta - theta_exact| / |theta_A| [-]        7.6813555516253e-13                      0   7.681e-13          n/a abs<=0.001    PASS
+--- PASS
+
+=== testSimplySupportedBeam / A load applied at a support node goes directly into that reaction ===
+
+Benchmark A plus an extra 10 kN downward load at roller B (a restrained DOF)
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  R_A [kN]                                            50.000000000039                     50   3.912e-11    7.823e-11 rel<=0.1%     PASS
+  R_B [kN]                                            60.000000000054                     60   5.402e-11    9.003e-11 rel<=0.1%     PASS
+  max|U - U_without_extra_load| [m]                                 0                      0   0.000e+00          n/a abs<=1e-15    PASS
+  sum Fv, loads + reactions [kN]                  9.3132257461548e-11                      0   9.313e-11          n/a abs<=0.0001   PASS
+--- PASS
+
+=== testSupportsAndStability / Pin and roller restrain v only and fixed restrains v and theta ===
+  PASS pin -> [v], roller -> [v], fixed -> [v theta]
+--- PASS
+
+=== testSupportsAndStability / Simply supported 4-element beam restrains v at the two end nodes only ===
+  restrained DOFs [1 9], free DOFs [2 3 4 5 6 7 8 10]
+--- PASS
+
+=== testSupportsAndStability / Fixed end plus roller (propped-cantilever layout) restrains v1, theta1 and v5 ===
+  restrained DOFs [1 2 9], free DOFs [3 4 5 6 7 8 10]
+--- PASS
+
+=== testSupportsAndStability / Under-restrained models are rejected with BridgeFE:underRestrained ===
+  PASS expected error BridgeFE:underRestrained: Under-restrained model: no vertical displacement is restrained, so rigid-body vertical translation is free. Add two pin/roller supports or one fixed support.
+  PASS expected error BridgeFE:underRestrained: Under-restrained model: no vertical displacement is restrained, so rigid-body vertical translation is free. Add two pin/roller supports or one fixed support.
+  PASS expected error BridgeFE:underRestrained: Under-restrained model: only node 1 (x = 0 m) restrains v and no rotation is restrained, so rigid-body rotation about that node is free. Add a second pin/roller support or make a support fixed.
+  PASS expected error BridgeFE:underRestrained: Under-restrained model: only node 1 (x = 0 m) restrains v and no rotation is restrained, so rigid-body rotation about that node is free. Add a second pin/roller support or make a support fixed.
+  PASS expected error BridgeFE:underRestrained: Under-restrained model: only node 3 (x = 10 m) restrains v and no rotation is restrained, so rigid-body rotation about that node is free. Add a second pin/roller support or make a support fixed.
+--- PASS
+
+=== testSupportsAndStability / Stability rule agrees with the numerical rank of Kff for many support layouts ===
+  none                               rank(Kff) = 8 of 10   rule stable = 0   numerically stable = 0
+  pin@node1                          rank(Kff) = 8 of 9   rule stable = 0   numerically stable = 0
+  roller@node3                       rank(Kff) = 8 of 9   rule stable = 0   numerically stable = 0
+  fixed@node5                        rank(Kff) = 8 of 8   rule stable = 1   numerically stable = 1
+  pin@node1 roller@node5             rank(Kff) = 8 of 8   rule stable = 1   numerically stable = 1
+  pin@node2 roller@node4             rank(Kff) = 8 of 8   rule stable = 1   numerically stable = 1
+  fixed@node1 roller@node5           rank(Kff) = 7 of 7   rule stable = 1   numerically stable = 1
+  fixed@node1 fixed@node5            rank(Kff) = 6 of 6   rule stable = 1   numerically stable = 1
+  fixed@node3                        rank(Kff) = 8 of 8   rule stable = 1   numerically stable = 1
+  pin@node1 pin@node2 roller@node3   rank(Kff) = 7 of 7   rule stable = 1   numerically stable = 1
+--- PASS
+
+=== testSupportsAndStability / Duplicate, unknown-type and off-range supports are rejected ===
+  PASS expected error BridgeFE:duplicateSupport: Node 1 already has a support; a node may carry at most one support.
+  PASS expected error BridgeFE:invalidSupportType: Unknown support type 'hinge'. Use 'pin', 'roller' or 'fixed'.
+  PASS expected error BridgeFE:invalidInput: node must be an integer scalar between 1 and 5.
+  PASS expected error BridgeFE:invalidInput: node must be an integer scalar between 1 and 5.
+  PASS expected error BridgeFE:invalidModel: Restraint flags of the support at node 1 do not match its type 'pin'.
+--- PASS
+
+=== testSupportsAndStability / Coordinates map to nodes only where a node exists ===
+  PASS x = 0, 10, 20 m map to nodes 1, 11, 21
+  PASS expected error BridgeFE:notOnNode: No node at x = 10.3 m (nearest node 11 at x = 10 m). Align the mesh with this coordinate.
+  PASS expected error BridgeFE:notOnNode: No node at x = -1 m (nearest node 1 at x = 0 m). Align the mesh with this coordinate.
+--- PASS
+
+==================== TEST SUMMARY ====================
+Platform : GNU Octave 8.4.0
+Date     : 2026-10-29 14:10:39
+  PASS  testAssembly / Element DOF map is [v_i theta_i v_j theta_j] with node n owning DOFs 2n-1 and 2n
+  PASS  testAssembly / Two equal unit elements assemble to the hand-computed 6x6 matrix
+  PASS  testAssembly / Unequal lengths and EI match K = sum(A_e'*k_e*A_e) with explicit Boolean A_e
+  PASS  testAssembly / Assembled K is symmetric with exactly two rigid-body modes
+  PASS  testAssembly / Nodal load vector puts forces at v DOFs and couples at theta DOFs and sums repeats
+  PASS  testAssembly / Invalid model data are rejected
+  PASS  testBeamStiffness / Exact matrix for EI = 2e9 N*m^2 and Le = 2 m (hand-computed literals)
+  PASS  testBeamStiffness / Unit EI and unit length give the integer coefficient matrix exactly
+  PASS  testBeamStiffness / Spec mesh example Le = 1.5 m with steel E = 200 GPa and I = 0.01 m^4
+  PASS  testBeamStiffness / Element matrix is exactly symmetric for arbitrary EI and Le
+  PASS  testBeamStiffness / Rigid-body modes lie in the null space and ke is positive semi-definite of rank 2
+  PASS  testBeamStiffness / Stiffness scales linearly with EI, as later EI-reduction studies assume
+  PASS  testBeamStiffness / Invalid EI or Le inputs are rejected with BridgeFE:invalidInput
+  PASS  testCantileverTipLoad / Cantilever with a tip load and 10 elements
+  PASS  testSimplySupportedBeam / Analytical references reproduce the values stated in PROJECT_SPEC.md
+  PASS  testSimplySupportedBeam / Benchmark A with 20 elements
+  PASS  testSimplySupportedBeam / Mesh independence with 2, 4, 8, 20 and 40 elements
+  PASS  testSimplySupportedBeam / Nodal deflections and rotations match the analytical elastic curve along the span
+  PASS  testSimplySupportedBeam / A load applied at a support node goes directly into that reaction
+  PASS  testSupportsAndStability / Pin and roller restrain v only and fixed restrains v and theta
+  PASS  testSupportsAndStability / Simply supported 4-element beam restrains v at the two end nodes only
+  PASS  testSupportsAndStability / Fixed end plus roller (propped-cantilever layout) restrains v1, theta1 and v5
+  PASS  testSupportsAndStability / Under-restrained models are rejected with BridgeFE:underRestrained
+  PASS  testSupportsAndStability / Stability rule agrees with the numerical rank of Kff for many support layouts
+  PASS  testSupportsAndStability / Duplicate, unknown-type and off-range supports are rejected
+  PASS  testSupportsAndStability / Coordinates map to nodes only where a node exists
+Total: 26 passed, 0 failed, 26 tests
+======================================================
+# octave-cli exit status: 0
