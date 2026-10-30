@@ -8,6 +8,8 @@ function validateModel(model)
 %     - connectivity is one continuous chain [(1:ne)' (2:ne+1)'] (Option A:
 %       a single equivalent beam, no internal hinges or overlaps);
 %     - EI is real, finite and positive for every element;
+%     - material records are valid (VALIDATEMATERIAL), and every element
+%       that points to a material has EI = E*I of that material;
 %     - supports sit on existing nodes, at most one per node, with restraint
 %       flags that match their type;
 %     - nodal loads act on existing nodes with real, finite values;
@@ -25,7 +27,7 @@ if ~(isstruct(model) && isscalar(model))
 end
 required = {{'nodes', 'x'}, {'elements', 'conn'}, {'elements', 'EI'}, ...
     {'supports', 'node'}, {'supports', 'type'}, {'supports', 'restraint'}, ...
-    {'loads', 'nodal'}, {'loads', 'elementUDL'}, {'loads', 'point'}};
+    {'loads', 'nodal'}, {'loads', 'elementUDL'}, {'loads', 'point'}, {'elements', 'materialId'}};
 for k = 1:numel(required)
     p = required{k};
     if ~(isfield(model, p{1}) && isstruct(model.(p{1})) && isfield(model.(p{1}), p{2}))
@@ -53,6 +55,31 @@ end
 EI = model.elements.EI;
 if ~(isnumeric(EI) && isreal(EI) && isequal(size(EI), [ne, 1]) && all(isfinite(EI)) && all(EI > 0))
     error(id, 'model.elements.EI must be a real, finite, positive %d-by-1 vector [N*m^2].', ne);
+end
+
+% Materials
+if ~(isfield(model, 'materials') && isstruct(model.materials))
+    error(id, 'model.materials is missing.');
+end
+nm = numel(model.materials);
+for k = 1:nm
+    try
+        validateMaterial(model.materials(k));
+    catch err
+        error(id, 'model.materials(%d) is invalid: %s', k, err.message);
+    end
+end
+mid = model.elements.materialId;
+if ~(isnumeric(mid) && isreal(mid) && isequal(size(mid), [ne, 1]) && all(mid == round(mid)) ...
+        && all(mid >= 0) && all(mid <= nm))
+    error(id, 'model.elements.materialId must be a %d-by-1 vector of integers between 0 and %d.', ne, nm);
+end
+for e = find(mid > 0).'
+    mat = model.materials(mid(e));
+    if abs(EI(e) - mat.EI) > 1e-12 * mat.EI
+        error(id, ['EI of element %d (%g N*m^2) differs from its material ''%s'' (E*I = %g N*m^2). ' ...
+            'Change materials with assignMaterial instead of editing EI.'], e, EI(e), mat.name, mat.EI);
+    end
 end
 
 % Supports

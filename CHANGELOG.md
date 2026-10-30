@@ -2,6 +2,44 @@
 
 This file records every notable change to the source, tests and project records. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Dates are ISO 8601.
 
+## [0.5.0-M5] — 2026-10-30 (branch `claude/m5-steel-rcc-materials`)
+
+Milestone M5: steel and RCC flexural-rigidity input through the one solver. Source and tests were written by Claude Code.
+
+### Added — engine (`src/materials/`)
+- `defineMaterial.m`: steel (EI = E_s·I_s) or RCC (EI = E_c·I_eff, with I_eff supplied by the user and held constant), plus name and basis text. Warns with `BridgeFE:unusualModulus` on likely unit slips.
+- `validateMaterial.m`: checks a material record, including EI = E·I.
+- `assignMaterial.m`: applies a material to all or selected elements; identical records are reused.
+
+### Changed — engine
+- `createBeamModel`: accepts a material in place of EI. New fields `model.materials` and `model.elements.materialId`; `meta.formatVersion` changed from 3 to 4.
+- `validateModel`: validates the material records and rejects an element whose EI differs from its material's E·I.
+
+### Added — tests and tools (8 new tests; 82 in total)
+- `tests/testMaterials.m`:
+  - the material records
+  - equal-EI steel/RCC/plain-EI models giving bit-identical static results
+  - equal-EI models giving identical moving-load envelopes
+  - a uniform EI change scaling deflections only
+  - a mixed steel/RCC two-span beam against the three-moment equation with two EI values
+  - the EI-edit guard and material reassignment
+  - unit-sanity warnings
+  - invalid input
+- `tools/mutation_check.py`: 5 M5 faults added (31 in total).
+
+### Added — records
+- DECISIONS D-022 (materials). D-005 and D-012 updated.
+- VERIFICATION_LOG V-009.
+- Raw evidence: `results/verification/2026-10-30_M5_octave-8.4.0_runAllTests.log` and `results/verification/2026-10-30_M5_mutation_check_octave-8.4.0.txt`.
+
+### Verified
+- **GNU Octave 8.4.0:** see VERIFICATION_LOG V-009.
+- **MATLAB:** M1–M4 confirmed by the user (V-002, V-004, V-006, V-008). **M5 tests: NOT RUN.**
+
+### Known limitations
+- No nonlinear RCC behaviour and no I_eff calculation (spec §4.4, by design).
+- No material presets or I-section property calculator (optional in the spec, not added).
+
 ## [0.4.0-M4] — 2026-10-30 (branch `claude/m4-moving-vehicle-envelopes`)
 
 Milestone M4: multi-axle vehicles moved quasi-statically across the beam, with envelopes, critical vehicle positions and step refinement. Source and tests were written by Claude Code.

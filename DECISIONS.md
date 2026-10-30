@@ -99,7 +99,7 @@ The model is a plain struct-of-arrays built by `createBeamModel(x, EI)`. Fields 
 - **The model struct stores inputs only.** Derived values (element lengths, K) are recomputed so they cannot go stale.
 - **Supports:** `model.supports.{node, type, restraint}`, with at most one support per node.
 - **Loads:** nodal loads as `model.loads.nodal = [node Fv Mz]` (M1). From M2 there is also a uniform load per element, `model.loads.elementUDL` (see D-015). Point loads inside elements arrive in M3.
-- **Format version:** `model.meta.formatVersion` is 2 since M2 (added `loads.elementUDL`) and 3 since M3 (added `loads.point`, see D-017). Models are built in code, not stored, so there is no migration.
+- **Format version:** `model.meta.formatVersion` is 2 since M2 (added `loads.elementUDL`), 3 since M3 (added `loads.point`, see D-017) and 4 since M5 (added `materials` and `elements.materialId`, see D-022). Models are built in code, not stored, so there is no migration.
 
 ## D-006 — Supports and kinematic stability (2026-10-29) — ACCEPTED
 
@@ -182,6 +182,7 @@ Otherwise the code throws `BridgeFE:underRestrained`, naming the free mode. The 
 - `src/model/` also holds `addSupport`, `addNodalLoad`, `findNodeAtX`, `supportRestraint`, `elementDofs` and `generateUniformMesh`.
 - No empty Stage 2/3/4, GUI or visualization files were created.
 - M2 additions follow the spec's suggested names where one exists (`loads/equivalentDistributedLoad.m`).
+- M5 adds the folder `src/materials/` (`defineMaterial`, `validateMaterial`, `assignMaterial`). The spec layout has no materials folder.
 - M4 keeps the spec name `loads/generateVehiclePositions.m`.
   - `vehicleLoadVector`, `calculateEnvelopes` and `findCriticalPositions` became parts of `src/movingload/`: `analyzeVehiclePosition` builds the load vector, and `runMovingLoad` computes the envelopes and critical positions.
   - `src/loads/` also holds `createVehicle`, `validateVehicle` and `vehicleAxlePositions`.
@@ -289,3 +290,19 @@ None of these block M1.
   - For two axles, the coarse error obeys the bound (2P/L)(h/2)² from the quadratic shape of M near its optimum (tested).
 - **Permanent loads.** Loads already in the model act at every position. Envelopes are therefore permanent plus live; superposition is tested. Use a model without loads for live-load-only envelopes.
 - **Not included:** load factors, dynamic allowance, lane or multiple-presence factors, and code load models. Results are analysis outputs, not a load rating (spec §1).
+
+## D-022 — Steel and RCC material input (2026-10-30, M5) — ACCEPTED
+
+- **One solver.** Materials only record where EI comes from; the solver uses EI alone (spec §4.4). There is no steel or RCC branch anywhere in the solver.
+  - `defineMaterial('steel', Es, Is)` gives EI = E_s·I_s.
+  - `defineMaterial('rcc', Ec, Ieff)` gives EI = E_c·I_eff.
+- **RCC.** I_eff is **supplied by the user or justified elsewhere** for the assumed cracking state, and stays **constant** during the linear analysis.
+  - The tool does not compute I_eff from reinforcement.
+  - It does not model cracking, yielding, creep, shrinkage, slip or any change in stiffness under load.
+  - The optional `basis` text records where E and I_eff came from, for traceability.
+- **Assignment.** `createBeamModel(x, material)` applies one material to every element. `assignMaterial(model, material, elements)` applies it to selected elements, so spans can differ (e.g. a steel span next to an RCC span).
+  - Identical material records are stored once in `model.materials`. `model.elements.materialId` points to them, with 0 meaning EI was given directly as a number.
+- **Consistency guard.** `validateModel` rejects an element whose EI no longer equals E·I of its material. Material input therefore cannot silently disagree with the EI actually analysed.
+  - Stage 2 (M7) will add EI loss as a **separate** factor (EI_D = (1 − d)·EI from the material), keeping the material record intact.
+- **Unit-sanity warning.** `BridgeFE:unusualModulus` is issued (as a warning, not an error) when E is outside 150–250 GPa for steel or 10–70 GPa for RCC. It catches GPa/MPa/Pa slips. The ranges are broad plausibility bounds, not engineering limits.
+- **Equal-EI equivalence** (spec §4.4) is tested. A steel model and an RCC model with the same assigned EI give bit-identical static results and identical moving-load envelopes. This checks input and solver consistency only. It is not evidence about real concrete behaviour.

@@ -35,6 +35,12 @@ mutations = [
   ('M4: step refinement disabled', 'src/movingload/runMovingLoad.m', 'if opts.Refine\n', 'if false\n'),
   ('M4: axle load vector mirrored inside the element', 'src/movingload/analyzeVehiclePosition.m', 'fe = equivalentPointLoad(POn(k), a, Le(e));', 'fe = equivalentPointLoad(POn(k), Le(e) - a, Le(e));'),
   ('M4: crossing stops when the front axle leaves', 'src/loads/generateVehiclePositions.m', 'xEnd = x(end) + vehicleLength;', 'xEnd = x(end);'),
+  # M5 (steel / RCC material input)
+  ('M5: material EI stored as E instead of E*I', 'src/materials/defineMaterial.m', "'EI', double(E) * double(I),", "'EI', double(E),"),
+  ('M5: assignMaterial does not update EI', 'src/materials/assignMaterial.m', 'model.elements.EI(elements) = material.EI;', ''),
+  ('M5: EI-vs-material consistency check disabled', 'src/model/validateModel.m', 'if abs(EI(e) - mat.EI) > 1e-12 * mat.EI', 'if false'),
+  ('M5: createBeamModel takes E as EI', 'src/model/createBeamModel.m', '    EI = EI.EI;', '    EI = EI.E;'),
+  ('M5: unit-sanity warning disabled', 'src/materials/defineMaterial.m', 'if E < range(1) || E > range(2)', 'if false'),
 ]
 for name, rel, old, new in mutations:
     d = work / re.sub(r'[^a-z0-9]+', '_', name.lower())

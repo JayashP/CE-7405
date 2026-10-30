@@ -6,7 +6,7 @@ This is a MATLAB direct-stiffness solver for a **2D equivalent Euler–Bernoulli
 - **Deadline:** 24 Nov 2026.
 - **Authoritative requirements:** `PROJECT_SPEC.md`.
 
-## Current status (2026-10-30, milestone M4)
+## Current status (2026-10-30, milestone M5 on branch `claude/m5-steel-rcc-materials`)
 
 | Capability | State |
 |---|---|
@@ -19,7 +19,8 @@ This is a MATLAB direct-stiffness solver for a **2D equivalent Euler–Bernoulli
 | Benchmark B (single load at 88 positions on a coarse 8-element span) | **PASS** in Octave (error ≤ about 7e‑12 %, target 0.5 %) and in MATLAB (V-006) |
 | Multi-axle vehicles, quasi-static moving-load stepping (both directions), M/V/v and reaction envelopes, critical vehicle positions with step refinement | Implemented (M4); tested in GNU Octave 8.4.0 and MATLAB (74/74; V-008) |
 | Moving-load benchmarks (two-axle absolute maximum moment, spec 3-axle truck 1349.1 kN·m, two-span negative moment and uplift) | **PASS** in Octave (error ≤ about 1e‑5 %, target 0.5 %) and in MATLAB (V-008) |
-| Steel/RCC input layer, GUI, Stage 2 damage, Stages 3/4 | Not implemented |
+| Steel (E_s·I_s) and RCC (E_c·I_eff, user-supplied, constant) material input, per span; equal-EI steel/RCC equivalence | Implemented (M5); tested in GNU Octave 8.4.0; **MATLAB NOT RUN yet** |
+| GUI, Stage 2 damage, Stages 3/4 | Not implemented (M6 GUI next) |
 
 See `VERIFICATION_LOG.md` for the actual numbers and `DEVELOPMENT_PLAN.md` for what comes next.
 
@@ -58,6 +59,16 @@ res.reactions            % node, Fv [N] (+ up), Mz [N*m] (+ CCW)
 res.v(11)                % midspan v [m] (+ up)  -> -8.333e-3
 max(res.elementForces.moment(:))   % +5e5 N*m (sagging positive)
 full(res.K), res.freeDofs, res.F, res.U, res.R   % matrices and vectors for inspection
+```
+
+Steel span plus RCC span (EI = E·I; I_eff for RCC is supplied by you and held constant):
+
+```matlab
+[x, xs] = meshSpans([10 15], [8 12]);
+steel = defineMaterial('steel', 200e9, 0.01);               % Es [Pa], Is [m^4]
+rcc = defineMaterial('rcc', 32e9, 0.03125, 'RCC span', 'Ieff from external cracked-section check');
+model = createBeamModel(x, steel);
+model = assignMaterial(model, rcc, elementsBetween(model, xs(2), xs(3)));
 ```
 
 Two-span continuous beam with a 20 kN/m downward uniform load (Benchmark D):
@@ -106,7 +117,9 @@ Main functions (see `help <name>`):
 |---|---|
 | `beamElementStiffness(EI, Le)` | 4×4 element matrix, DOFs `[v1 θ1 v2 θ2]` |
 | `generateUniformMesh(L, ne)` | Node coordinates |
-| `createBeamModel(x, EI)` | Model struct from coordinates and EI (scalar or per element) |
+| `createBeamModel(x, EI)` / `createBeamModel(x, material)` | Model struct from coordinates and EI (scalar or per element) or a material |
+| `defineMaterial('steel'\|'rcc', E, I, name, basis)` | Steel E_s·I_s or RCC E_c·I_eff (I_eff supplied by you, constant) |
+| `assignMaterial(model, material, elements)` | Give elements or spans a material (EI = E·I) |
 | `addSupport(model, node, 'pin'\|'roller'\|'fixed')` | Add a support at a node |
 | `addNodalLoad(model, node, Fv, Mz)` | Add a nodal load |
 | `findNodeAtX(model, x)` | Node at a coordinate; errors if there is none |
@@ -148,6 +161,7 @@ CHANGELOG.md           change history
 addProjectPaths.m      path setup
 runAllTests.m          test runner (MATLAB and Octave)
 src/elements/          beamElementStiffness, beamShapeFunctions
+src/materials/         steel / RCC material records and assignment
 src/model/             mesh, model struct, supports, loads, validation, DOF map, assembly
 src/loads/             nodal, uniform-element and global load vectors; vehicles and positions
 src/solver/            DOF partition, static solve, reactions, element forces
