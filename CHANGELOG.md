@@ -35,7 +35,8 @@ Milestone M6: basic sage-green MATLAB app over the verified engine. The code-bui
 - VERIFICATION_LOG V-011.
 
 ### Verified
-- See VERIFICATION_LOG V-011. **The app has not yet been run in MATLAB.**
+- **GNU Octave 8.4.0:** 95 of 95 tests passed. Scripted app check against stand-in components: 27 of 27 PASS. Mutation check: all 38 real faults detected (one equivalent mutant replaced). See VERIFICATION_LOG V-011.
+- **MATLAB:** the app has **not** been run in MATLAB.
 
 ### Known limitations
 - GUI rendering, layout and appearance are unverified until the user's MATLAB run.

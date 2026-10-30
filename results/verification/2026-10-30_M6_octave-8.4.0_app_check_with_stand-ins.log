@@ -1,0 +1,41 @@
+# Command: octave-cli --no-gui --norc --eval "addpath('tools/gui_mock'); runGuiMockCheck(true)"
+# GNU Octave 8.4.0 with STAND-IN UI components (tools/gui_mock); no MATLAB window was rendered. Shadowing warnings for the stand-in plot/ui functions are expected.
+warning: RCC modulus E = 3.2e+19 Pa is outside the usual 10-70 GPa. Check the units (the engine expects Pa); the material was still created.
+warning: called from
+    defineMaterial at line 68 column 5
+    buildModelFromInputs at line 70 column 10
+    applyModelInputs at line 84 column 31
+    checkBridgeConditionApp at line 114 column 4
+    runGuiMockCheck at line 23 column 1
+
+
+BridgeConditionApp driven through its inputs vs direct engine calls
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  start-up model = buildModelFromInputs(default inputs) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  start-up vehicle = vehicleFromInputs(default inputs) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  start-up position is the crossing start, x_v = 0 (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  model tab drawing has > 10 graphics objects (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  Apply model with 2 spans, RCC, 10 kN/m succeeds (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  app model = buildModelFromInputs(the same inputs) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  model summary text is shown (1 = yes)                             1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  x_v = 16.4 m: max|U_app - U_engine| / max|U| [-]                      0                      0   0.000e+00          n/a abs<=1e-12    PASS
+  x_v = 16.4 m: max|R_app - R_engine| / max|R| [-]                      0                      0   0.000e+00          n/a abs<=1e-12    PASS
+  reaction table shows 3 supports and R_B of the engine (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  beam, M, V and v axes are drawn (1 = yes)                         1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  Forward moves x_v by one step [m]                               0.1                    0.1   1.416e-15    1.416e-12 rel<=1e-09%   PASS
+  Run moving-load analysis succeeds (1 = yes)                       1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  app envelopes = runMovingLoad envelopes (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  app critical values = runMovingLoad critical values (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  critical table 6 x 7, reaction envelope table 3 rows (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  M, V and v envelope axes are drawn (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  Matrices tab fills (1 = yes)                                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  Matrices tab: max|U_app - U_static| / max|U| [-]                      0                      0   0.000e+00          n/a abs<=1e-12    PASS
+  k_e table 4 x 4, K table nDof x nDof, DOF table nDof rows (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  K(1,1) shown as the engine value (1 = yes)                        1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  direction -x: Direction = -1 and x_v starts at the right end (27 m) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  2 support entries for 3 span ends: rejected, message shown, model kept (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  axle loads '80 abc': rejected with a message naming 'abc' (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  E = 32e9 "GPa": model built and a unit warning reported (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  19 callbacks invoked (buttons, fields, slider, tabs) without error (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  Verification tab: test suite reports 0 failed (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+# octave-cli exit status: 0

@@ -613,3 +613,108 @@ Expected last line: `Total: 82 passed, 0 failed, 82 tests`. Two yellow `BridgeFE
 - As in V-002 to V-008, MATLAB's numeric tables were not sent, so this entry records PASS/FAIL, not MATLAB's numbers.
 
 **Status of M5:** verified in GNU Octave 8.4.0 (V-009, with numbers) and in MATLAB (V-010, pass/fail). The gate is met, so the branch is merged into `main`.
+
+---
+
+## V-011 — 2026-10-30 — Milestone M6 (code-built MATLAB app) in GNU Octave
+
+| Item | Value |
+|---|---|
+| Platform | **GNU Octave 8.4.0** (`octave-cli`), Linux 6.18 x86_64, Ubuntu 24.04.5 cloud container |
+| MATLAB | **NOT RUN.** The app has **not** been opened in MATLAB. Its rendering, layout and appearance are **not verified**. The user needs to run it; record the result as V-012 |
+| Code version | Branch `claude/m6-basic-gui` (code at `7633fac`, from `main` at `301abf6`) |
+| Main suite | `octave-cli --no-gui --norc --eval "runAllTests;"` gives **95 passed, 0 failed, 95 tests**: 82 earlier plus 13 new (testGuiHelpers 9, testDrawingGeometry 4). Raw log: `results/verification/2026-10-30_M6_octave-8.4.0_runAllTests.log` |
+| App check (stand-in components) | `octave-cli --no-gui --norc --eval "addpath('tools/gui_mock'); runGuiMockCheck(true)"` gives **27 of 27 checks PASS**. Raw log: `results/verification/2026-10-30_M6_octave-8.4.0_app_check_with_stand-ins.log` |
+| Drawing previews | `tools/preview` renders the same drawing coordinates with matplotlib (not MATLAB): `results/verification/2026-10-30_M6_drawing_previews_matplotlib/*.png` (4 cases) |
+
+### Why the GUI could only be checked indirectly here (DECISIONS.md D-024)
+
+- MATLAB is not installed in this container.
+- Octave has no App Designer components.
+- Octave figure rendering fails here with a FreeType "invalid bounding box" error. It persisted with the gnuplot and Qt toolkits, under Xvfb, and with the font set restricted to DejaVu.
+
+The GUI was therefore checked in three layers:
+
+1. **Helper tests in the main suite.** These also run in MATLAB.
+2. **The scripted app check against stand-in components.** The stand-ins reject unknown properties, Layout set outside a grid, invalid colours, out-of-range values, non-increasing axis limits and mismatched legend calls.
+3. **matplotlib previews** of the drawing data.
+
+None of these shows what MATLAB actually displays.
+
+### New main-suite tests (Octave, all PASS)
+
+| Test | What is checked | Key result |
+|---|---|---|
+| testGuiHelpers: number parsing | '20 20', '80, 120,120', ' 4.2;1.4 ', exponents; rejects '', 'abc', 'Inf', '2i' and 'exit' (no code is evaluated) | Exact |
+| testGuiHelpers: model from app inputs | Inputs (2 × 20 m spans, 16 elements per span, pin/roller/roller, steel 200 GPa / 0.01 m⁴, 20 kN/m) give a model `isequal` to one built directly with the engine. Benchmark D: M_B = −qL²/8 = −1000 kN·m, R_B = 500 kN | M_B and R_B within 0.5 % (round-off) |
+| testGuiHelpers: support entries, RCC, unit warning | 'free FIXED' builds a cantilever fixed at the right end; RCC E_c = 32 GPa, I_eff = 0.0625 m⁴ gives EI = 2e9; E = 200e9 typed in the GPa field is reported as a warning | Exact |
+| testGuiHelpers: invalid inputs | Wrong number of support entries, 'hinge', 'none none none', 'pin none', negative load, E = 0, fractional element count | Expected error IDs, including `BridgeFE:underRestrained` |
+| testGuiHelpers: vehicle from inputs | '80 120 120' kN with '4.2 1.4' m equals `createVehicle([80e3 120e3 120e3], [4.2 1.4])`; single axle; invalid vehicles rejected | `isequal` |
+| testGuiHelpers: Matrices-tab path | `modelWithVehicle` + `solveStaticModel` against `analyzeVehiclePosition` at 6 positions, including partly on the bridge | Largest normalized U/R difference ≤ 1e‑9 |
+| testGuiHelpers: diagram data | Two rows (x⁻, x⁺) per point, sorted; jump under the 120 kN axle at 12.2 m | ΔV = −120 kN |
+| testGuiHelpers: tables, labels, theme | Critical table 6 × 7 in kN·m and mm; reaction envelope with a couple row for the fixed support; current reactions add up to 320 kN; DOF labels; formatted cells; 17 theme colours are valid RGB | Exact |
+| testDrawingGeometry: symbols | Pin triangle with its apex at the node, base at −h, ground line plus 6 hatch strokes. Roller wheels touch the ground line. Fixed-wall hatching lies outside the beam at both ends. 'none' draws nothing | Exact coordinates |
+| testDrawingGeometry: loads and labels | Beam along y = 0; 'q = 20 kN/m', '100 kN' and '30 kN*m (CCW)' labels; at least 5 uniform-load arrowheads; point-load arrowhead at 7.3 m pointing down; 9 node and 8 element labels | Present |
+| testDrawingGeometry: vehicle and deformed shape | Front axle on the bridge is solid blue; 2 axles off the bridge are dotted grey; the deformed shape is dashed with v × 50 | Exact |
+| testDrawingGeometry: limits | Axis limits contain every primitive and leave room above bottom-aligned labels | Holds |
+
+### Scripted app check against stand-in components (Octave, 27/27 PASS)
+
+`tests/gui/checkBridgeConditionApp(true)` drives `BridgeConditionApp` like a user and compares it with direct engine calls. The same file is meant for the user's MATLAB run.
+
+- **Start-up:** the model and vehicle are `isequal` to the engine built from the default inputs; x_v = 0; the model drawing is present.
+- **Model input:** 2 spans 12 + 15 m, RCC 32 GPa / 0.0625 m⁴, 10 kN/m. The app's model is `isequal` to `buildModelFromInputs`, and the summary text is shown.
+- **Vehicle position x_v = 16.4 m:** U and R are identical to `analyzeVehiclePosition` (difference 0); the reaction table shows the engine's R_B; the beam, M, V and v axes are drawn; Forward moves x_v by exactly one step (0.1 m).
+- **Envelopes:** the app's envelopes and critical values are `isequal` to `runMovingLoad`; the tables are 6 × 7 and 3 rows; all three envelope axes are drawn.
+- **Matrices:** U is identical to `solveStaticModel(modelWithVehicle(...))`; k_e is 4 × 4; K and the DOF table are nDof wide/long; K(1,1) text equals the engine's value.
+- **Travel direction:** −x gives Direction = −1 with the start at the right end (27 m).
+- **Invalid input:** 2 support entries for 3 span ends is rejected with a message and the previous model kept; axle loads '80 abc' are rejected with a message naming 'abc'.
+- **Unit slip:** E = 32e9 typed in the GPa field builds the model and reports one unit warning.
+- **Callbacks:** all 19 (buttons, edit fields, check box, drop-downs, slider changing/changed, spinner, every tab) ran without error.
+- **Verification tab:** "Run all tests" inside the app reports `0 failed`.
+
+### Drawing previews (matplotlib rendering of the app's drawing data; not MATLAB screenshots)
+
+Checked by eye on 2026-10-30:
+
+- **A, simple span:** pin triangle on hatched ground, roller on two wheels.
+- **C, propped cantilever:** fixed wall hatched on the outside (left) and a row of uniform-load arrows. The first rendering clipped the labels, which was fixed by reserving label room in `drawingLimits`.
+- **D, two spans with a truck:** blue axles under the truck body with the cab leading; the dashed deformed shape matches the v diagram.
+  - Static checks: M drops by the applied 50 kN·m CCW couple, as M = ΣF(x − x_i) − ΣC predicts; V jumps by each axle load and by R_B; hogging is largest over the support.
+- **E, cantilever fixed at the right end, truck entering:** wall hatched on the outside (right); axles not yet on the bridge are dotted grey.
+  - Static checks: M = −80 kN × 9 m = −720 kN·m at the wall; V = −80 kN.
+
+### Test-sensitivity (mutation) check — 2026-10-30, Octave 8.4.0
+
+- **Full run:** 38 single-fault mutants (7 M1 + 5 M2 + 6 M3 + 8 M4 + 5 M5 + 7 M6). Raw output: `results/verification/2026-10-30_M6_mutation_check_octave-8.4.0.txt`.
+- **One equivalent mutant.** "M6: diagram rows not sorted" (`sortrows(rows, 1)` instead of `[1 2]`) was **not detected because it changes nothing**: `sortrows` is stable and the rows are built with every left limit first. It was replaced by "right limit listed before left limit" (`sortrows(rows, [1 -2])`), which a separate run shows is **detected**.
+- **Result:** all 38 real faults detected, i.e. 37 in the full run plus the replacement.
+
+| M6 injected fault | Tests failed (of 95) |
+|---|---|
+| GPa input converted with 1e6 instead of 1e9 | 2 |
+| Uniform load entered upward | 1 |
+| Axle loads in kN not converted to N | 1 |
+| Right limit listed before left limit in diagram data (replacement) | 1 |
+| Fixed-wall hatching drawn inside the beam | 1 |
+| No label room in drawing limits | 1 |
+| Critical table shows N·m instead of kN·m | 1 |
+| *(equivalent, replaced)* Diagram rows sorted by x only | 0 (no behaviour change) |
+
+### Limits of this evidence
+
+- **No MATLAB run.** The app's actual rendering, layout, fonts, colours, slider feel and dialogs have not been seen.
+- **Faults in the app file itself are not mutation-tested.** The mutants cover the helpers. Instead, the app is checked by the scripted app check, both against stand-ins here and for real in MATLAB.
+- **Not implemented, so NOT RUN:** Stage 2 (M7), Stages 3 and 4.
+
+### Commands for the MATLAB confirmation (V-012)
+
+Download a ZIP of branch `claude/m6-basic-gui` from GitHub (or `fetch` and `switchBranch` in MATLAB). Then, in its folder:
+
+```matlab
+restoredefaultpath
+addProjectPaths
+runAllTests                      % expected: Total: 95 passed, 0 failed, 95 tests
+checkBridgeConditionApp(true)    % expected: every row PASS (27 rows)
+app = BridgeConditionApp;        % then screenshot each of the five tabs
+```
