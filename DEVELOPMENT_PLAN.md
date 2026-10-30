@@ -19,7 +19,7 @@ Order is fixed by the spec:
 | M1 | Element, assembly, supports, static solve, reactions, nodal-load force recovery, Benchmark A | Oct 28 – Nov 1 | **Done.** 26/26 tests pass in GNU Octave 8.4.0 (V-001) and MATLAB R2026b (V-002) |
 | M2 | Indeterminate beams: span mesher, propped cantilever, two-span continuous, UDL, Benchmarks C and D | Nov 2 – 7 | **Done.** 46/46 tests (incl. M1) pass in GNU Octave 8.4.0 (V-003) and MATLAB (V-004). Merged to `main` |
 | M3 | Point loads anywhere inside elements (Hermite), interior V/M/deflection recovery, Benchmark B | Nov 8 – 10 | **Done.** 61/61 tests (incl. M1–M2) pass in GNU Octave 8.4.0 (V-005) and MATLAB (V-006). Merged to `main` |
-| M4 | Multi-axle vehicle, position stepping, envelopes, critical positions, step refinement | Nov 10 – 13 | **Done in GNU Octave 8.4.0** (74/74 tests incl. M1–M3; V-007). MATLAB run NOT RUN, pending the user. Branch `claude/m4-moving-vehicle-envelopes` |
+| M4 | Multi-axle vehicle, position stepping, envelopes, critical positions, step refinement | Nov 10 – 13 | **Done.** 74/74 tests (incl. M1–M3) pass in GNU Octave 8.4.0 (V-007) and MATLAB (V-008). Merged to `main` |
 | M5 | Steel / RCC input layer (E_s·I_s, E_c·I_eff) and equal-EI equivalence test | Nov 14 – 15 | **Next** |
 | M6 | Basic App Designer GUI over the verified engine (sage green, conventional supports, matrix inspection) | Nov 13 – 17 | Not started; needs MATLAB |
 | M7 | Stage 2: prescribed EI loss, healthy vs degraded comparison, redistribution on an indeterminate beam | Nov 18 – 20 | Not started |
@@ -90,7 +90,7 @@ The original plan is kept below for traceability.
   - The maximum moment occurs at a = L/2.
   - Target 0.5 %.
 
-## M4 — vehicle, envelopes and critical positions — done in Octave; MATLAB confirmation pending
+## M4 — vehicle, envelopes and critical positions — done (Octave V-007, MATLAB V-008)
 
 **Delivered (2026-10-30):**
 - Vehicle and positions: `createVehicle`, `validateVehicle`, `vehicleAxlePositions`, `generateVehiclePositions`.
@@ -109,7 +109,7 @@ Tests: 13 new, in `testVehicleAndPositions`, `testMovingLoadFastPath` and `testM
 - Step convergence is within its theoretical bound.
 - All 61 earlier tests still pass.
 
-**Open action for the user:** run `runAllTests` in MATLAB on branch `claude/m4-moving-vehicle-envelopes` and report the summary (expected `Total: 74 passed`). The branch is then merged into `main`.
+**MATLAB confirmation:** 74/74 tests passed on the user's computer (V-008). Merged into `main`.
 
 The original plan is kept below for traceability.
 

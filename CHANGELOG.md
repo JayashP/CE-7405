@@ -39,7 +39,7 @@ Milestone M4: multi-axle vehicles moved quasi-statically across the beam, with e
 
 ### Verified
 - **GNU Octave 8.4.0:** 74 of 74 tests passed. Moving-load benchmark errors are ≤ about 1e‑5 % (target 0.5 %). Fast path vs static engine ≤ 2.5e‑13. Mutation check: 26 of 26 faults detected.
-- **MATLAB:** M1–M3 confirmed by the user (V-002, V-004, V-006). **M4 tests: NOT RUN.**
+- **MATLAB:** M1–M3 confirmed by the user (V-002, V-004, V-006). M4 confirmed afterwards (V-008, 74/74).
 
 ### Known limitations
 - No dynamic or impact effects, load or lane factors, or code load models. The analysis is quasi-static only (D-019, D-021).

@@ -428,7 +428,7 @@ Expected last line: `Total: 61 passed, 0 failed, 61 tests`.
 | Item | Value |
 |---|---|
 | Platform | **GNU Octave 8.4.0** (`octave-cli`), Linux 6.18 x86_64, Ubuntu 24.04.5 cloud container |
-| MATLAB | **NOT RUN** for the M4 tests. The user needs to run them; record the result as V-008 |
+| MATLAB | Not run in this entry. The user's MATLAB run of the same 74 tests is recorded as **V-008** |
 | Code version | Branch `claude/m4-moving-vehicle-envelopes` (from `main` at `f87e3d8`) |
 | Command (repo root) | `octave-cli --no-gui --norc --eval "runAllTests;"`; one full run takes about 13 s |
 | Raw log | `results/verification/2026-10-30_M4_octave-8.4.0_runAllTests.log` |
@@ -489,7 +489,7 @@ Expected last line: `Total: 61 passed, 0 failed, 61 tests`.
 
 ### Limits of this evidence
 
-- These results are from **GNU Octave only.** The M4 tests have **not** been run in MATLAB.
+- Numeric values in this entry come from GNU Octave. MATLAB PASS/FAIL confirmation of the same tests is in **V-008**.
 - The analysis is **quasi-static**. No dynamic or impact effects, load factors, lane or multiple-presence factors, or code load models are included, so it gives no load rating.
 - **Not implemented, so NOT RUN:** the materials layer (M5), GUI (M6), Stage 2 (M7), and Stages 3 and 4.
 
@@ -503,3 +503,24 @@ runAllTests
 ```
 
 Expected last line: `Total: 74 passed, 0 failed, 74 tests`.
+
+---
+
+## V-008 — 2026-10-30 — Milestone M4 in MATLAB (run by the user)
+
+| Item | Value |
+|---|---|
+| Platform | MATLAB on the user's computer. The screenshot shows the end of the TEST SUMMARY but not its "Platform" line; `runAllTests.m` is open in the editor above. It is most likely the same R2026b installation as V-002, but this is **not confirmed** |
+| Run by | The user. Claude Code has no MATLAB |
+| Code version | Branch `claude/m4-moving-vehicle-envelopes` at commit `027c99a` |
+| Runner | `runAllTests` (MATLAB branch, `matlab.unittest`) |
+| Overall result | **74 passed, 0 failed, 74 tests** |
+| Evidence | Screenshot of the end of the TEST SUMMARY: `results/verification/2026-10-30_M4_matlab_summary_screenshot.png` |
+
+**What this entry shows**
+- The visible lines show PASS for the last tests of `testShapeFunctionsAndPointLoads`, then every test in `testSimplySupportedBeam`, `testSupportsAndStability`, `testUniformLoadBeams` and **`testVehicleAndPositions`** (all 4 M4 tests in that file), then `Total: 74 passed, 0 failed, 74 tests`.
+- A total of 74 means all 13 M4 tests ran and passed in MATLAB, including `testMovingLoadEnvelopes` and `testMovingLoadFastPath`. That covers the moving-load benchmarks against their 0.5 % criterion, and the check that the fast path matches the static engine to within 1e‑9.
+- In particular, MATLAB's sparse Cholesky path (`chol` on K_ff, then two triangular solves) gives the same results as the static engine within the test tolerances.
+- As in V-002, V-004 and V-006, the MATLAB comparison tables were not sent, so this entry records PASS/FAIL, not MATLAB's numbers.
+
+**Status of M4:** verified in GNU Octave 8.4.0 (V-007, with numbers) and in MATLAB (V-008, pass/fail). The gate is met, so the branch is merged into `main`.

@@ -6,7 +6,7 @@ This is a MATLAB direct-stiffness solver for a **2D equivalent Euler–Bernoulli
 - **Deadline:** 24 Nov 2026.
 - **Authoritative requirements:** `PROJECT_SPEC.md`.
 
-## Current status (2026-10-30, milestone M4 on branch `claude/m4-moving-vehicle-envelopes`)
+## Current status (2026-10-30, milestone M4)
 
 | Capability | State |
 |---|---|
@@ -17,8 +17,8 @@ This is a MATLAB direct-stiffness solver for a **2D equivalent Euler–Bernoulli
 | Benchmark C (propped cantilever, UDL) and D (two-span, UDL), plus point-load and pattern-load indeterminate checks | **PASS** in Octave (error ≤ about 4e‑11 %, target 0.5 %) and in MATLAB (V-004) |
 | Point loads at any position (Hermite consistent loads, not snapped), shear jumps, deflection at any x | Implemented (M3); tested in GNU Octave 8.4.0 and MATLAB (61/61; V-006) |
 | Benchmark B (single load at 88 positions on a coarse 8-element span) | **PASS** in Octave (error ≤ about 7e‑12 %, target 0.5 %) and in MATLAB (V-006) |
-| Multi-axle vehicles, quasi-static moving-load stepping (both directions), M/V/v and reaction envelopes, critical vehicle positions with step refinement | Implemented (M4); tested in GNU Octave 8.4.0; **MATLAB NOT RUN yet** |
-| Moving-load benchmarks (two-axle absolute maximum moment, spec 3-axle truck 1349.1 kN·m, two-span negative moment and uplift) | **PASS in Octave**, error ≤ about 1e‑5 % (target 0.5 %); **MATLAB NOT RUN yet** |
+| Multi-axle vehicles, quasi-static moving-load stepping (both directions), M/V/v and reaction envelopes, critical vehicle positions with step refinement | Implemented (M4); tested in GNU Octave 8.4.0 and MATLAB (74/74; V-008) |
+| Moving-load benchmarks (two-axle absolute maximum moment, spec 3-axle truck 1349.1 kN·m, two-span negative moment and uplift) | **PASS** in Octave (error ≤ about 1e‑5 %, target 0.5 %) and in MATLAB (V-008) |
 | Steel/RCC input layer, GUI, Stage 2 damage, Stages 3/4 | Not implemented |
 
 See `VERIFICATION_LOG.md` for the actual numbers and `DEVELOPMENT_PLAN.md` for what comes next.
