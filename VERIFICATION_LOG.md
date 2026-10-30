@@ -532,7 +532,7 @@ Expected last line: `Total: 74 passed, 0 failed, 74 tests`.
 | Item | Value |
 |---|---|
 | Platform | **GNU Octave 8.4.0** (`octave-cli`), Linux 6.18 x86_64, Ubuntu 24.04.5 cloud container |
-| MATLAB | **NOT RUN** for the M5 tests. The user needs to run them; record the result as V-010 |
+| MATLAB | Not run in this entry. The user's MATLAB run of the same 82 tests is recorded as **V-010** |
 | Code version | Branch `claude/m5-steel-rcc-materials` (code at `d4810da`, from `main` at `268b442`) |
 | Command (repo root) | `octave-cli --no-gui --norc --eval "runAllTests;"` |
 | Raw log | `results/verification/2026-10-30_M5_octave-8.4.0_runAllTests.log` |
@@ -578,7 +578,7 @@ Expected last line: `Total: 74 passed, 0 failed, 74 tests`.
 
 ### Limits of this evidence
 
-- These results are from **GNU Octave only.** The M5 tests have **not** been run in MATLAB.
+- Numeric values in this entry come from GNU Octave. MATLAB PASS/FAIL confirmation of the same tests is in **V-010**.
 - The equal-EI equivalence shows input and solver consistency. It says **nothing** about real RCC behaviour: there is no cracking, I_eff calculation, creep or shrinkage (spec §4.4).
 - **Not implemented, so NOT RUN:** GUI (M6), Stage 2 (M7), and Stages 3 and 4.
 
@@ -592,3 +592,24 @@ runAllTests
 ```
 
 Expected last line: `Total: 82 passed, 0 failed, 82 tests`. Two yellow `BridgeFE:unusualModulus` warnings are expected; the unit-sanity test triggers them on purpose.
+
+---
+
+## V-010 — 2026-10-30 — Milestone M5 in MATLAB (run by the user)
+
+| Item | Value |
+|---|---|
+| Platform | MATLAB on the user's computer. The screenshot shows the end of the TEST SUMMARY but not its "Platform" line. It is most likely the same R2026b installation as V-002, but this is **not confirmed** |
+| Run by | The user. Claude Code has no MATLAB |
+| Code version | Branch `claude/m5-steel-rcc-materials` at commit `b2fb7e3` (code identical to `d4810da`) |
+| Runner | `runAllTests` (MATLAB branch, `matlab.unittest`) |
+| Overall result | **82 passed, 0 failed, 82 tests** |
+| Evidence | Screenshot of the end of the TEST SUMMARY: `results/verification/2026-10-30_M5_matlab_summary_screenshot.png` |
+
+**What this entry shows**
+- The visible lines show PASS for the end of `testSimplySupportedBeam`, then `testSupportsAndStability`, `testUniformLoadBeams` and `testVehicleAndPositions`, then `Total: 82 passed, 0 failed, 82 tests`.
+- A total of 82 means all 8 M5 tests in `testMaterials` ran and passed in MATLAB. That includes the bit-identical equal-EI steel/RCC check and the mixed steel/RCC three-moment check.
+- The two intentional `BridgeFE:unusualModulus` warnings are above the visible part, so they are not in the screenshot.
+- As in V-002 to V-008, MATLAB's numeric tables were not sent, so this entry records PASS/FAIL, not MATLAB's numbers.
+
+**Status of M5:** verified in GNU Octave 8.4.0 (V-009, with numbers) and in MATLAB (V-010, pass/fail). The gate is met, so the branch is merged into `main`.

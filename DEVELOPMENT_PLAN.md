@@ -20,7 +20,7 @@ Order is fixed by the spec:
 | M2 | Indeterminate beams: span mesher, propped cantilever, two-span continuous, UDL, Benchmarks C and D | Nov 2 – 7 | **Done.** 46/46 tests (incl. M1) pass in GNU Octave 8.4.0 (V-003) and MATLAB (V-004). Merged to `main` |
 | M3 | Point loads anywhere inside elements (Hermite), interior V/M/deflection recovery, Benchmark B | Nov 8 – 10 | **Done.** 61/61 tests (incl. M1–M2) pass in GNU Octave 8.4.0 (V-005) and MATLAB (V-006). Merged to `main` |
 | M4 | Multi-axle vehicle, position stepping, envelopes, critical positions, step refinement | Nov 10 – 13 | **Done.** 74/74 tests (incl. M1–M3) pass in GNU Octave 8.4.0 (V-007) and MATLAB (V-008). Merged to `main` |
-| M5 | Steel / RCC input layer (E_s·I_s, E_c·I_eff) and equal-EI equivalence test | Nov 14 – 15 | **Done in GNU Octave 8.4.0** (82/82 tests incl. M1–M4; V-009). MATLAB run NOT RUN, pending the user. Branch `claude/m5-steel-rcc-materials` |
+| M5 | Steel / RCC input layer (E_s·I_s, E_c·I_eff) and equal-EI equivalence test | Nov 14 – 15 | **Done.** 82/82 tests (incl. M1–M4) pass in GNU Octave 8.4.0 (V-009) and MATLAB (V-010). Merged to `main` |
 | M6 | Basic App Designer GUI over the verified engine (sage green, conventional supports, matrix inspection) | Nov 13 – 17 | **Next**; needs MATLAB |
 | M7 | Stage 2: prescribed EI loss, healthy vs degraded comparison, redistribution on an indeterminate beam | Nov 18 – 20 | Not started |
 | S3 | Stage 3 inverse search (stretch) | Nov 21 – 23, only if M1–M7 are verified | Deferred |
@@ -120,7 +120,7 @@ The original plan is kept below for traceability.
 - **Efficiency:** factorize K_ff once and reuse it for every position.
 - **Tests:** single-axle reduction to Benchmark B, superposition of multiple axles, axles entering and leaving, and convergence with step size.
 
-## M5 — materials — done in Octave; MATLAB confirmation pending
+## M5 — materials — done (Octave V-009, MATLAB V-010)
 
 **Delivered (2026-10-30):**
 - `defineMaterial` (steel E_s·I_s or RCC E_c·I_eff, with a basis note and a unit-sanity warning), `validateMaterial` and `assignMaterial` (per element or per span).
@@ -135,7 +135,7 @@ Tests: 8 new, in `testMaterials`.
 - A mixed steel/RCC two-span beam matches the three-moment equation with two EI values (M_B = −484.375 kN·m).
 - All 74 earlier tests still pass.
 
-**Open action for the user:** run `runAllTests` in MATLAB on branch `claude/m5-steel-rcc-materials` and report the summary (expected `Total: 82 passed`). The branch is then merged into `main`.
+**MATLAB confirmation:** 82/82 tests passed on the user's computer (V-010). Merged into `main`.
 
 The original plan is kept below for traceability.
 
