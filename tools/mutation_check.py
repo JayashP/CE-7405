@@ -41,6 +41,14 @@ mutations = [
   ('M5: EI-vs-material consistency check disabled', 'src/model/validateModel.m', 'if abs(EI(e) - mat.EI) > 1e-12 * mat.EI', 'if false'),
   ('M5: createBeamModel takes E as EI', 'src/model/createBeamModel.m', '    EI = EI.EI;', '    EI = EI.E;'),
   ('M5: unit-sanity warning disabled', 'src/materials/defineMaterial.m', 'if E < range(1) || E > range(2)', 'if false'),
+  # M6 (GUI helpers and drawing geometry; the app itself is checked by tests/gui/checkBridgeConditionApp)
+  ('M6: GPa input converted with 1e6 instead of 1e9', 'src/gui/buildModelFromInputs.m', 'in.E_GPa * 1e9', 'in.E_GPa * 1e6'),
+  ('M6: uniform load entered upward', 'src/gui/buildModelFromInputs.m', 'model = addUniformLoad(model, -q * 1e3);', 'model = addUniformLoad(model, q * 1e3);'),
+  ('M6: axle loads in kN not converted to N', 'src/gui/vehicleFromInputs.m', 'vehicle = createVehicle(loads * 1e3, spacings, name);', 'vehicle = createVehicle(loads, spacings, name);'),
+  ('M6: diagram rows not sorted (left/right limits mixed)', 'src/gui/responseDiagramData.m', 'rows = sortrows(rows, [1 2]);', 'rows = sortrows(rows, 1);'),
+  ('M6: fixed-wall hatching drawn inside the beam', 'src/visualization/supportSymbolGeometry.m', "        if strcmpi(side, 'right')\n            s = -1;", "        if strcmpi(side, 'left')\n            s = -1;"),
+  ('M6: no label room in drawing limits', 'src/visualization/drawingLimits.m', 'pad = 0.03 * dx;', 'pad = 0;'),
+  ('M6: critical table shows N*m instead of kN*m', 'src/gui/criticalTableData.m', "scales = struct('M', 1e-3, 'V', 1e-3, 'v', 1e3);", "scales = struct('M', 1, 'V', 1e-3, 'v', 1e3);"),
 ]
 for name, rel, old, new in mutations:
     d = work / re.sub(r'[^a-z0-9]+', '_', name.lower())

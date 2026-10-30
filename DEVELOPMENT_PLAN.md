@@ -21,8 +21,8 @@ Order is fixed by the spec:
 | M3 | Point loads anywhere inside elements (Hermite), interior V/M/deflection recovery, Benchmark B | Nov 8 – 10 | **Done.** 61/61 tests (incl. M1–M2) pass in GNU Octave 8.4.0 (V-005) and MATLAB (V-006). Merged to `main` |
 | M4 | Multi-axle vehicle, position stepping, envelopes, critical positions, step refinement | Nov 10 – 13 | **Done.** 74/74 tests (incl. M1–M3) pass in GNU Octave 8.4.0 (V-007) and MATLAB (V-008). Merged to `main` |
 | M5 | Steel / RCC input layer (E_s·I_s, E_c·I_eff) and equal-EI equivalence test | Nov 14 – 15 | **Done.** 82/82 tests (incl. M1–M4) pass in GNU Octave 8.4.0 (V-009) and MATLAB (V-010). Merged to `main` |
-| M6 | Basic App Designer GUI over the verified engine (sage green, conventional supports, matrix inspection) | Nov 13 – 17 | **Next**; needs MATLAB |
-| M7 | Stage 2: prescribed EI loss, healthy vs degraded comparison, redistribution on an indeterminate beam | Nov 18 – 20 | Not started |
+| M6 | Basic App Designer GUI over the verified engine (sage green, conventional supports, matrix inspection) | Nov 13 – 17 | **Implemented**, branch `claude/m6-basic-gui`. Octave: 95/95 tests and app check 27/27 against stand-in components (V-011). **MATLAB: NOT RUN** (app check and screenshots pending, by the user) |
+| M7 | Stage 2: prescribed EI loss, healthy vs degraded comparison, redistribution on an indeterminate beam | Nov 18 – 20 | **Next** (after the MATLAB GUI check) |
 | S3 | Stage 3 inverse search (stretch) | Nov 21 – 23, only if M1–M7 are verified | Deferred |
 | S4 | Stage 4 steel repair categories from sourced rules (stretch, last) | Only if time remains and sources are chosen | Deferred |
 | — | Stabilize, demo recording, final documentation | Nov 21 – 23 | — |
@@ -143,7 +143,23 @@ The original plan is kept below for traceability.
 - **Test:** steel and RCC models with equal assigned EI give identical results. This checks input and solver consistency, **not** concrete behaviour.
 - No nonlinear cracking.
 
-## M6 — basic GUI
+## M6 — basic GUI — implemented; MATLAB check pending
+
+**Delivered (2026-10-30):**
+- The code-built app `app/BridgeConditionApp.m` with 5 tabs (D-023).
+- GUI helpers in `src/gui/`; drawing primitives and plot helpers in `src/visualization/`; `modelWithVehicle` and `defaultEnvelopeStations`.
+- 13 new suite tests (`testGuiHelpers`, `testDrawingGeometry`).
+- The scripted app check `tests/gui/checkBridgeConditionApp.m`.
+- Development checks: `tools/gui_mock` (Octave stand-ins) and `tools/preview` (matplotlib previews).
+
+**Open actions for the user, in MATLAB:**
+1. `runAllTests` (expected 95 passed).
+2. `checkBridgeConditionApp(true)` (expected all PASS).
+3. `app = BridgeConditionApp;` and a screenshot of each tab.
+
+Layout or style changes requested from the screenshots will be made before merging to `main`.
+
+The original plan is kept below for traceability.
 
 - An App Designer front end that calls only `src/` functions.
 - Sage-green styling. Conventional pin, roller and fixed-wall symbols.

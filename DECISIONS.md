@@ -183,6 +183,13 @@ Otherwise the code throws `BridgeFE:underRestrained`, naming the free mode. The 
 - No empty Stage 2/3/4, GUI or visualization files were created.
 - M2 additions follow the spec's suggested names where one exists (`loads/equivalentDistributedLoad.m`).
 - M5 adds the folder `src/materials/` (`defineMaterial`, `validateMaterial`, `assignMaterial`). The spec layout has no materials folder.
+- M6 adds these folders:
+  - `src/gui/`: input parsing, model and vehicle builders, table data, theme.
+  - `src/visualization/`: the drawing primitives and renderers. The spec suggested `plotBridge`; the drawing is now `bridgeDrawing` + `renderDrawing`, plus `plotDiagram` and `plotEnvelope`.
+  - `app/BridgeConditionApp.m`: replaces the spec's `app/BridgeConditionApp.mlapp`, see D-023.
+  - `tests/gui/`: the scripted app check, outside the main suite because it needs a display in MATLAB.
+  - `tools/gui_mock/` and `tools/preview/`: development-only checks, see D-024.
+  - `src/movingload/defaultEnvelopeStations.m` and `modelWithVehicle.m`.
 - M4 keeps the spec name `loads/generateVehiclePositions.m`.
   - `vehicleLoadVector`, `calculateEnvelopes` and `findCriticalPositions` became parts of `src/movingload/`: `analyzeVehiclePosition` builds the load vector, and `runMovingLoad` computes the envelopes and critical positions.
   - `src/loads/` also holds `createVehicle`, `validateVehicle` and `vehicleAxlePositions`.
@@ -209,7 +216,7 @@ None of these block M1.
 | Vehicle reference axle and the policy for axles exactly at supports | **Decided** in M3 and M4 (D-017, D-019): the reference is the front axle; an axle at a node or support is applied at that node, so an axle on a support goes straight into the reaction; axles off the bridge are ignored by the moving-load analysis |
 | Field deflection data format | No field data supplied. Stage 3 only |
 | Stage 4 rule sources | Not selected. Stage 4 only |
-| `.mlapp` packaging vs a runnable source GUI | Not decided. Needed in M6 |
+| `.mlapp` packaging vs a runnable source GUI | **Decided by the user (2026-10-30):** code-built app `app/BridgeConditionApp.m` (D-023). It can still be packaged with MATLAB's Package App tool |
 
 ## D-015 — Uniformly distributed load (2026-10-29, M2) — ACCEPTED
 
@@ -306,3 +313,51 @@ None of these block M1.
   - Stage 2 (M7) will add EI loss as a **separate** factor (EI_D = (1 − d)·EI from the material), keeping the material record intact.
 - **Unit-sanity warning.** `BridgeFE:unusualModulus` is issued (as a warning, not an error) when E is outside 150–250 GPa for steel or 10–70 GPa for RCC. It catches GPa/MPa/Pa slips. The ranges are broad plausibility bounds, not engineering limits.
 - **Equal-EI equivalence** (spec §4.4) is tested. A steel model and an RCC model with the same assigned EI give bit-identical static results and identical moving-load envelopes. This checks input and solver consistency only. It is not evidence about real concrete behaviour.
+
+## D-023 — GUI format and architecture (2026-10-30, M6) — ACCEPTED (format chosen by the user)
+
+- **Format.** The user chose a **code-built MATLAB app**, `app/BridgeConditionApp.m`, over an `.mlapp` file and over the "code now, `.mlapp` later" option, after a written comparison of the three.
+  - It uses the same components App Designer generates (`uifigure`, `uigridlayout`, `uitab`, `uiaxes`, `uitable`, ...), written as text.
+  - It is diffable and reviewable in git. It cannot be edited in App Designer's Design View.
+  - Launch it with `addProjectPaths; app = BridgeConditionApp;`.
+- **No calculations in the app** (spec §11). The app only:
+  - calls `buildModelFromInputs`, `vehicleFromInputs`, `prepareMovingLoad`, `analyzeVehiclePosition`, `runMovingLoad`, `modelWithVehicle` + `solveStaticModel`, and `runAllTests`;
+  - draws what `bridgeDrawing` and `responseDiagramData` return;
+  - fills tables from `currentReactionTableData`, `criticalTableData`, `reactionEnvelopeTableData`, `formatMatrixCells` and `dofLabels`.
+
+  All of these are tested in the main suite.
+- **Tabs** (spec §5.4, §9):
+  1. **Bridge model**: spans, elements per span, supports at span ends (pin, roller, fixed or none), steel or RCC with E [GPa] and I_s/I_eff [m⁴] plus name and basis, permanent uniform load [kN/m, downward], node and element numbers.
+  2. **Vehicle & moving load**: axle loads [kN] and spacings [m], position step, travel direction, deformation scale (0 = automatic), a position slider with Start/Back/Forward, the truck schematic and dashed deformed shape, M, V and v diagrams, and reactions at that position.
+  3. **Envelopes**: runs `runMovingLoad`; plots M, V and v envelopes with critical points; shows the critical-position and reaction-envelope tables.
+  4. **Matrices**: k_e of a chosen element, global K, and a table of each DOF with free/restrained status, F, U and R at the current vehicle position (computational transparency, spec §1).
+  5. **Verification**: runs `runAllTests` and shows its output.
+- **Display units.** The app shows m, kN, kN·m, kN/m, GPa and mm. Conversions happen only in `src/gui` helpers (D-002). Labels state the signs: loads downward-positive as magnitudes, M + sagging, v + up.
+- **Drawings** (spec §9): conventional symbols only.
+  - pin: triangle on a hatched ground line
+  - roller: triangle on two wheels on a hatched ground line
+  - fixed: wall hatched outside the beam
+  - loads: arrows with values
+  - vehicle: axles on the bridge in blue, axles off the bridge dotted grey, with a truck body and cab on the leading side
+  - deformed shape: dashed, with its magnification stated
+
+  Theme: `appTheme` (sage green).
+- **Bad input is handled, not crashed on.** The app shows `uialert` with the engine's message and records `app.LastError`, and the previous model is kept. Unit-slip warnings from `defineMaterial` are shown as a warning alert.
+
+## D-024 — How the GUI is verified without MATLAB (2026-10-30, M6) — PROVISIONAL
+
+- **Constraint.** Claude Code has no MATLAB. GNU Octave 8.4 here has no App Designer components, and its plot rendering fails in this container (FreeType error with every toolkit tried), so no window or figure can be produced here.
+- **Layer 1, in the main suite (MATLAB and Octave).** `testGuiHelpers` and `testDrawingGeometry` cover:
+  - input parsing
+  - model and vehicle building, compared with direct engine construction
+  - table contents
+  - diagram data
+  - the support-symbol geometry: pin apex, roller wheels on the ground line, fixed hatching outside the beam
+  - load arrows, vehicle axles and the deformed shape
+  - axis limits with room for labels
+- **Layer 2, the scripted app check `tests/gui/checkBridgeConditionApp.m`.** It drives the app through its public methods and controls, like a user, and checks it against direct engine calls. It also invokes every button, value and tab callback.
+  - The same file runs in **MATLAB on the real app (user)** and in **Octave against stand-in components** (`tools/gui_mock`, `runGuiMockCheck`).
+  - The stand-ins list the real components' properties, so unknown property names, Layout set outside a grid, invalid colours, out-of-range values and malformed plot/legend calls are errors.
+  - The Octave run shows that the code runs and is wired correctly. It **cannot** show MATLAB's actual rendering or layout.
+- **Layer 3, drawing previews.** `tools/preview` exports the drawing primitives and diagram data to JSON and renders them with matplotlib, so the geometry the app will draw can be inspected as PNG. These are not MATLAB screenshots.
+- **The final GUI evidence is the user's MATLAB run.** That means `runAllTests`, then `checkBridgeConditionApp(true)`, then opening the app and sending screenshots of each tab. Until then, GUI rendering is **NOT VERIFIED IN MATLAB**.

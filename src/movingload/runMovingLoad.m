@@ -54,11 +54,7 @@ validateModel(model);
 validateVehicle(vehicle);
 x = model.nodes.x;
 if isempty(opts.Stations)
-    assertIntegerScalarInRange(opts.StationsPerElement, 'StationsPerElement', 1, Inf);
-    Le = diff(x);
-    t = (1:opts.StationsPerElement - 1) / opts.StationsPerElement;
-    inner = bsxfun(@plus, x(1:end-1), bsxfun(@times, Le, t));
-    stations = unique([x; inner(:)]);
+    stations = defaultEnvelopeStations(x, opts.StationsPerElement);
 else
     stations = unique(opts.Stations(:));
 end

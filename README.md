@@ -6,7 +6,7 @@ This is a MATLAB direct-stiffness solver for a **2D equivalent Euler–Bernoulli
 - **Deadline:** 24 Nov 2026.
 - **Authoritative requirements:** `PROJECT_SPEC.md`.
 
-## Current status (2026-10-30, milestone M5)
+## Current status (2026-10-30, milestone M6 on branch `claude/m6-basic-gui`)
 
 | Capability | State |
 |---|---|
@@ -20,9 +20,22 @@ This is a MATLAB direct-stiffness solver for a **2D equivalent Euler–Bernoulli
 | Multi-axle vehicles, quasi-static moving-load stepping (both directions), M/V/v and reaction envelopes, critical vehicle positions with step refinement | Implemented (M4); tested in GNU Octave 8.4.0 and MATLAB (74/74; V-008) |
 | Moving-load benchmarks (two-axle absolute maximum moment, spec 3-axle truck 1349.1 kN·m, two-span negative moment and uplift) | **PASS** in Octave (error ≤ about 1e‑5 %, target 0.5 %) and in MATLAB (V-008) |
 | Steel (E_s·I_s) and RCC (E_c·I_eff, user-supplied, constant) material input, per span; equal-EI steel/RCC equivalence | Implemented (M5); tested in GNU Octave 8.4.0 and MATLAB (82/82; V-010) |
-| GUI, Stage 2 damage, Stages 3/4 | Not implemented (M6 GUI next) |
+| Sage-green MATLAB app `BridgeConditionApp` (code-built): model, vehicle and moving-load view, envelopes, matrices, verification | Implemented (M6). Helpers tested in Octave (95/95); app checked in Octave against stand-in components (27/27). **Not yet run in MATLAB** |
+| Stage 2 damage, Stages 3/4 | Not implemented (M7 next) |
 
 See `VERIFICATION_LOG.md` for the actual numbers and `DEVELOPMENT_PLAN.md` for what comes next.
+
+## Open the app (MATLAB)
+
+From the repository root:
+
+```matlab
+addProjectPaths;
+app = BridgeConditionApp;            % opens the sage-green app window
+checkBridgeConditionApp(true)        % optional: scripted check of the app against the engine
+```
+
+The app has no calculations of its own: every number comes from the tested functions in `src/` (DECISIONS.md D-023).
 
 ## Run the tests
 
@@ -162,6 +175,9 @@ addProjectPaths.m      path setup
 runAllTests.m          test runner (MATLAB and Octave)
 src/elements/          beamElementStiffness, beamShapeFunctions
 src/materials/         steel / RCC material records and assignment
+src/gui/               app helpers: input parsing, model/vehicle builders, table data, theme
+src/visualization/     drawing primitives (beam, supports, loads, truck) and diagram plots
+app/                   BridgeConditionApp.m (code-built MATLAB app)
 src/model/             mesh, model struct, supports, loads, validation, DOF map, assembly
 src/loads/             nodal, uniform-element and global load vectors; vehicles and positions
 src/solver/            DOF partition, static solve, reactions, element forces
@@ -170,7 +186,10 @@ src/movingload/        factorize-once moving-load analysis, envelopes, critical 
 src/util/              input-validation helpers
 tests/                 script-based unit and benchmark tests (test*.m)
 tests/helpers/         comparison/report helpers, portable runner, benchmark model builder
-tools/                 mutation_check.py (test-sensitivity check)
+tests/gui/             checkBridgeConditionApp.m (scripted app check; MATLAB, or Octave with tools/gui_mock)
+tools/                 mutation_check.py (test-sensitivity check), moving_load_reference_check.py
+tools/gui_mock/        Octave stand-ins for UI components (development check only)
+tools/preview/         drawing previews via matplotlib (development check only)
 results/verification/  raw test logs
 ```
 

@@ -2,6 +2,46 @@
 
 This file records every notable change to the source, tests and project records. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Dates are ISO 8601.
 
+## [0.6.0-M6] — 2026-10-30 (branch `claude/m6-basic-gui`)
+
+Milestone M6: basic sage-green MATLAB app over the verified engine. The code-built format was chosen by the user. Source and tests were written by Claude Code.
+
+### Added — app and helpers
+- `app/BridgeConditionApp.m`: code-built app (`uifigure`, `uigridlayout`, `uitab`, `uiaxes`, `uitable`) with five tabs:
+  1. **Bridge model:** inputs, drawing with conventional supports, model summary.
+  2. **Vehicle & moving load:** inputs, position slider with Start/Back/Forward, truck schematic, dashed deformed shape with its magnification, M/V/v diagrams, reactions.
+  3. **Envelopes:** M/V/v envelopes, critical-position table, reaction-envelope table.
+  4. **Matrices:** k_e, K, and the DOF table of status, F, U and R.
+  5. **Verification:** runs `runAllTests`.
+- `src/gui/`: `appTheme`, `parseNumberList`, `buildModelFromInputs`, `vehicleFromInputs`, `responseDiagramData`, `criticalTableData`, `reactionEnvelopeTableData`, `currentReactionTableData`, `dofLabels`, `formatMatrixCells`.
+- `src/visualization/`:
+  - `drawingPrimitive`, `supportSymbolGeometry` (pin, roller, fixed, none), `bridgeDrawing` and `drawingLimits`: drawings kept as plain data.
+  - `renderDrawing`, `plotDiagram` and `plotEnvelope`: the renderers.
+- `src/movingload/defaultEnvelopeStations.m` (shared by `runMovingLoad` and the app) and `modelWithVehicle.m` (the vehicle position as static point loads, for the Matrices tab).
+
+### Changed
+- `runMovingLoad`: its default stations now come from `defaultEnvelopeStations`. The behaviour is unchanged and all earlier tests pass.
+- `addProjectPaths`: also adds `app/` and `tests/gui/`.
+
+### Added — tests and tools
+- `tests/testGuiHelpers.m` (9 tests) and `tests/testDrawingGeometry.m` (4 tests): 13 new main-suite tests (95 in total).
+- `tests/gui/checkBridgeConditionApp.m`: scripted app check (27 checks with `true`). Runs in MATLAB on the real app, or in Octave through `tools/gui_mock/runGuiMockCheck.m`.
+- `tools/gui_mock/`: Octave stand-ins for the UI components and plot functions. They check property names, layout, colours, value limits and plot/legend arguments.
+- `tools/preview/`: exports the drawing primitives to JSON and renders them with matplotlib (development check).
+- `tools/mutation_check.py`: 7 M6 helper faults added (38 in total).
+
+### Added — records
+- DECISIONS D-023 (GUI format and architecture) and D-024 (GUI verification without MATLAB). D-012 and D-014 updated.
+- VERIFICATION_LOG V-011.
+
+### Verified
+- See VERIFICATION_LOG V-011. **The app has not yet been run in MATLAB.**
+
+### Known limitations
+- GUI rendering, layout and appearance are unverified until the user's MATLAB run.
+- There is no Play/Pause animation; use the slider and the Start/Back/Forward buttons.
+- No data export from the app yet.
+
 ## [0.5.0-M5] — 2026-10-30 (branch `claude/m5-steel-rcc-materials`)
 
 Milestone M5: steel and RCC flexural-rigidity input through the one solver. Source and tests were written by Claude Code.
