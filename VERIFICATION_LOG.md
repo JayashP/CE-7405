@@ -420,3 +420,86 @@ Expected last line: `Total: 61 passed, 0 failed, 61 tests`.
 - As in V-002 and V-004, the MATLAB comparison tables were not sent, so this entry records PASS/FAIL, not MATLAB's numbers.
 
 **Status of M3:** verified in GNU Octave 8.4.0 (V-005, with numbers) and in MATLAB (V-006, pass/fail). The gate is met, so the branch is merged into `main`.
+
+---
+
+## V-007 — 2026-10-30 — Milestone M4 (moving vehicle, envelopes, critical positions) in GNU Octave
+
+| Item | Value |
+|---|---|
+| Platform | **GNU Octave 8.4.0** (`octave-cli`), Linux 6.18 x86_64, Ubuntu 24.04.5 cloud container |
+| MATLAB | **NOT RUN** for the M4 tests. The user needs to run them; record the result as V-008 |
+| Code version | Branch `claude/m4-moving-vehicle-envelopes` (from `main` at `f87e3d8`) |
+| Command (repo root) | `octave-cli --no-gui --norc --eval "runAllTests;"`; one full run takes about 13 s |
+| Raw log | `results/verification/2026-10-30_M4_octave-8.4.0_runAllTests.log` |
+| Overall result (Octave) | **74 passed, 0 failed, 74 tests.** That is 61 earlier tests plus 13 new: testVehicleAndPositions 4, testMovingLoadFastPath 2, testMovingLoadEnvelopes 7. octave-cli exit status 0 |
+| Regression | All 61 M1–M3 tests still pass |
+| Determinism | Two consecutive runs printed identical comparison tables |
+
+**Common inputs:** EI = 2×10⁹ N·m². The spec 3-axle truck is 80/120/120 kN with spacings 4.2 m and 1.4 m, and the front axle is the reference. It is illustrative, not an AASHTO truck. Signs: v up +, M sagging +. The actual values are copied from the Octave log.
+
+### Independent confirmation of the moving-load references
+
+- **Command:** `python3 -I tools/moving_load_reference_check.py` (Python 3.13.17, NumPy 2.5.3).
+- **Method:** closed-form statics only, sweeping positions at 1e‑4 m. It does not use the MATLAB code.
+- **Raw output:** `results/verification/2026-10-30_M4_reference_brute_force_check.txt`.
+
+| Reference | Closed form | Brute force |
+|---|---|---|
+| Two 100 kN axles at 4.2 m, 20 m span: absolute maximum M | P(2L − d)²/(8L) = 801.0250 kN·m | 801.0250 kN·m at x_v = 13.15 m, under the axle at x = 8.95 m |
+| Spec 3-axle truck, 20 m span: maximum M | Resultant rule: 1349.1025 kN·m at x = 9.7375 m, x_v = 13.9375 m | 1349.1025 kN·m at x_v = 13.9375 m, x = 9.7375 m |
+| Two equal 20 m spans, 100 kN: minimum M_B | −PL/(6√3) = −192.45009 kN·m at a = L/√3 = 11.5470 m | −192.45009 kN·m at a = 11.5470 m |
+
+### Moving-load results (Octave, all PASS)
+
+| Test | Analytical reference | Actual (Octave) | Error / criterion |
+|---|---|---|---|
+| **Single 100 kN load, 20 m simple span**: envelopes at all interior stations (8 elements, stations every 0.625 m, positions every 0.125 m) | Mmax = Px(L−x)/L, Vmax = P(L−x)/L, Vmin = −Px/L | Largest normalized errors 4.3e‑14 (M), 5.7e‑14 (Vmax), 3.7e‑14 (Vmin) | ≤ 5e‑3 |
+| Same: midspan deflection envelope | −PL³/(48EI) = −8.3333 mm | −8.3333333333337 mm | 3.8e‑12 % |
+| Same: critical maximum M | PL/4 = 500 kN·m at x = 10 m for x_v = 10 m | 500.00000000002 kN·m at x = 10, x_v = 10 | 4.0e‑12 % |
+| Same: reactions | R_A,max = R_B,max = 100 kN (load on the support), R_A,min = 0 | 100 (at x_v = 0), 100, 0 | exact |
+| **Two 100 kN axles at 4.2 m**: absolute maximum M (coarse step 0.55 m, refined ×10) | 801.025 kN·m under an axle at L/2 ± d/4 | **801.02475** kN·m at x = 8.945 m (under the rear axle), x_v = 13.145 m. Coarse value 801.000 at x_v = 13.2 | 3.1e‑5 % |
+| **Step convergence**, two axles, no refinement | Error ≤ (2P/L)(h/2)², since M is quadratic in x_v near the optimum | Steps 2.42 / 1.21 / 0.605 / 0.3025 m give errors 11.025 / 0.256 / 0.256 / 0.203 kN·m, which is 0.75 / 0.07 / 0.28 / 0.89 of the bound. No overshoot. Step 2.42 m refined ×20 gives 801.00979 | each ≤ bound; refined 1.9e‑3 % |
+| **Spec 3-axle truck, 20 m span** (positions every 0.1 m, refined to 0.01 m) | max M 1349.1025 kN·m at x = 9.7375, x_v = 13.9375 | **1349.1024** kN·m at x = 9.74 (middle axle), x_v = 13.94. Coarse value 1349.080 at x_v = 13.90 | 7.4e‑6 %; location within one refined step |
+| Same: maximum reactions | R_A = 289.2 kN at x_v = 5.6 m (rear axle on A), R_B = 261.2 kN at x_v = 20 m | 289.2 at 5.6; 261.2 at 20 | ≤ 7.2e‑13 % |
+| Same: upward deflection | none | 0 | exact |
+| **Two-span 2 × 20 m, single 100 kN load** (16 elements per span, step 0.1 m, refined) | Envelope M_min at B = −PL/(6√3) = −192.45009 kN·m; R_A,min = −P/(6√3) = −9.62250 kN at x_v = 2L − L/√3 = 28.453 m | M_min(B) = −192.45007 kN·m at x_v = 11.55; R_A,min = −9.6225035 kN at x_v = 28.45; R_A,max = R_B,max = 100 kN | 1.0e‑5 %; x_v within 0.003 m |
+| **Superposition**: 20 kN/m permanent load + spec truck (same positions) | Every envelope equals the static q response plus the truck envelope | Largest normalized differences: Mmax 8.7e‑15, Mmin 1.1e‑14, Vmax 3.8e‑14, Vmin 2.8e‑14, vmax 0, vmin 6.1e‑16. R_A,max difference = 200.000 kN = qL/2 | ≤ 1e‑9 |
+| **Travel direction** −x vs +x on a symmetric span | Mirror images: M and v mirror; V mirrors with a sign change; R_A ↔ R_B | Largest normalized differences ≤ 7.6e‑14; R_A,max(−x) − R_B,max(+x) = −9.3e‑13 kN; critical M difference −1.4e‑12 kN·m | ≤ 1e‑9 |
+| **Fast path vs verified static engine** (2-span 12 + 15 m, two EI values, permanent UDL, nodal force and couple, permanent point load; 14 vehicle positions in both directions, including axles at nodes, on supports and off the bridge) | `analyzeVehiclePosition` = `addPointLoad` + `solveStaticModel` + `sampleInternalForces` + `evaluateDeflection` | Largest normalized differences: U 1.5e‑14, R 3.4e‑14, V(x⁻) and V(x⁺) 2.5e‑13, M 6.6e‑14, v 1.5e‑14 | ≤ 1e‑9 |
+| **On-bridge policy** (spec truck, 20 m span) | x_v = 0: front axle on A, so R_A = 80 kN. x_v = 2: R_A = 72 kN. x_v = 25.6: rear axle on B, so R_B = 120 kN. x_v = 15: R_A = 138.8 kN, ΣR = 320 kN | 80, 72, 120, 138.8, 320.00000000001. U = 0 exactly when only support axles are on the bridge | ≤ 6.4e‑13 % |
+| Positions and validation | Grids 0 → 25.6 m (+x, 257 positions) and 20 → −5.6 m (−x). Requested step 0.3 m becomes 25.6/86 m. A single axle runs 0 → 20 m. Invalid vehicles and options are rejected | As expected | — |
+
+### Test-sensitivity (mutation) check — 2026-10-30, Octave 8.4.0
+
+- **Command:** `python3 -I tools/mutation_check.py <repo> <scratch_dir>`.
+- **Result: 26 of 26 faults detected** (7 M1 + 5 M2 + 6 M3 + 8 M4). For every mutant, `runAllTests` exited with status 1.
+- **Raw output:** `results/verification/2026-10-30_M4_mutation_check_octave-8.4.0.txt`.
+
+| M4 injected fault | Tests failed (of 74) |
+|---|---|
+| Only one triangular solve with the Cholesky factor | 10 |
+| Axles off the bridge applied at the ends | 4 |
+| Right-limit shear ignores a load at the point | 2 |
+| Rear axles placed ahead of the front axle | 3 |
+| Envelope minimum tracks maxima | 4 |
+| Step refinement disabled | 3 |
+| Axle load vector mirrored inside the element | 8 |
+| Crossing stops when the front axle leaves | 2 |
+
+### Limits of this evidence
+
+- These results are from **GNU Octave only.** The M4 tests have **not** been run in MATLAB.
+- The analysis is **quasi-static**. No dynamic or impact effects, load factors, lane or multiple-presence factors, or code load models are included, so it gives no load rating.
+- **Not implemented, so NOT RUN:** the materials layer (M5), GUI (M6), Stage 2 (M7), and Stages 3 and 4.
+
+### Command for the MATLAB confirmation (V-008)
+
+Download a ZIP of branch `claude/m4-moving-vehicle-envelopes` from GitHub (or `fetch` and `switchBranch` in MATLAB). Then, in its folder:
+
+```matlab
+restoredefaultpath
+runAllTests
+```
+
+Expected last line: `Total: 74 passed, 0 failed, 74 tests`.

@@ -26,6 +26,15 @@ mutations = [
   ('M3: point-load particular solution omitted (s <= a)', 'src/postprocess/evaluateDeflection.m', 'vk = vk + loc.P(j) * b^2 * s^2 * (3*a*Le - (3*a + b)*s) / (6 * EI(e) * Le^3);', 'vk = vk;'),
   ('M3: point load located in the wrong element', 'src/loads/locatePointLoads.m', "e = find(x(1:end-1) < loc.x(k), 1, 'last');", "e = find(x(1:end-1) < loc.x(k), 1, 'first');"),
   ('M3: point loads at nodes dropped from F', 'src/loads/assembleLoadVector.m', 'F(2*n - 1) = F(2*n - 1) + loc.P(k);', 'F(2*n - 1) = F(2*n - 1);'),
+  # M4 (moving vehicle, envelopes, critical positions)
+  ('M4: only one triangular solve with the Cholesky factor', 'src/movingload/analyzeVehiclePosition.m', "U(prep.freeDofs) = prep.Rc \\ (prep.Rc' \\ F(prep.freeDofs));", "U(prep.freeDofs) = prep.Rc \\ F(prep.freeDofs);"),
+  ('M4: axles off the bridge are applied at the ends', 'src/movingload/analyzeVehiclePosition.m', 'onBridge = xa >= x(1) - tol & xa <= x(end) + tol;', 'onBridge = true(size(xa));'),
+  ('M4: right-limit shear ignores a load at the point', 'src/movingload/analyzeVehiclePosition.m', 'acts = inElement & s >= loads.a(k) - tol;', 'acts = inElement & s > loads.a(k) + tol;'),
+  ('M4: rear axles placed ahead of the front axle', 'src/loads/vehicleAxlePositions.m', 'x = xv - direction * offsets;', 'x = xv + direction * offsets;'),
+  ('M4: envelope minimum tracks maxima', 'src/movingload/runMovingLoad.m', 'better = candidate < current;', 'better = candidate > current;'),
+  ('M4: step refinement disabled', 'src/movingload/runMovingLoad.m', 'if opts.Refine\n', 'if false\n'),
+  ('M4: axle load vector mirrored inside the element', 'src/movingload/analyzeVehiclePosition.m', 'fe = equivalentPointLoad(POn(k), a, Le(e));', 'fe = equivalentPointLoad(POn(k), Le(e) - a, Le(e));'),
+  ('M4: crossing stops when the front axle leaves', 'src/loads/generateVehiclePositions.m', 'xEnd = x(end) + vehicleLength;', 'xEnd = x(end);'),
 ]
 for name, rel, old, new in mutations:
     d = work / re.sub(r'[^a-z0-9]+', '_', name.lower())

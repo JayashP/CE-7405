@@ -19,8 +19,8 @@ Order is fixed by the spec:
 | M1 | Element, assembly, supports, static solve, reactions, nodal-load force recovery, Benchmark A | Oct 28 – Nov 1 | **Done.** 26/26 tests pass in GNU Octave 8.4.0 (V-001) and MATLAB R2026b (V-002) |
 | M2 | Indeterminate beams: span mesher, propped cantilever, two-span continuous, UDL, Benchmarks C and D | Nov 2 – 7 | **Done.** 46/46 tests (incl. M1) pass in GNU Octave 8.4.0 (V-003) and MATLAB (V-004). Merged to `main` |
 | M3 | Point loads anywhere inside elements (Hermite), interior V/M/deflection recovery, Benchmark B | Nov 8 – 10 | **Done.** 61/61 tests (incl. M1–M2) pass in GNU Octave 8.4.0 (V-005) and MATLAB (V-006). Merged to `main` |
-| M4 | Multi-axle vehicle, position stepping, envelopes, critical positions, step refinement | Nov 10 – 13 | **Next** |
-| M5 | Steel / RCC input layer (E_s·I_s, E_c·I_eff) and equal-EI equivalence test | Nov 14 – 15 | Not started |
+| M4 | Multi-axle vehicle, position stepping, envelopes, critical positions, step refinement | Nov 10 – 13 | **Done in GNU Octave 8.4.0** (74/74 tests incl. M1–M3; V-007). MATLAB run NOT RUN, pending the user. Branch `claude/m4-moving-vehicle-envelopes` |
+| M5 | Steel / RCC input layer (E_s·I_s, E_c·I_eff) and equal-EI equivalence test | Nov 14 – 15 | **Next** |
 | M6 | Basic App Designer GUI over the verified engine (sage green, conventional supports, matrix inspection) | Nov 13 – 17 | Not started; needs MATLAB |
 | M7 | Stage 2: prescribed EI loss, healthy vs degraded comparison, redistribution on an indeterminate beam | Nov 18 – 20 | Not started |
 | S3 | Stage 3 inverse search (stretch) | Nov 21 – 23, only if M1–M7 are verified | Deferred |
@@ -90,7 +90,28 @@ The original plan is kept below for traceability.
   - The maximum moment occurs at a = L/2.
   - Target 0.5 %.
 
-## M4 — vehicle, envelopes and critical positions
+## M4 — vehicle, envelopes and critical positions — done in Octave; MATLAB confirmation pending
+
+**Delivered (2026-10-30):**
+- Vehicle and positions: `createVehicle`, `validateVehicle`, `vehicleAxlePositions`, `generateVehiclePositions`.
+- Fast solution: `prepareMovingLoad` (factorize once), `analyzeVehiclePosition`, `mapCoordinatesToElements`.
+- Sweep: `runMovingLoad`, which gives envelopes, critical positions and step refinement.
+
+Tests: 13 new, in `testVehicleAndPositions`, `testMovingLoadFastPath` and `testMovingLoadEnvelopes`.
+
+**Gate met in Octave (V-007):**
+- Single-load envelopes equal the influence-line maxima.
+- Two axles: absolute maximum moment 801.02475 kN·m (exact 801.025).
+- Spec 3-axle truck: 1349.1024 kN·m (exact 1349.1025) at x = 9.74 m.
+- Two-span: M_B,min = −PL/(6√3) and R_A uplift reproduced.
+- Superposition and direction mirroring are exact.
+- The fast path matches the static engine to 2.5e‑13.
+- Step convergence is within its theoretical bound.
+- All 61 earlier tests still pass.
+
+**Open action for the user:** run `runAllTests` in MATLAB on branch `claude/m4-moving-vehicle-envelopes` and report the summary (expected `Total: 74 passed`). The branch is then merged into `main`.
+
+The original plan is kept below for traceability.
 
 - **Vehicle struct:** axle magnitudes (positive downward input, converted to −P), spacings, and one documented reference axle. The policy for axles exactly at the bridge ends or supports must be decided and recorded in DECISIONS.md.
 - **Position stepping:** from fully off the bridge to fully off again.

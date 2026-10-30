@@ -1,0 +1,5 @@
+# Command: python3 -I tools/moving_load_reference_check.py   (Python 3.13.17, NumPy 2.5.3; independent of the MATLAB code)
+two-axle 100+100 kN, d=4.2: brute max 801.0250 kN*m at xv=13.1500 under axle x=8.9500; closed form P(2L-d)^2/(8L)=801.0250
+3-axle 80/120/120, 4.2/1.4: brute max 1349.1025 kN*m at xv=13.9375 under axle x=9.7375; hand rule 1349.1025 at x=9.7375, xv=13.9375
+two-span M_B influence min -192.45009 at a=11.5470; closed form -PL/(6*sqrt3)=-192.45009 at L/sqrt3=11.5470
+three-moment check at a=7: -153.562500 vs formula -153.562500

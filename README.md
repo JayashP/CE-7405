@@ -6,7 +6,7 @@ This is a MATLAB direct-stiffness solver for a **2D equivalent Euler–Bernoulli
 - **Deadline:** 24 Nov 2026.
 - **Authoritative requirements:** `PROJECT_SPEC.md`.
 
-## Current status (2026-10-29, milestone M3)
+## Current status (2026-10-30, milestone M4 on branch `claude/m4-moving-vehicle-envelopes`)
 
 | Capability | State |
 |---|---|
@@ -17,7 +17,8 @@ This is a MATLAB direct-stiffness solver for a **2D equivalent Euler–Bernoulli
 | Benchmark C (propped cantilever, UDL) and D (two-span, UDL), plus point-load and pattern-load indeterminate checks | **PASS** in Octave (error ≤ about 4e‑11 %, target 0.5 %) and in MATLAB (V-004) |
 | Point loads at any position (Hermite consistent loads, not snapped), shear jumps, deflection at any x | Implemented (M3); tested in GNU Octave 8.4.0 and MATLAB (61/61; V-006) |
 | Benchmark B (single load at 88 positions on a coarse 8-element span) | **PASS** in Octave (error ≤ about 7e‑12 %, target 0.5 %) and in MATLAB (V-006) |
-| Multi-axle vehicles, moving-load stepping, envelopes, critical positions | Not implemented (M4, next) |
+| Multi-axle vehicles, quasi-static moving-load stepping (both directions), M/V/v and reaction envelopes, critical vehicle positions with step refinement | Implemented (M4); tested in GNU Octave 8.4.0; **MATLAB NOT RUN yet** |
+| Moving-load benchmarks (two-axle absolute maximum moment, spec 3-axle truck 1349.1 kN·m, two-span negative moment and uplift) | **PASS in Octave**, error ≤ about 1e‑5 % (target 0.5 %); **MATLAB NOT RUN yet** |
 | Steel/RCC input layer, GUI, Stage 2 damage, Stages 3/4 | Not implemented |
 
 See `VERIFICATION_LOG.md` for the actual numbers and `DEVELOPMENT_PLAN.md` for what comes next.
@@ -86,6 +87,19 @@ s = sampleInternalForces(model, res.U, 4);                 % V jumps by -100 kN 
 evaluateDeflection(model, res.U, [5 7.77 10])              % deflection [m] at any x
 ```
 
+Moving truck (spec 3-axle example, 80/120/120 kN, spacings 4.2 m and 1.4 m) on the same span:
+
+```matlab
+model = createBeamModel(generateUniformMesh(20, 8), EI);
+model = addSupport(model, 1, 'pin');
+model = addSupport(model, 9, 'roller');
+truck = createVehicle([80e3 120e3 120e3], [4.2 1.4], '3-axle example');
+ml = runMovingLoad(model, truck, 'Step', 0.1);       % front axle is the reference x_v
+ml.critical(1)                % max M = 1.349e6 N*m at x = 9.74 m for x_v = 13.94 m
+plot(ml.stations, ml.envelope.Mmax/1e3, ml.stations, ml.envelope.Mmin/1e3)   % kN*m
+[ml.reactions.node, ml.reactions.Rmax/1e3]           % max reactions [kN]
+```
+
 Main functions (see `help <name>`):
 
 | Function | Purpose |
@@ -111,6 +125,11 @@ Main functions (see `help <name>`):
 | `locatePointLoads(model)` | Node or element (and local position) carrying each point load |
 | `sampleInternalForces(model, U, n)` | V and M at n+1 points per element plus both sides of every interior point load |
 | `evaluateDeflection(model, U, xq)` | Deflection at any coordinates (sensors), exact inside loaded elements |
+| `createVehicle(axleLoads, axleSpacings, name)` | Vehicle: axle load magnitudes [N] (positive = down), spacings [m] front to rear |
+| `vehicleAxlePositions(vehicle, xv, direction)` | Axle coordinates for front-axle position x_v |
+| `generateVehiclePositions(model, vehicle, step, direction)` | Positions for a full crossing (entry to exit) |
+| `runMovingLoad(model, vehicle, 'Step', h, ...)` | Envelopes, reaction envelopes, critical positions (with refinement) |
+| `prepareMovingLoad(model, stations)` / `analyzeVehiclePosition(prep, vehicle, xv)` | Factorize once / response at one vehicle position (e.g. a GUI slider) |
 
 **Conventions** (DECISIONS.md D-002/D-003):
 - SI units inside the engine.
@@ -130,9 +149,10 @@ addProjectPaths.m      path setup
 runAllTests.m          test runner (MATLAB and Octave)
 src/elements/          beamElementStiffness, beamShapeFunctions
 src/model/             mesh, model struct, supports, loads, validation, DOF map, assembly
-src/loads/             nodal, uniform-element and global load vectors
+src/loads/             nodal, uniform-element and global load vectors; vehicles and positions
 src/solver/            DOF partition, static solve, reactions, element forces
 src/postprocess/       sampled shear and moment diagrams, deflection at any x
+src/movingload/        factorize-once moving-load analysis, envelopes, critical positions
 src/util/              input-validation helpers
 tests/                 script-based unit and benchmark tests (test*.m)
 tests/helpers/         comparison/report helpers, portable runner, benchmark model builder

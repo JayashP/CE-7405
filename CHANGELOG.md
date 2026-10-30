@@ -2,6 +2,50 @@
 
 This file records every notable change to the source, tests and project records. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Dates are ISO 8601.
 
+## [0.4.0-M4] — 2026-10-30 (branch `claude/m4-moving-vehicle-envelopes`)
+
+Milestone M4: multi-axle vehicles moved quasi-statically across the beam, with envelopes, critical vehicle positions and step refinement. Source and tests were written by Claude Code.
+
+### Added — engine
+**`src/loads/`**
+- `createVehicle.m` and `validateVehicle.m`: axle magnitudes (positive = down), spacings front to rear; the front axle is the reference.
+- `vehicleAxlePositions.m`: axle coordinates and signed forces for front-axle position x_v; direction +1 or −1.
+- `generateVehiclePositions.m`: equally spaced positions from entry to full exit; the actual step is ≤ the requested step.
+
+**`src/movingload/`**
+- `prepareMovingLoad.m`: assembles K, partitions the DOFs and **factorizes K_ff once (Cholesky)**; stores the permanent loads and the station mapping.
+- `analyzeVehiclePosition.m`: response at one position. Axles off the bridge are ignored; an axle at a node is a nodal force; an axle inside an element acts through its Hermite vector. Gives U, R, end actions, and V (both limits), M and v at the stations and under the axles.
+- `mapCoordinatesToElements.m`: element and local position for the left and right limits.
+- `runMovingLoad.m`: the full sweep. Envelopes (M, V, v, with the governing x_v), reaction envelopes, global critical positions (quantity, value, x, x_v, axle positions) and step refinement around each critical position.
+
+### Added — tests and tools (13 new tests; 74 in total)
+- `tests/testVehicleAndPositions.m` (4 tests): axle coordinates in both directions, position grids, on-bridge policy, invalid input.
+- `tests/testMovingLoadFastPath.m` (2 tests): the fast path against the verified static engine at 14 positions; the case with no axle on the bridge.
+- `tests/testMovingLoadEnvelopes.m` (7 tests):
+  - single-load envelopes against influence lines
+  - two-axle absolute maximum moment
+  - step convergence within its theoretical bound
+  - spec 3-axle truck
+  - two-span negative moment and uplift
+  - superposition with a permanent uniform load
+  - mirror symmetry of the two travel directions
+- `tools/moving_load_reference_check.py`: independent brute-force confirmation of the three closed-form moving-load references, not using the MATLAB code.
+- `tools/mutation_check.py`: 8 M4 faults added (26 in total).
+
+### Added — records
+- DECISIONS D-019 (vehicle and positions), D-020 (fast solution) and D-021 (envelopes, critical positions, refinement). D-012 and D-014 updated.
+- VERIFICATION_LOG V-007.
+- Raw evidence in `results/verification/`: the M4 Octave log, the M4 mutation output and the reference brute-force output.
+
+### Verified
+- **GNU Octave 8.4.0:** 74 of 74 tests passed. Moving-load benchmark errors are ≤ about 1e‑5 % (target 0.5 %). Fast path vs static engine ≤ 2.5e‑13. Mutation check: 26 of 26 faults detected.
+- **MATLAB:** M1–M3 confirmed by the user (V-002, V-004, V-006). **M4 tests: NOT RUN.**
+
+### Known limitations
+- No dynamic or impact effects, load or lane factors, or code load models. The analysis is quasi-static only (D-019, D-021).
+- The vehicle can only be a sequence of point axles (no distributed lane load moving with it).
+- Envelopes are evaluated at stations. Values between stations are not enveloped, but the global critical search also covers the points under every axle.
+
 ## [0.3.0-M3] — 2026-10-29 (branch `claude/m3-in-element-point-loads`)
 
 Milestone M3: point loads at any position inside elements, shear jumps, deflection between nodes, and Benchmark B. Source and tests were written by Claude Code.

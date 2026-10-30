@@ -182,6 +182,10 @@ Otherwise the code throws `BridgeFE:underRestrained`, naming the free mode. The 
 - `src/model/` also holds `addSupport`, `addNodalLoad`, `findNodeAtX`, `supportRestraint`, `elementDofs` and `generateUniformMesh`.
 - No empty Stage 2/3/4, GUI or visualization files were created.
 - M2 additions follow the spec's suggested names where one exists (`loads/equivalentDistributedLoad.m`).
+- M4 keeps the spec name `loads/generateVehiclePositions.m`.
+  - `vehicleLoadVector`, `calculateEnvelopes` and `findCriticalPositions` became parts of `src/movingload/`: `analyzeVehiclePosition` builds the load vector, and `runMovingLoad` computes the envelopes and critical positions.
+  - `src/loads/` also holds `createVehicle`, `validateVehicle` and `vehicleAxlePositions`.
+  - `src/movingload/` also holds `prepareMovingLoad` and `mapCoordinatesToElements`.
   - `src/loads/` also holds `elementLoadVectors` and `assembleLoadVector`.
   - `src/model/` also holds `meshSpans`, `elementsBetween` and `addUniformLoad`.
   - `src/postprocess/sampleInternalForces.m` covers V and M only, which is why it is not named `evaluateBeamResponse` (that spec name implies deflection too).
@@ -201,7 +205,7 @@ None of these block M1.
 | GUI workflow (one span field vs spans array, support coordinates, mesh auto-alignment) | Engine uses node coordinates plus `findNodeAtX` (errors if no node is there). Since M2, `meshSpans(spanLengths, elementsPerSpan)` gives exact nodes at every support, so a GUI can take a spans array |
 | Variable EI and nonuniform mesh | Both are already supported by the data model and assembly (tested). Uniform EI is still the benchmark default |
 | Uniform dead load as core or later | **Decided:** implemented in M2 as a consistent element load (D-015) |
-| Vehicle reference axle and the policy for axles exactly at supports | Partly decided in M3 (D-017): a load exactly at a node or support is applied at that node, so a load on a support goes straight into the reaction; loads off the beam are rejected (`BridgeFE:offBeam`). The vehicle reference axle and the rule for skipping axles off the bridge are still open (M4) |
+| Vehicle reference axle and the policy for axles exactly at supports | **Decided** in M3 and M4 (D-017, D-019): the reference is the front axle; an axle at a node or support is applied at that node, so an axle on a support goes straight into the reaction; axles off the bridge are ignored by the moving-load analysis |
 | Field deflection data format | No field data supplied. Stage 3 only |
 | Stage 4 rule sources | Not selected. Stage 4 only |
 | `.mlapp` packaging vs a runnable source GUI | Not decided. Needed in M6 |
@@ -250,3 +254,38 @@ None of these block M1.
 - **Positions.** 88 positions are used: a 0.25 m grid (including every node and both supports), the odd positions 0.1, 1.234, 7.77, 12.3456 and 19.99 m, and 5 m ± 1e‑7 m.
 - **Target.** < 0.5 % (spec) for the maximum relative error over positions of R_A, R_B, M under the load, v under the load and the size of the shear jump. Positions on a support are checked separately, with absolute tolerances.
 - **Critical position.** The test checks that the largest moment under the load occurs at a = L/2. This is the basic critical-position check. Full envelopes and multi-axle critical positions are M4.
+
+## D-019 — Vehicle definition, travel direction and position grid (2026-10-30, M4) — ACCEPTED
+
+- **Vehicle.** `createVehicle(axleLoads, axleSpacings, name)` takes axle loads as positive-downward **magnitudes** [N], listed front to rear, and the spacings between consecutive axles [m]. The magnitudes become −P (D-003) only when applied.
+  - The illustrative truck of spec §5.1 (80/120/120 kN, 4.2 m + 1.4 m) is used in tests. It is **not** an AASHTO design truck.
+- **Reference axle and direction.** x_v is the coordinate of the **front axle**.
+  - Toward +x (default), axle i is at x_v − (sum of spacings ahead of it).
+  - Toward −x (`'Direction', -1`), the rear axles trail at x_v + offsets.
+- **Crossing.** The crossing starts with the front axle at the bridge's first end and ends when the rear axle reaches the far end. At those two positions the only axle on the beam sits on an end support, so it only loads that reaction (D-017).
+- **Grid.** The positions are equally spaced. The actual step is the largest value ≤ the requested step that divides the travel distance into whole steps, and it is reported as `ml.step`.
+- **Axles off the bridge.** Axles beyond 1e‑9·L of the beam are ignored at each position (the vehicle layer filters them). Static `addPointLoad` still rejects off-beam loads.
+- **Quasi-static only.** Each position is an independent static solution. No inertia, suspension, roughness, speed or impact effects are included (spec §5.1).
+
+## D-020 — Fast moving-load solution (2026-10-30, M4) — ACCEPTED
+
+- **Done once.** `prepareMovingLoad` assembles K, partitions the DOFs (with the stability check), factorizes **K_ff = R_cᵀ R_c once (Cholesky)**, and stores the element data and the permanent loads.
+- **Done per position.** `analyzeVehiclePosition` adds the axle loads (nodal at nodes, Hermite vectors inside elements), solves with two triangular solves, and recovers f_e = k_e q_e − f_e0.
+  - V and M come from exact element equilibrium, with both limits at every point.
+  - v comes from Hermite interpolation plus the fixed-fixed particular solution.
+  - These are the same formulas as the verified static functions, vectorized.
+- **Speed.** About 2.8 ms per position in Octave, against about 72 ms per position through `solveStaticModel` + `sampleInternalForces` + `evaluateDeflection`.
+- **Verification.** The fast path is checked against those verified M1–M3 functions at 14 positions in both directions, on a two-span model with unequal spans, two EI values and permanent loads. The largest normalized difference is 2.5e‑13 (D-010 round-off level).
+- **Coincident points.** A load within 1e‑9·L of an evaluation point counts as at that point: the left limit excludes it and the right limit includes it. This keeps shear jumps robust to coordinate round-off.
+
+## D-021 — Envelopes, critical positions and step refinement (2026-10-30, M4) — ACCEPTED
+
+- **Stations.** The default stations are the nodes plus `StationsPerElement` (default 4) equal divisions of every element. Custom stations, such as sensor coordinates, can be passed.
+- **Envelopes** (spec §5.3). At each station: max and min of M, of V (taking both limits, so jumps under axles and at supports are included), and of v. Each comes with the governing x_v. Reaction envelopes are kept per restrained DOF.
+- **Envelope vs critical position.** The envelope at a station and the single vehicle position that governs a global extreme are reported separately (`ml.envelope` vs `ml.critical`). Each critical row records the quantity, max or min, value, x, x_v and the axle coordinates on the beam.
+- **Critical search.** The global extremes are searched over the stations **and the points under every axle on the beam**, because the maximum moment under point loads occurs under an axle.
+- **Step refinement** (`'Refine'`, default true). After the coarse sweep, positions within ±1 coarse step of every critical x_v and every reaction-extreme x_v are re-analysed at step/`RefineFactor` (default 10). Envelopes and critical values include these positions.
+  - Each critical row keeps `coarseValue` and `coarseXv`, as evidence of convergence with the step.
+  - For two axles, the coarse error obeys the bound (2P/L)(h/2)² from the quadratic shape of M near its optimum (tested).
+- **Permanent loads.** Loads already in the model act at every position. Envelopes are therefore permanent plus live; superposition is tested. Use a model without loads for live-load-only envelopes.
+- **Not included:** load factors, dynamic allowance, lane or multiple-presence factors, and code load models. Results are analysis outputs, not a load rating (spec §1).
