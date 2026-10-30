@@ -33,7 +33,7 @@ Milestone M5: steel and RCC flexural-rigidity input through the one solver. Sour
 - Raw evidence: `results/verification/2026-10-30_M5_octave-8.4.0_runAllTests.log` and `results/verification/2026-10-30_M5_mutation_check_octave-8.4.0.txt`.
 
 ### Verified
-- **GNU Octave 8.4.0:** see VERIFICATION_LOG V-009.
+- **GNU Octave 8.4.0:** 82 of 82 tests passed. Equal-EI steel/RCC models are bit-identical, and the mixed-material two-span beam matches the three-moment equation to 6e‑12 %. Mutation check: 31 of 31 faults detected (VERIFICATION_LOG V-009).
 - **MATLAB:** M1–M4 confirmed by the user (V-002, V-004, V-006, V-008). **M5 tests: NOT RUN.**
 
 ### Known limitations

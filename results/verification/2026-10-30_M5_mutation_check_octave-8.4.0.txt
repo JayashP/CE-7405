@@ -1,0 +1,94 @@
+# Command: python3 -I tools/mutation_check.py <repo_root> <scratch_dir>   (GNU Octave 8.4.0; 31 single-fault mutants: 7 M1 + 5 M2 + 6 M3 + 8 M4 + 5 M5; repo itself unchanged)
+MUTATION: k22 coefficient 4->3
+  exit=1 summary=[('42', '40')]
+  detected by: testAssembly / Two equal unit elements assemble to the hand-computed 6x6 matrix; testAssembly / Assembled K is symmetric with exactly two rigid-body modes; testBeamStiffness / Exact matrix for EI = 2e9 N*m^2 and Le = 2 m (hand-computed literals); testBeamStiffness / Unit EI and unit length give the integer coefficient matrix exactly; testBeamStiffness / Spec mesh example Le = 1.5 m with steel E = 200 GPa and I = 0.01 m^4; testBeamStiffness / Rigid-body modes lie in the null space and ke is positive semi-definite of rank 2 ...
+MUTATION: rotation-coupling sign flipped (k12,k21)
+  exit=1 summary=[('42', '40')]
+  detected by: testAssembly / Two equal unit elements assemble to the hand-computed 6x6 matrix; testAssembly / Assembled K is symmetric with exactly two rigid-body modes; testBeamStiffness / Exact matrix for EI = 2e9 N*m^2 and Le = 2 m (hand-computed literals); testBeamStiffness / Unit EI and unit length give the integer coefficient matrix exactly; testBeamStiffness / Spec mesh example Le = 1.5 m with steel E = 200 GPa and I = 0.01 m^4; testBeamStiffness / Rigid-body modes lie in the null space and ke is positive semi-definite of rank 2 ...
+MUTATION: DOF map v/theta swapped
+  exit=1 summary=[('42', '40')]
+  detected by: testAssembly / Element DOF map is [v_i theta_i v_j theta_j] with node n owning DOFs 2n-1 and 2n; testAssembly / Two equal unit elements assemble to the hand-computed 6x6 matrix; testAssembly / Unequal lengths and EI match K = sum(A_e'*k_e*A_e) with explicit Boolean A_e; testAssembly / Assembled K is symmetric with exactly two rigid-body modes; testCantileverTipLoad / Cantilever with a tip load and 10 elements; testContinuousBeam / Two equal spans with a point load at each midspan ...
+MUTATION: end-moment sign at node i
+  exit=1 summary=[('64', '18')]
+  detected by: testCantileverTipLoad / Cantilever with a tip load and 10 elements; testContinuousBeam / Two equal spans with a point load at each midspan; testContinuousBeam / Benchmark D two equal spans with uniform load on both spans; testContinuousBeam / Uniform load on one span only gives uplift at the far support; testContinuousBeam / Unequal spans of 10 m and 15 m under uniform load (three-moment equation); testMaterials / Steel and RCC spans redistribute the support moment as the three-moment equation predicts ...
+MUTATION: reactions ignore loads at restrained DOFs
+  exit=1 summary=[('68', '14')]
+  detected by: testContinuousBeam / Benchmark D two equal spans with uniform load on both spans; testContinuousBeam / Uniform load on one span only gives uplift at the far support; testContinuousBeam / Unequal spans of 10 m and 15 m under uniform load (three-moment equation); testMaterials / Steel and RCC spans redistribute the support moment as the three-moment equation predicts; testMovingLoadFastPath / Fast path equals the static engine at 14 positions in both directions; testMovingPointLoad / Benchmark B over 88 load positions with an 8-element mesh ...
+MUTATION: no under-restraint check
+  exit=1 summary=[('80', '2')]
+  detected by: testSupportsAndStability / Under-restrained models are rejected with BridgeFE:underRestrained; testSupportsAndStability / Stability rule agrees with the numerical rank of Kff for many support layouts
+MUTATION: assembly uses wrong element length (x_j only)
+  exit=1 summary=[('54', '28')]
+  detected by: testAssembly / Unequal lengths and EI match K = sum(A_e'*k_e*A_e) with explicit Boolean A_e; testAssembly / Assembled K is symmetric with exactly two rigid-body modes; testContinuousBeam / Two equal spans with a point load at each midspan; testContinuousBeam / Benchmark D two equal spans with uniform load on both spans; testContinuousBeam / Uniform load on one span only gives uplift at the far support; testContinuousBeam / Unequal spans of 10 m and 15 m under uniform load (three-moment equation) ...
+MUTATION: M2: member-load term f_e0 not subtracted in recovery
+  exit=1 summary=[('67', '15')]
+  detected by: testContinuousBeam / Benchmark D two equal spans with uniform load on both spans; testContinuousBeam / Uniform load on one span only gives uplift at the far support; testContinuousBeam / Unequal spans of 10 m and 15 m under uniform load (three-moment equation); testMaterials / Steel and RCC spans redistribute the support moment as the three-moment equation predicts; testMovingLoadFastPath / Fast path equals the static engine at 14 positions in both directions; testMovingPointLoad / Benchmark B over 88 load positions with an 8-element mesh ...
+MUTATION: M2: consistent-load end moments swapped in sign
+  exit=1 summary=[('68', '14')]
+  detected by: testContinuousBeam / Benchmark D two equal spans with uniform load on both spans; testContinuousBeam / Uniform load on one span only gives uplift at the far support; testContinuousBeam / Unequal spans of 10 m and 15 m under uniform load (three-moment equation); testMaterials / Steel and RCC spans redistribute the support moment as the three-moment equation predicts; testMeshSpansAndLoads / Consistent uniform-load vector matches hand-written values; testMeshSpansAndLoads / Consistent load vector equals Gauss integration of w*N over the element ...
+MUTATION: M2: element loads left out of the global load vector
+  exit=1 summary=[('64', '18')]
+  detected by: testContinuousBeam / Benchmark D two equal spans with uniform load on both spans; testContinuousBeam / Uniform load on one span only gives uplift at the far support; testContinuousBeam / Unequal spans of 10 m and 15 m under uniform load (three-moment equation); testMaterials / A uniform change of EI scales deflections but not forces; testMaterials / Steel and RCC spans redistribute the support moment as the three-moment equation predicts; testMovingLoadFastPath / Fast path equals the static engine at 14 positions in both directions ...
+MUTATION: M2: parabolic moment term sign flipped in sampling
+  exit=1 summary=[('73', '9')]
+  detected by: testContinuousBeam / Benchmark D two equal spans with uniform load on both spans; testContinuousBeam / Uniform load on one span only gives uplift at the far support; testMovingLoadFastPath / Fast path equals the static engine at 14 positions in both directions; testPointLoadsInElements / Mixed loads close element equilibrium and show a jump of P at each interior load; testProppedCantilever / Benchmark C propped cantilever under uniform load with 16 elements; testUniformLoadBeams / Simply supported beam under uniform load, 10 elements ...
+MUTATION: M2: element load uses a unit element length
+  exit=1 summary=[('68', '14')]
+  detected by: testContinuousBeam / Benchmark D two equal spans with uniform load on both spans; testContinuousBeam / Uniform load on one span only gives uplift at the far support; testContinuousBeam / Unequal spans of 10 m and 15 m under uniform load (three-moment equation); testMaterials / Steel and RCC spans redistribute the support moment as the three-moment equation predicts; testMeshSpansAndLoads / Assembled uniform load keeps the resultant force and moment on a nonuniform mesh; testMovingLoadEnvelopes / Permanent uniform load adds its static response to every envelope ...
+MUTATION: M3: N2 shape-function coefficient wrong
+  exit=1 summary=[('63', '19')]
+  detected by: testMovingLoadEnvelopes / Single moving load envelopes on a simple span equal the influence-line maxima; testMovingLoadEnvelopes / Two equal axles reach the absolute maximum moment of the resultant rule; testMovingLoadEnvelopes / Step convergence of the maximum moment for the two-axle vehicle; testMovingLoadEnvelopes / Spec 3-axle truck on a 20 m simple span matches the resultant rule; testMovingLoadEnvelopes / Two-span continuous beam: negative moment over the support and uplift; testMovingLoadEnvelopes / Reversed travel direction gives the mirror-image envelopes on a symmetric span ...
+MUTATION: M3: point-load shear jump sign flipped in sampling
+  exit=1 summary=[('79', '3')]
+  detected by: testMovingLoadFastPath / Fast path equals the static engine at 14 positions in both directions; testPointLoadsInElements / Two loads inside ONE simply supported element are not moved to the nodes; testPointLoadsInElements / Mixed loads close element equilibrium and show a jump of P at each interior load
+MUTATION: M3: UDL particular solution omitted in deflection
+  exit=1 summary=[('80', '2')]
+  detected by: testMovingLoadFastPath / Fast path equals the static engine at 14 positions in both directions; testPointLoadsInElements / Deflection between nodes is exact for uniform and point loads
+MUTATION: M3: point-load particular solution omitted (s <= a)
+  exit=1 summary=[('78', '4')]
+  detected by: testMovingLoadFastPath / Fast path equals the static engine at 14 positions in both directions; testMovingPointLoad / Benchmark B over 88 load positions with an 8-element mesh; testPointLoadsInElements / Two loads inside ONE simply supported element are not moved to the nodes; testPointLoadsInElements / Propped cantilever with a load inside an element (indeterminate)
+MUTATION: M3: point load located in the wrong element
+  exit=1 summary=[('73', '9')]
+  detected by: testMaterials / Equal-EI steel and RCC models give identical static results; testMovingLoadFastPath / Fast path equals the static engine at 14 positions in both directions; testMovingPointLoad / Benchmark B over 88 load positions with an 8-element mesh; testMovingPointLoad / Results are continuous as the load crosses a node; testPointLoadsInElements / Propped cantilever with a load inside an element (indeterminate); testPointLoadsInElements / Deflection between nodes is exact for uniform and point loads ...
+MUTATION: M3: point loads at nodes dropped from F
+  exit=1 summary=[('77', '5')]
+  detected by: testMovingLoadFastPath / Fast path equals the static engine at 14 positions in both directions; testMovingPointLoad / Benchmark B over 88 load positions with an 8-element mesh; testMovingPointLoad / Results are continuous as the load crosses a node; testPointLoadsInElements / A point load on a support goes straight into that reaction; testShapeFunctionsAndPointLoads / Assembled F is the nodal load at a node and the Hermite vector inside an element
+MUTATION: M4: only one triangular solve with the Cholesky factor
+  exit=1 summary=[('72', '10')]
+  detected by: testMovingLoadEnvelopes / Single moving load envelopes on a simple span equal the influence-line maxima; testMovingLoadEnvelopes / Two equal axles reach the absolute maximum moment of the resultant rule; testMovingLoadEnvelopes / Step convergence of the maximum moment for the two-axle vehicle; testMovingLoadEnvelopes / Spec 3-axle truck on a 20 m simple span matches the resultant rule; testMovingLoadEnvelopes / Two-span continuous beam: negative moment over the support and uplift; testMovingLoadEnvelopes / Permanent uniform load adds its static response to every envelope ...
+MUTATION: M4: axles off the bridge are applied at the ends
+  exit=1 summary=[('78', '4')]
+  detected by: testMovingLoadEnvelopes / Spec 3-axle truck on a 20 m simple span matches the resultant rule; testMovingLoadFastPath / Fast path equals the static engine at 14 positions in both directions; testMovingLoadFastPath / Single-element model with no axle on the bridge returns the permanent response; testVehicleAndPositions / Only axles on the bridge act and an axle on a support goes into the reaction
+MUTATION: M4: right-limit shear ignores a load at the point
+  exit=1 summary=[('80', '2')]
+  detected by: testMovingLoadEnvelopes / Single moving load envelopes on a simple span equal the influence-line maxima; testMovingLoadFastPath / Fast path equals the static engine at 14 positions in both directions
+MUTATION: M4: rear axles placed ahead of the front axle
+  exit=1 summary=[('79', '3')]
+  detected by: testMovingLoadEnvelopes / Spec 3-axle truck on a 20 m simple span matches the resultant rule; testVehicleAndPositions / Axle coordinates follow the front-axle reference in both directions; testVehicleAndPositions / Only axles on the bridge act and an axle on a support goes into the reaction
+MUTATION: M4: envelope minimum tracks maxima
+  exit=1 summary=[('77', '5')]
+  detected by: testMaterials / Equal-EI steel and RCC models give identical moving-load envelopes; testMovingLoadEnvelopes / Single moving load envelopes on a simple span equal the influence-line maxima; testMovingLoadEnvelopes / Two-span continuous beam: negative moment over the support and uplift; testMovingLoadEnvelopes / Permanent uniform load adds its static response to every envelope; testMovingLoadEnvelopes / Reversed travel direction gives the mirror-image envelopes on a symmetric span
+MUTATION: M4: step refinement disabled
+  exit=1 summary=[('79', '3')]
+  detected by: testMovingLoadEnvelopes / Step convergence of the maximum moment for the two-axle vehicle; testMovingLoadEnvelopes / Spec 3-axle truck on a 20 m simple span matches the resultant rule; testMovingLoadEnvelopes / Two-span continuous beam: negative moment over the support and uplift
+MUTATION: M4: axle load vector mirrored inside the element
+  exit=1 summary=[('74', '8')]
+  detected by: testMovingLoadEnvelopes / Single moving load envelopes on a simple span equal the influence-line maxima; testMovingLoadEnvelopes / Two equal axles reach the absolute maximum moment of the resultant rule; testMovingLoadEnvelopes / Step convergence of the maximum moment for the two-axle vehicle; testMovingLoadEnvelopes / Spec 3-axle truck on a 20 m simple span matches the resultant rule; testMovingLoadEnvelopes / Two-span continuous beam: negative moment over the support and uplift; testMovingLoadEnvelopes / Reversed travel direction gives the mirror-image envelopes on a symmetric span ...
+MUTATION: M4: crossing stops when the front axle leaves
+  exit=1 summary=[('80', '2')]
+  detected by: testMovingLoadEnvelopes / Reversed travel direction gives the mirror-image envelopes on a symmetric span; testVehicleAndPositions / Position grid runs from first entry to full exit with an exact step
+MUTATION: M5: material EI stored as E instead of E*I
+  exit=1 summary=[('74', '8')]
+  detected by: testMaterials / Steel and RCC records hold E, I and EI = E*I; testMaterials / Equal-EI steel and RCC models give identical static results; testMaterials / Equal-EI steel and RCC models give identical moving-load envelopes; testMaterials / A uniform change of EI scales deflections but not forces; testMaterials / Steel and RCC spans redistribute the support moment as the three-moment equation predicts; testMaterials / EI cannot be edited behind a material, but materials can be reassigned ...
+MUTATION: M5: assignMaterial does not update EI
+  exit=1 summary=[('81', '1')]
+  detected by: testMaterials / Steel and RCC spans redistribute the support moment as the three-moment equation predicts
+MUTATION: M5: EI-vs-material consistency check disabled
+  exit=1 summary=[('81', '1')]
+  detected by: testMaterials / EI cannot be edited behind a material, but materials can be reassigned
+MUTATION: M5: createBeamModel takes E as EI
+  exit=1 summary=[('76', '6')]
+  detected by: testMaterials / Equal-EI steel and RCC models give identical static results; testMaterials / Equal-EI steel and RCC models give identical moving-load envelopes; testMaterials / A uniform change of EI scales deflections but not forces; testMaterials / Steel and RCC spans redistribute the support moment as the three-moment equation predicts; testMaterials / EI cannot be edited behind a material, but materials can be reassigned; testMaterials / Invalid material input is rejected
+MUTATION: M5: unit-sanity warning disabled
+  exit=1 summary=[('81', '1')]
+  detected by: testMaterials / Unit slips trigger a warning but still create the material

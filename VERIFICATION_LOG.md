@@ -524,3 +524,71 @@ Expected last line: `Total: 74 passed, 0 failed, 74 tests`.
 - As in V-002, V-004 and V-006, the MATLAB comparison tables were not sent, so this entry records PASS/FAIL, not MATLAB's numbers.
 
 **Status of M4:** verified in GNU Octave 8.4.0 (V-007, with numbers) and in MATLAB (V-008, pass/fail). The gate is met, so the branch is merged into `main`.
+
+---
+
+## V-009 — 2026-10-30 — Milestone M5 (steel and RCC material input) in GNU Octave
+
+| Item | Value |
+|---|---|
+| Platform | **GNU Octave 8.4.0** (`octave-cli`), Linux 6.18 x86_64, Ubuntu 24.04.5 cloud container |
+| MATLAB | **NOT RUN** for the M5 tests. The user needs to run them; record the result as V-010 |
+| Code version | Branch `claude/m5-steel-rcc-materials` (code at `d4810da`, from `main` at `268b442`) |
+| Command (repo root) | `octave-cli --no-gui --norc --eval "runAllTests;"` |
+| Raw log | `results/verification/2026-10-30_M5_octave-8.4.0_runAllTests.log` |
+| Overall result (Octave) | **82 passed, 0 failed, 82 tests.** That is 74 earlier tests plus 8 new in testMaterials. octave-cli exit status 0 |
+| Regression | All 74 M1–M4 tests still pass |
+| Determinism | Two consecutive runs printed identical comparison tables |
+| Expected warnings | The log shows two `BridgeFE:unusualModulus` warnings. The unit-sanity test triggers them on purpose (steel E = 200 Pa, RCC E = 30 MPa) |
+
+### Material results (Octave, all PASS)
+
+**What is being checked.** Spec §4.4 requires that "two otherwise identical steel and RCC models with equal assigned EI must yield the same linear beam response". This checks input and solver consistency only, **not** concrete behaviour.
+
+**Materials used.** The values make the products exact in binary:
+- steel E_s = 200 GPa, I_s = 0.01 m⁴, so EI = 2×10⁹ N·m²
+- RCC E_c = 32 GPa, I_eff = 0.0625 m⁴, so EI = 2×10⁹ N·m²
+- RCC E_c = 32 GPa, I_eff = 0.03125 m⁴, so EI = 1×10⁹ N·m²
+
+| Test | Reference | Actual (Octave) | Criterion |
+|---|---|---|---|
+| Material records | EI = E·I; type, I label (I_s / I_eff), name, basis | EI = 2×10⁹ exactly for both steel and RCC; fields as given | exact |
+| **Equal-EI equivalence, static** (two spans 10 + 15 m; UDL 20 kN/m, 100 kN point load at 16.3 m, 15 kN·m nodal couple) | steel = RCC = plain-EI model | max\|U_steel − U_rcc\| = 0, max\|R_steel − R_rcc\| = 0, max\|f_steel − f_rcc\| = 0. U and R also bit-identical to the plain-EI model | `isequal` |
+| **Equal-EI equivalence, moving load** (spec truck on two spans 12 + 15 m, step 0.25 m) | identical envelopes | All envelopes, reaction envelopes and critical values identical (max M = 735.9731 kN·m in both) | `isequal` |
+| **Uniform EI change**, two-span 10 + 15 m with UDL (EI 2×10⁹ steel vs 1×10⁹ RCC) | indeterminate forces unchanged, deflections × 2 | U_rcc − 2U_steel: 9.3e‑14; R difference 5.5e‑14; M difference 1.1e‑13 (normalized) | ≤ 1e‑12 |
+| **Mixed steel span 10 m (EI 2×10⁹) + RCC span 15 m (EI 1×10⁹)**, q = 20 kN/m | Three-moment equation with two EI values: M_B = −q(L₁³/EI₁ + L₂³/EI₂)/(8(L₁/EI₁ + L₂/EI₂)) = −484.375 kN·m; R_A = 51.5625, R_B = 330.72917, R_C = 117.70833 kN | M_B = −484.37499999999 (from both sides), R_A = 51.562500000001, R_B = 330.72916666666, R_C = 117.70833333334 kN. Change vs uniform EI = −46.875 kN·m, as predicted | ≤ 6.1e‑12 % (target 0.1 %) |
+| Material bookkeeping | span 1 uses material 1 (steel), span 2 uses material 2 (RCC) | 2 materials; materialId 1 for elements 1–8, 2 for elements 9–20 | exact |
+| EI-edit guard and reassignment | Editing EI directly is rejected; an identical material is reused; reassigning an element works | `BridgeFE:invalidModel` thrown; still 1 material; materialId [1 1 2 1] with EI(3) = E_c·I_eff | — |
+| Unit-sanity warning | E = 200 Pa (steel) and 30 MPa (RCC) warn; 30 GPa (RCC) does not | `BridgeFE:unusualModulus` twice, none for 30 GPa; materials still created | — |
+| Invalid input | Unknown type, E ≤ 0, I = 0, a record with EI ≠ E·I, element out of range | Expected error IDs | — |
+
+### Test-sensitivity (mutation) check — 2026-10-30, Octave 8.4.0
+
+- **Command:** `python3 -I tools/mutation_check.py <repo> <scratch_dir>`.
+- **Result: 31 of 31 faults detected** (7 M1 + 5 M2 + 6 M3 + 8 M4 + 5 M5). For every mutant, `runAllTests` exited with status 1.
+- **Raw output:** `results/verification/2026-10-30_M5_mutation_check_octave-8.4.0.txt`.
+
+| M5 injected fault | Tests failed (of 82) |
+|---|---|
+| Material EI stored as E instead of E·I | 8 |
+| `assignMaterial` does not update EI | 1 |
+| EI-vs-material consistency check disabled | 1 |
+| `createBeamModel` takes E as EI | 6 |
+| Unit-sanity warning disabled | 1 |
+
+### Limits of this evidence
+
+- These results are from **GNU Octave only.** The M5 tests have **not** been run in MATLAB.
+- The equal-EI equivalence shows input and solver consistency. It says **nothing** about real RCC behaviour: there is no cracking, I_eff calculation, creep or shrinkage (spec §4.4).
+- **Not implemented, so NOT RUN:** GUI (M6), Stage 2 (M7), and Stages 3 and 4.
+
+### Command for the MATLAB confirmation (V-010)
+
+Download a ZIP of branch `claude/m5-steel-rcc-materials` from GitHub (or `fetch` and `switchBranch` in MATLAB). Then, in its folder:
+
+```matlab
+restoredefaultpath
+runAllTests
+```
+
+Expected last line: `Total: 82 passed, 0 failed, 82 tests`. Two yellow `BridgeFE:unusualModulus` warnings are expected; the unit-sanity test triggers them on purpose.
