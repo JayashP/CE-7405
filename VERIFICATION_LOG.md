@@ -718,3 +718,24 @@ runAllTests                      % expected: Total: 95 passed, 0 failed, 95 test
 checkBridgeConditionApp(true)    % expected: every row PASS (27 rows)
 app = BridgeConditionApp;        % then screenshot each of the five tabs
 ```
+
+---
+
+## V-012 (partial) — 2026-11-03 — Milestone M6 in MATLAB, first run (by the user)
+
+| Item | Value |
+|---|---|
+| Platform | MATLAB on the user's computer; the Platform line is not visible in the screenshots |
+| Code version | Branch `claude/m6-basic-gui` at `d7bf935`, downloaded as a ZIP |
+| `runAllTests` | **95 passed, 0 failed, 95 tests.** Evidence: `results/verification/2026-11-03_M6_matlab_runAllTests_summary_screenshot.png` |
+| `checkBridgeConditionApp(true)` | **26 of 27 PASS, 1 FAIL.** Evidence: `results/verification/2026-11-03_M6_matlab_app_check_first_run_screenshot.png` |
+
+**The failing check:** "M, V and v envelope axes are drawn" required at least 4 objects in each envelope axes' `Children`.
+
+**Cause:** a mistake in the check, not in the app. `plotEnvelope` gives the shaded band, zero line and critical markers `HandleVisibility 'off'`, so the legend only lists the max and min curves. MATLAB excludes such objects from `Children`, so only the 2 curves are counted. The Octave stand-ins count every object, which is why V-011 passed.
+
+**Visible in the screenshot:** the later checks also passed, including all 19 callbacks running without error and "Run all tests" inside the app reporting 0 failed.
+
+**Fix (commit after `d7bf935`):** the check now requires the 2 visible curves on each envelope axes. It still passes against the Octave stand-ins.
+
+**Still to do:** re-run `checkBridgeConditionApp(true)` in MATLAB on the fixed branch, and take screenshots of the app tabs.
