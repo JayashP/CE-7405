@@ -756,3 +756,29 @@ app = BridgeConditionApp;        % then screenshot each of the five tabs
 **Still open:** the visual check (screenshots of the five tabs).
 
 **Small follow-up change:** `checkBridgeConditionApp` no longer echoes `ans` when called as a command.
+
+### V-012 (continued) — 2026-11-05 — the five app tabs in MATLAB (screenshots by the user)
+
+**Evidence:** `results/verification/2026-11-05_M6_matlab_app_tab1_bridge_model.webp` … `tab5_verification.webp`, from code version `1056c3d`.
+
+**Values on screen checked against earlier recorded results:**
+
+| Tab | What is shown | Check |
+|---|---|---|
+| Bridge model | 20 m span, 16 elements, pin at 0 and roller at 20 m drawn with conventional symbols (pin triangle on hatched ground, roller triangle on two wheels); summary: 17 nodes, 34 DOFs, EI = 2e9 N·m² | Matches the inputs |
+| Vehicle & moving load | Spec truck at x_v = 14.208 m, all 3 axles on the bridge; reactions 151.472 + 168.528 kN | Sum = 320 kN = truck weight. M peaks under the middle axle; V steps at each axle; v is negative (down) |
+| Envelopes | Max M = 1349.102 kN·m at x = 9.740 m for x_v = 13.940 m; V max 289.040 kN, V min −261.040 kN; v min −24.925 mm at 10 m (x_v 13.790); R_A,max 289.200 kN at x_v 5.6 m; R_B,max 261.200 kN at x_v 20 m; 257 positions + 125 refined | **Identical** to the Octave smoke run and V-007 (1349.1024 kN·m exact 1349.1025; R 289.2 / 261.2) |
+| Matrices | k_e of element 1 (L_e = 1.25 m): 12EI/L³ = 1.2288e10, 6EI/L² = 7.68e9, 4EI/L = 6.4e9, 2EI/L = 3.2e9; θ labels show correctly; K assembled with 2.458e10 at shared v DOFs; DOF table: 32 free, 2 restrained, R_v1 = 151472 N | Hand values for EI = 2e9 and L_e = 1.25 m are correct |
+| Verification | "Run all tests" output, with the status bar showing **Total: 95 passed, 0 failed, 95 tests** | — |
+
+**Layout problems seen in the screenshots, fixed in the next commit:**
+1. The Vehicle-tab beam drawing was small. It keeps a 1:1 true scale, and its row was only 210 px; the row is now 300 px and the input column is wider.
+2. Table headers were cut off; the reaction, critical and reaction-envelope tables now use `ColumnWidth 'fit'`.
+3. The Envelopes table column was too narrow at 520 px; it is now 660 px.
+
+These are layout-only changes. The scripted app check still passes against the stand-ins. **The new layout has not yet been seen in MATLAB.**
+
+**Status of M6:**
+- Function verified in MATLAB: runAllTests 95/95; app check 27/27; all five tabs working and showing engine-consistent values.
+- Merged into `main`.
+- Layout tweaks pending a visual glance.

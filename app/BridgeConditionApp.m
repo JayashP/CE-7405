@@ -441,7 +441,7 @@ classdef BridgeConditionApp < handle
             % ---- Tab 2: Vehicle and moving load
             t2 = uitab(tabs, 'Title', 'Vehicle & moving load', 'BackgroundColor', th.background);
             g2 = uigridlayout(t2, [1 2]);
-            g2.ColumnWidth = {360, '1x'};
+            g2.ColumnWidth = {400, '1x'};
             g2.BackgroundColor = th.background;
             p2 = uipanel(g2, 'Title', 'Vehicle (quasi-static)', 'BackgroundColor', th.panel, 'FontWeight', 'bold', ...
                 'ForegroundColor', th.sageDark);
@@ -470,13 +470,13 @@ classdef BridgeConditionApp < handle
             lbl = uilabel(f2, 'Text', 'Support reactions at this position', 'FontWeight', 'bold', 'FontColor', th.sageDark);
             lbl.Layout.Row = 8;
             lbl.Layout.Column = [1 2];
-            c.ReactionsTable = uitable(f2, 'Data', cell(0, 5));
+            c.ReactionsTable = uitable(f2, 'Data', cell(0, 5), 'ColumnWidth', 'fit');
             c.ReactionsTable.Layout.Row = 9;
             c.ReactionsTable.Layout.Column = [1 2];
             r2 = uigridlayout(g2, [5 1]);
             r2.Layout.Row = 1;
             r2.Layout.Column = 2;
-            r2.RowHeight = {210, 44, '1x', '1x', '1x'};
+            r2.RowHeight = {300, 44, '1x', '1x', '1x'};   % tall enough for the true-scale beam drawing
             r2.BackgroundColor = th.background;
             c.BeamAxes = uiaxes(r2);
             c.BeamAxes.Layout.Row = 1;
@@ -518,7 +518,7 @@ classdef BridgeConditionApp < handle
             % ---- Tab 3: Envelopes
             t3 = uitab(tabs, 'Title', 'Envelopes', 'BackgroundColor', th.background);
             g3 = uigridlayout(t3, [3 2]);
-            g3.ColumnWidth = {'1x', 520};
+            g3.ColumnWidth = {'1x', 660};
             g3.RowHeight = {'1x', '1x', '1x'};
             g3.BackgroundColor = th.background;
             c.EnvMomentAxes = uiaxes(g3);
@@ -546,13 +546,13 @@ classdef BridgeConditionApp < handle
                 'FontColor', th.sageDark);
             lbl.Layout.Row = 3;
             lbl.Layout.Column = 1;
-            c.CriticalTable = uitable(r3, 'Data', cell(0, 7));
+            c.CriticalTable = uitable(r3, 'Data', cell(0, 7), 'ColumnWidth', 'fit');
             c.CriticalTable.Layout.Row = 4;
             c.CriticalTable.Layout.Column = 1;
             lbl = uilabel(r3, 'Text', 'Reaction envelopes', 'FontWeight', 'bold', 'FontColor', th.sageDark);
             lbl.Layout.Row = 5;
             lbl.Layout.Column = 1;
-            c.EnvReactionsTable = uitable(r3, 'Data', cell(0, 7));
+            c.EnvReactionsTable = uitable(r3, 'Data', cell(0, 7), 'ColumnWidth', 'fit');
             c.EnvReactionsTable.Layout.Row = 6;
             c.EnvReactionsTable.Layout.Column = 1;
 

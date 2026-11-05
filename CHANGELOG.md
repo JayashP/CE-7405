@@ -36,7 +36,8 @@ Milestone M6: basic sage-green MATLAB app over the verified engine. The code-bui
 
 ### Verified
 - **GNU Octave 8.4.0:** 95 of 95 tests passed. Scripted app check against stand-in components: 27 of 27 PASS. Mutation check: all 38 real faults detected (one equivalent mutant replaced). See VERIFICATION_LOG V-011.
-- **MATLAB:** the app has **not** been run in MATLAB.
+- **MATLAB (recorded afterwards, V-012):** runAllTests 95/95. The app check first gave 26/27, because of a check bug: MATLAB hides HandleVisibility-off objects from Children. After the fix it gives 27/27, and all 5 tabs were used.
+- **Later layout fixes:** taller Vehicle-tab drawing, `fit` table columns, wider Envelopes table column.
 
 ### Known limitations
 - GUI rendering, layout and appearance are unverified until the user's MATLAB run.
