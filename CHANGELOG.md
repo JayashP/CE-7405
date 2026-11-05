@@ -2,6 +2,39 @@
 
 This file records every notable change to the source, tests and project records. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Dates are ISO 8601.
 
+## [0.7.0-M7] — 2026-11-05 (branch `claude/m7-stiffness-damage`)
+
+Milestone M7 (Stage 2): prescribed effective-stiffness loss and healthy vs damaged comparison. Source and tests were written by Claude Code.
+
+### Added — engine (`src/damage/`)
+- `applyStiffnessDamage(model, elements, d)`: sets EI_D = (1 − d)·EI through `model.elements.stiffnessFactor`, for 0 ≤ d < 1, per element or one d for all listed elements.
+- `effectiveEI(model)`: the EI the solver uses.
+- `relativeChange`: the spec's signed % change; NaN for a zero healthy value.
+- `compareHealthyDamaged`: moving-load comparison of envelopes, critical values with the governing x_v of each model, and reactions.
+- `damageSensitivity`: moves the same loss over element groups and ranks the influence on Mmax, Mmin, Vmax, Vmin, vmax, vmin or Rmax/Rmin at a node.
+
+### Changed — engine
+- `createBeamModel`: new field `model.elements.stiffnessFactor` (all 1); `meta.formatVersion` changed from 4 to 5.
+- `validateModel`: checks 0 < factor ≤ 1.
+- `assembleGlobalK`, `recoverElementForces`, `evaluateDeflection`, `prepareMovingLoad` and the app's Matrices tab now use `effectiveEI`. Healthy models give identical results: all 95 earlier tests are unchanged.
+
+### Added — tests and tools
+- `tests/testStiffnessDamage.m` (9 tests):
+  - d = 0 identity
+  - K changes only in element j
+  - simple span: forces unchanged, deflection by virtual work
+  - propped cantilever: R_B and M_A by compatibility, 3 damage regions
+  - two spans: M_B by the three-moment equation
+  - healthy vs damaged moving-load comparison
+  - fast path on a damaged model
+  - sensitivity sweep
+  - invalid input and material reassignment
+- `tools/mutation_check.py`: 5 M7 faults added (43 in total).
+
+### Verified
+- **GNU Octave 8.4.0:** 104 of 104 tests passed; scripted app check unchanged (26/26 without the in-app test run). See VERIFICATION_LOG V-013.
+- **MATLAB: NOT RUN.**
+
 ## [0.6.0-M6] — 2026-10-30 (branch `claude/m6-basic-gui`)
 
 Milestone M6: basic sage-green MATLAB app over the verified engine. The code-built format was chosen by the user. Source and tests were written by Claude Code.

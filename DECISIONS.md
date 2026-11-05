@@ -183,6 +183,7 @@ Otherwise the code throws `BridgeFE:underRestrained`, naming the free mode. The 
 - No empty Stage 2/3/4, GUI or visualization files were created.
 - M2 additions follow the spec's suggested names where one exists (`loads/equivalentDistributedLoad.m`).
 - M5 adds the folder `src/materials/` (`defineMaterial`, `validateMaterial`, `assignMaterial`). The spec layout has no materials folder.
+- M7 adds `src/damage/` (`applyStiffnessDamage`, `effectiveEI`, `relativeChange`, `compareHealthyDamaged`, `damageSensitivity`). This replaces the spec's suggested `damage/applyStiffnessDamage.m` alone.
 - M6 adds these folders:
   - `src/gui/`: input parsing, model and vehicle builders, table data, theme.
   - `src/visualization/`: the drawing primitives and renderers. The spec suggested `plotBridge`; the drawing is now `bridgeDrawing` + `renderDrawing`, plus `plotDiagram` and `plotEnvelope`.
@@ -361,3 +362,25 @@ None of these block M1.
   - The Octave run shows that the code runs and is wired correctly. It **cannot** show MATLAB's actual rendering or layout.
 - **Layer 3, drawing previews.** `tools/preview` exports the drawing primitives and diagram data to JSON and renders them with matplotlib, so the geometry the app will draw can be inspected as PNG. These are not MATLAB screenshots.
 - **The final GUI evidence is the user's MATLAB run.** That means `runAllTests`, then `checkBridgeConditionApp(true)`, then opening the app and sending screenshots of each tab. Until then, GUI rendering is **NOT VERIFIED IN MATLAB**.
+
+## D-025 — Stage 2 stiffness-loss model and comparison rules (2026-11-05, M7) — ACCEPTED
+
+- **Damage model** (spec §6). A prescribed loss d (0 ≤ d < 1) is stored per element as `model.elements.stiffnessFactor = 1 − d`, set by `applyStiffnessDamage(model, elements, d)`.
+  - The analysed rigidity is `effectiveEI(model) = EI .* stiffnessFactor`, so EI_D = (1 − d)·EI.
+  - The material EI (E·I) and the material record are **never changed**. The D-022 consistency guard stays valid, and d = 0 restores a bit-identical healthy model.
+  - Setting d replaces the earlier loss of those elements; the losses do not compound.
+  - `model.meta.formatVersion` changes from 4 to 5.
+- **One EI for every calculation.** All engine functions that compute with EI use `effectiveEI`: `assembleGlobalK`, `recoverElementForces`, `evaluateDeflection`, `prepareMovingLoad` (fast path, including the in-element deflection term), and the app's Matrices tab.
+- **Comparison** (`compareHealthyDamaged`). This runs `runMovingLoad` on both models with the same vehicle and options. It reports:
+  - envelope changes at every station;
+  - for each global extreme, the healthy and damaged values with the governing x_v of each (these can differ);
+  - the reaction maxima and minima.
+- **Percentages** (`relativeChange`): 100·(D − H)/|H|, signed, as in spec §6.
+  - Where the healthy value is zero (≤ 1e‑9 × the quantity's scale), the percentage is NaN and the absolute change is used.
+  - For negative quantities (downward deflection, hogging moment), a negative percentage means a **larger magnitude**.
+- **Sensitivity** (`damageSensitivity`). The same d is moved over element groups (default: each element in turn) and one global quantity is ranked by |change|. Supported quantities: Mmax, Mmin, Vmax, Vmin, vmax, vmin, and Rmax/Rmin at a chosen node. This is a forward-model sensitivity, **not** damage identification (Stage 3).
+- **Interpretation** (spec §§4.4, 14). d is a loss of model flexural rigidity in an equivalent-beam segment. It is **not** a percentage of corrosion, section loss or capacity, and the segment is a model region, not an identified girder.
+- **Tested behaviour:**
+  - A statically determinate span keeps its reactions and moments (only deflection changes).
+  - Indeterminate beams redistribute, matching closed-form compatibility and three-moment results.
+- **Not yet in the GUI.** A Damage tab (choose elements and d, then show healthy vs damaged) is a possible follow-up (M7b).

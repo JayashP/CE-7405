@@ -41,7 +41,7 @@ end
 prep.x = x;
 prep.tol = tol;
 prep.Le = diff(x);
-prep.EI = model.elements.EI;
+prep.EI = effectiveEI(model);
 prep.w = model.loads.elementUDL;
 prep.dofMap = elementDofs(model.elements.conn);
 prep.ke = ke;

@@ -27,7 +27,7 @@ if ~(isstruct(model) && isscalar(model))
 end
 required = {{'nodes', 'x'}, {'elements', 'conn'}, {'elements', 'EI'}, ...
     {'supports', 'node'}, {'supports', 'type'}, {'supports', 'restraint'}, ...
-    {'loads', 'nodal'}, {'loads', 'elementUDL'}, {'loads', 'point'}, {'elements', 'materialId'}};
+    {'loads', 'nodal'}, {'loads', 'elementUDL'}, {'loads', 'point'}, {'elements', 'materialId'}, {'elements', 'stiffnessFactor'}};
 for k = 1:numel(required)
     p = required{k};
     if ~(isfield(model, p{1}) && isstruct(model.(p{1})) && isfield(model.(p{1}), p{2}))
@@ -55,6 +55,12 @@ end
 EI = model.elements.EI;
 if ~(isnumeric(EI) && isreal(EI) && isequal(size(EI), [ne, 1]) && all(isfinite(EI)) && all(EI > 0))
     error(id, 'model.elements.EI must be a real, finite, positive %d-by-1 vector [N*m^2].', ne);
+end
+
+% Stiffness factors (1 - d, Stage 2 damage)
+sf = model.elements.stiffnessFactor;
+if ~(isnumeric(sf) && isreal(sf) && isequal(size(sf), [ne, 1]) && all(sf > 0) && all(sf <= 1))
+    error(id, 'model.elements.stiffnessFactor must be a %d-by-1 vector with 0 < factor <= 1 (factor = 1 - d).', ne);
 end
 
 % Materials

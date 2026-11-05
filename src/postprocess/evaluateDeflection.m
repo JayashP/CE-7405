@@ -26,7 +26,7 @@ function v = evaluateDeflection(model, U, xq)
 validateModel(model);
 x = model.nodes.x;
 conn = model.elements.conn;
-EI = model.elements.EI;
+EI = effectiveEI(model);
 w = model.loads.elementUDL;
 ne = size(conn, 1);
 if ~(isnumeric(U) && isvector(U) && numel(U) == 2 * numel(x))

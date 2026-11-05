@@ -6,7 +6,7 @@ This is a MATLAB direct-stiffness solver for a **2D equivalent Euler–Bernoulli
 - **Deadline:** 24 Nov 2026.
 - **Authoritative requirements:** `PROJECT_SPEC.md`.
 
-## Current status (2026-11-05, milestone M6)
+## Current status (2026-11-05, milestone M7 on branch `claude/m7-stiffness-damage`)
 
 | Capability | State |
 |---|---|
@@ -21,7 +21,8 @@ This is a MATLAB direct-stiffness solver for a **2D equivalent Euler–Bernoulli
 | Moving-load benchmarks (two-axle absolute maximum moment, spec 3-axle truck 1349.1 kN·m, two-span negative moment and uplift) | **PASS** in Octave (error ≤ about 1e‑5 %, target 0.5 %) and in MATLAB (V-008) |
 | Steel (E_s·I_s) and RCC (E_c·I_eff, user-supplied, constant) material input, per span; equal-EI steel/RCC equivalence | Implemented (M5); tested in GNU Octave 8.4.0 and MATLAB (82/82; V-010) |
 | Sage-green MATLAB app `BridgeConditionApp` (code-built): model, vehicle and moving-load view, envelopes, matrices, verification | Implemented (M6). MATLAB: 95/95 tests, scripted app check 27/27, all 5 tabs used (V-012). Octave: same results against stand-in components (V-011) |
-| Stage 2 damage, Stages 3/4 | Not implemented (M7 next) |
+| Stage 2: prescribed EI loss EI_D = (1 − d)EI per element, healthy vs damaged moving-load comparison, sensitivity sweep over locations | Engine implemented (M7); tested in GNU Octave (104/104); **MATLAB NOT RUN yet**; not yet in the app |
+| Stages 3/4 (inverse identification, repair categories) | Not implemented (stretch goals) |
 
 See `VERIFICATION_LOG.md` for the actual numbers and `DEVELOPMENT_PLAN.md` for what comes next.
 
@@ -111,6 +112,16 @@ s = sampleInternalForces(model, res.U, 4);                 % V jumps by -100 kN 
 evaluateDeflection(model, res.U, [5 7.77 10])              % deflection [m] at any x
 ```
 
+Stage 2, a 30 % EI loss in the elements between 8 and 10 m, compared with the healthy beam (same truck as below):
+
+```matlab
+damaged = applyStiffnessDamage(model, elementsBetween(model, 8, 10), 0.30);   % EI_D = 0.7 EI there
+cmp = compareHealthyDamaged(model, damaged, truck, 'Step', 0.1);
+[cmp.critical.healthy; cmp.critical.damaged]       % global extremes before / after
+[cmp.reactions.pctChangeMax]                       % % change of maximum reactions (NaN if healthy = 0)
+s = damageSensitivity(model, truck, 0.30, 'vmin'); % move the same loss along the beam; s.rank = most influential first
+```
+
 Moving truck (spec 3-axle example, 80/120/120 kN, spacings 4.2 m and 1.4 m) on the same span:
 
 ```matlab
@@ -183,6 +194,7 @@ src/loads/             nodal, uniform-element and global load vectors; vehicles 
 src/solver/            DOF partition, static solve, reactions, element forces
 src/postprocess/       sampled shear and moment diagrams, deflection at any x
 src/movingload/        factorize-once moving-load analysis, envelopes, critical positions
+src/damage/            Stage 2: prescribed stiffness loss, healthy vs damaged comparison, sensitivity
 src/util/              input-validation helpers
 tests/                 script-based unit and benchmark tests (test*.m)
 tests/helpers/         comparison/report helpers, portable runner, benchmark model builder

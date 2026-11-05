@@ -16,7 +16,7 @@ function [K, ke] = assembleGlobalK(model)
 validateModel(model);
 x = model.nodes.x;
 conn = model.elements.conn;
-EI = model.elements.EI;
+EI = effectiveEI(model);          % (1 - d) * material EI (Stage 2 damage)
 ne = size(conn, 1);
 nDof = 2 * numel(x);
 dofMap = elementDofs(conn);

@@ -22,7 +22,7 @@ Order is fixed by the spec:
 | M4 | Multi-axle vehicle, position stepping, envelopes, critical positions, step refinement | Nov 10 – 13 | **Done.** 74/74 tests (incl. M1–M3) pass in GNU Octave 8.4.0 (V-007) and MATLAB (V-008). Merged to `main` |
 | M5 | Steel / RCC input layer (E_s·I_s, E_c·I_eff) and equal-EI equivalence test | Nov 14 – 15 | **Done.** 82/82 tests (incl. M1–M4) pass in GNU Octave 8.4.0 (V-009) and MATLAB (V-010). Merged to `main` |
 | M6 | Basic App Designer GUI over the verified engine (sage green, conventional supports, matrix inspection) | Nov 13 – 17 | **Done.** Octave: 95/95 tests, app check 27/27 against stand-ins (V-011). MATLAB: 95/95 tests, app check 27/27, all 5 tabs working (V-012). Merged to `main`; the layout tweaks from the screenshots still need a visual glance |
-| M7 | Stage 2: prescribed EI loss, healthy vs degraded comparison, redistribution on an indeterminate beam | Nov 18 – 20 | **Next** |
+| M7 | Stage 2: prescribed EI loss, healthy vs degraded comparison, redistribution on an indeterminate beam | Nov 18 – 20 | **Engine done in GNU Octave** (104/104; V-013). MATLAB run NOT RUN, pending the user. Branch `claude/m7-stiffness-damage`. GUI Damage tab not yet built (optional M7b) |
 | S3 | Stage 3 inverse search (stretch) | Nov 21 – 23, only if M1–M7 are verified | Deferred |
 | S4 | Stage 4 steel repair categories from sourced rules (stretch, last) | Only if time remains and sources are chosen | Deferred |
 | — | Stabilize, demo recording, final documentation | Nov 21 – 23 | — |
@@ -166,7 +166,17 @@ The original plan is kept below for traceability.
 - Inspection views for k_e, K, the free and restrained DOFs, F, U and R.
 - **Needs MATLAB.** Claude Code cannot run or check App Designer in this environment, so GUI behaviour must be confirmed by the user. The numerical engine stays callable without the GUI.
 
-## M7 — Stage 2
+## M7 — Stage 2 — engine done in Octave; MATLAB confirmation pending
+
+**Delivered (2026-11-05):**
+- `src/damage/`: `applyStiffnessDamage`, `effectiveEI`, `relativeChange`, `compareHealthyDamaged`, `damageSensitivity`.
+- Every EI used in a calculation now goes through `effectiveEI`.
+- 9 new tests in `testStiffnessDamage`.
+- Mutation check: 5 M7 faults added. One survived at first and exposed a test gap; a new test now closes it.
+
+**Open actions for the user, in MATLAB:** run `runAllTests` on branch `claude/m7-stiffness-damage` (expected 104 passed) and report the result. Then decide whether to add a Damage tab to the app (M7b) before Stage 3.
+
+The original plan is kept below.
 
 - `applyStiffnessDamage(model, element, d)` with EI_D = (1−d)·EI_0 and 0 ≤ d < 1.
 - **Tests:**

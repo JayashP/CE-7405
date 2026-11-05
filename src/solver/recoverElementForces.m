@@ -28,7 +28,7 @@ function ef = recoverElementForces(model, U)
 validateModel(model);
 x = model.nodes.x;
 conn = model.elements.conn;
-EI = model.elements.EI;
+EI = effectiveEI(model);
 ne = size(conn, 1);
 if ~(isnumeric(U) && isvector(U) && numel(U) == 2 * numel(x))
     error('BridgeFE:invalidInput', 'U must be a vector with %d entries.', 2 * numel(x));

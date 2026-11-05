@@ -26,6 +26,8 @@ function model = createBeamModel(x, EI)
 %                              coordinate, not necessarily a node (ADDPOINTLOAD)
 %     model.units              labels of the internal SI units (D-002)
 %     model.conventions        sign-convention labels (D-003)
+%     model.elements.stiffnessFactor NE-by-1, 1 - d for a prescribed stiffness
+%                              loss d (APPLYSTIFFNESSDAMAGE); 1 = healthy
 %     model.materials          struct array of material records (DEFINEMATERIAL)
 %     model.meta               model format version
 %
@@ -75,6 +77,7 @@ model.nodes.x = x;
 model.elements.conn = [(1:ne)', (2:ne+1)'];
 model.elements.EI = double(EI(:));
 model.elements.materialId = materialId;
+model.elements.stiffnessFactor = ones(ne, 1);
 model.materials = materials;
 model.supports.node = zeros(0, 1);
 model.supports.type = cell(0, 1);
@@ -90,7 +93,7 @@ model.conventions = struct( ...
     'theta', 'rotation and nodal couple positive counterclockwise (theta = dv/dx)', ...
     'moment', 'internal bending moment positive sagging (tension in bottom fibre)', ...
     'shear', 'internal shear V(x) = sum of upward forces left of the section (dM/dx = V)');
-model.meta.formatVersion = 4;
+model.meta.formatVersion = 5;
 
 validateModel(model);
 end

@@ -49,6 +49,12 @@ mutations = [
   ('M6: fixed-wall hatching drawn inside the beam', 'src/visualization/supportSymbolGeometry.m', "        if strcmpi(side, 'right')\n            s = -1;", "        if strcmpi(side, 'left')\n            s = -1;"),
   ('M6: no label room in drawing limits', 'src/visualization/drawingLimits.m', 'pad = 0.03 * dx;', 'pad = 0;'),
   ('M6: critical table shows N*m instead of kN*m', 'src/gui/criticalTableData.m', "scales = struct('M', 1e-3, 'V', 1e-3, 'v', 1e3);", "scales = struct('M', 1, 'V', 1e-3, 'v', 1e3);"),
+  # M7 (Stage 2: prescribed stiffness loss)
+  ('M7: effectiveEI ignores the stiffness factor', 'src/damage/effectiveEI.m', 'EIeff = model.elements.EI .* model.elements.stiffnessFactor;', 'EIeff = model.elements.EI;'),
+  ('M7: damage factor 1/(1+d) instead of 1-d', 'src/damage/applyStiffnessDamage.m', 'model.elements.stiffnessFactor(elements) = 1 - d(:);', 'model.elements.stiffnessFactor(elements) = 1 ./ (1 + d(:));'),
+  ('M7: moving-load fast path uses the material EI', 'src/movingload/prepareMovingLoad.m', 'prep.EI = effectiveEI(model);', 'prep.EI = model.elements.EI;'),
+  ('M7: force recovery uses the material EI', 'src/solver/recoverElementForces.m', 'EI = effectiveEI(model);', 'EI = model.elements.EI;'),
+  ('M7: zero healthy reference not excluded from percentages', 'src/damage/relativeChange.m', 'pct(abs(healthy) <= 1e-9 * scale) = NaN;', ''),
 ]
 for name, rel, old, new in mutations:
     d = work / re.sub(r'[^a-z0-9]+', '_', name.lower())
