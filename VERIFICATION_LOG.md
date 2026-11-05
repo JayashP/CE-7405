@@ -782,3 +782,49 @@ These are layout-only changes. The scripted app check still passes against the s
 - Function verified in MATLAB: runAllTests 95/95; app check 27/27; all five tabs working and showing engine-consistent values.
 - Merged into `main`.
 - Layout tweaks pending a visual glance.
+
+---
+
+## V-013 — 2026-11-05 — Milestone M7 (Stage 2 prescribed stiffness loss) in GNU Octave
+
+| Item | Value |
+|---|---|
+| Platform | **GNU Octave 8.4.0**, Ubuntu 24.04.5 cloud container |
+| MATLAB | **NOT RUN.** The user needs to run it; record the result as V-014 |
+| Code version | Branch `claude/m7-stiffness-damage` |
+| Main suite | **104 passed, 0 failed, 104 tests.** That is 95 earlier plus 9 in testStiffnessDamage. Raw log: `results/verification/2026-11-05_M7_octave-8.4.0_runAllTests.log` |
+| App check (stand-ins) | Still 26/26 PASS (without the in-app test run) after the app's Matrices tab switched to `effectiveEI` |
+
+Notation: EI = 2e9 N·m², g = d/(1 − d). Results are copied from the log.
+
+| Test | Closed-form reference | Actual (Octave) | Error |
+|---|---|---|---|
+| d = 0 identity | Model and solution unchanged; re-applying d = 0 restores the model | `isequal` true | exact |
+| Locality | K_D − K_H = −d·A₃ᵀk₃A₃ (d = 0.35, element 3 of 5); EI_eff = 0.65·EI only there; material EI unchanged | Normalized residual ≤ 1e‑14 | round-off |
+| Simple span 20 m, P = 100 kN at midspan, d = 0.3 on 3–7 m | Reactions and moments unchanged; δ_mid = PL³/48EI + g·P(b³−a³)/(12EI) = 8.897619 mm | ΔR/P = 1.9e‑12, ΔM ≈ 2.3e‑12 (normalized); δ_mid = 8.8976190476 mm; increase 0.56428571 mm | 1.8e‑10 % |
+| Propped cantilever 10 m, q = 20 kN/m, R_B = (q/2)·I3/I2 | d = 0.5 on 0–2 m: R_B = 80.16129 kN, M_A = −198.38710 kN·m. d = 0.5 on 6–8 m: R_B = 72.72727 kN, M_A = −272.72727 kN·m. d = 0.2 on 3–5 m: R_B = 74.28165 kN. Healthy: 3qL/8 = 75 kN | 80.161290322591, −198.38709677423, 72.727272727318, −272.72727272741, 74.281650071137, 74.999999999991 | ≤ 1e‑10 % |
+| Spans 10 + 15 m, q = 20 kN/m, span 1 d = 0.3 | M_B = −q(L₁³/EI₁ + L₂³/EI₂)/(8(L₁/EI₁ + L₂/EI₂)) = −410.06098 kN·m; change vs healthy +27.43902 kN·m; R_A = 58.99390 kN | −410.06097560972, +27.439024390306, 58.993902439027 | ≤ 2.3e‑10 % |
+| Healthy vs damaged, spec truck | Simple span: reactions and Mmax unchanged; deflection more downward. Continuous: R_B and M_B redistribute | Simple span: \|ΔR\| ≤ 3.7e‑12 kN, Mmax 1349.040 → 1349.040; vmin −24.925 → −30.837 mm (−23.72 %, i.e. larger downward); Mmin % = NaN (zero healthy value). Continuous 12 + 15 m, d = 0.4 on 6–12 m: M_B min −467.767 → −371.462 kN·m (+20.59 %); R_B max 311.297 → 308.957 kN | consistent with direct `runMovingLoad` to 1e‑10 % |
+| Damaged fast path | `analyzeVehiclePosition` = static engine with axles inside the damaged elements | Largest normalized U and v difference 1.07e‑13 | round-off |
+| Sensitivity, d = 0.3 moved over 8 elements, 100 kN single load, 20 m span | Middle elements most influential; symmetric; determinate forces unchanged | vmin per element [mm]: −8.361, −8.529, −8.880, −9.403, −9.403, −8.880, −8.529, −8.361 (healthy −8.333); ranking 5, 4, 6, 3, 7, 2, 1, 8; Mmax and R_A changes ≤ 1e‑11 | exact symmetry to 4e‑14 |
+| Invalid input; material reassignment | d = 1, d < 0, element out of range, wrong count, factor 0; RCC reassignment keeps a 25 % loss | Expected errors; EI_eff = 1.5e9 | — |
+
+### Test-sensitivity (mutation) check
+
+- **Command:** `python3 -I tools/mutation_check.py <repo> <scratch_dir>`.
+- **Result: 43 of 43 faults detected.** Raw output: `results/verification/2026-11-05_M7_mutation_check_octave-8.4.0.txt`.
+- **A gap found and closed.** In a first run of the 5 M7 mutants, "fast path uses the material EI" was **not** detected: no test compared the moving-load fast path with the static engine on a damaged model. The test "Moving-load fast path equals the static engine on a damaged model" was added, and the mutant is now detected.
+
+| M7 injected fault | Tests failed (of 104) |
+|---|---|
+| `effectiveEI` ignores the stiffness factor | 7 |
+| Damage factor 1/(1+d) instead of 1−d | 5 |
+| Moving-load fast path uses the material EI | 1 (after the new test) |
+| Force recovery uses the material EI | 2 |
+| Zero healthy reference not excluded from percentages | 1 |
+
+### Limits of this evidence
+
+- These results are from **GNU Octave only**; MATLAB has not been run.
+- **No GUI support for damage yet** (optional M7b).
+- d is a loss of model EI in an equivalent-beam segment. It is not a measure of real damage, corrosion or capacity.
