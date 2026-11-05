@@ -739,3 +739,20 @@ app = BridgeConditionApp;        % then screenshot each of the five tabs
 **Fix (commit after `d7bf935`):** the check now requires the 2 visible curves on each envelope axes. It still passes against the Octave stand-ins.
 
 **Still to do:** re-run `checkBridgeConditionApp(true)` in MATLAB on the fixed branch, and take screenshots of the app tabs.
+
+### V-012 (continued) — 2026-11-04 — app check re-run in MATLAB after the fix
+
+| Item | Value |
+|---|---|
+| Code version | Branch `claude/m6-basic-gui` at `1f82f3b` (check counts the 2 visible envelope curves) |
+| `checkBridgeConditionApp(true)` | **27 of 27 PASS.** The visible rows (Forward step through Verification tab) all show PASS, and the function returned normally (it throws on any failure). MATLAB then printed `ans = 1x27 struct array`. Evidence: `results/verification/2026-11-04_M6_matlab_app_check_27_of_27_screenshot.png` |
+
+**What this run confirms in MATLAB:**
+- The app's model, vehicle position, envelopes and matrices equal direct engine calls; the U and R differences are 0.
+- Invalid input is rejected with a message.
+- All 19 callbacks run.
+- "Run all tests" inside the app reports 0 failed.
+
+**Still open:** the visual check (screenshots of the five tabs).
+
+**Small follow-up change:** `checkBridgeConditionApp` no longer echoes `ans` when called as a command.

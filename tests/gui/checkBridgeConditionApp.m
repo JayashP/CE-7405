@@ -169,6 +169,9 @@ if includeVerification
 end
 
 reportComparisons('BridgeConditionApp driven through its inputs vs direct engine calls', rows);
+if nargout == 0
+    clear rows   % no 'ans = 1x27 struct array' echo when called as a command
+end
 end
 
 function row = flag(name, condition)
