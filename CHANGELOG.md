@@ -2,6 +2,24 @@
 
 This file records every notable change to the source, tests and project records. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Dates are ISO 8601.
 
+## [0.7.1-M7b] — 2026-11-10 (branch `claude/m7b-damage-tab`)
+
+Milestone M7b: Damage tab in the app (D-026). Source and tests were written by Claude Code.
+
+### Added — app
+- Tab "Damage (Stage 2)": damaged region (node coordinates) and loss d in %, Apply/Clear damage, drawing with the damaged run highlighted, healthy vs damaged moving-load comparison (M and v envelopes overlaid, table of extremes and reactions with signed %), sensitivity sweep with bar chart and ranking table.
+- Public methods `applyDamageInputs`, `clearDamage`, `runDamageComparison`, `runDamageSensitivity`; properties `DamagedModel`, `DamageComparison`, `DamageSensitivity`.
+
+### Added — helpers
+- `src/gui/`: `damageModelFromInputs`, `damageComparisonTableData`, `sensitivityTableData`, `sensitivityQuantityCode`, `quantityDisplay`.
+- `src/visualization/`: `plotEnvelopeComparison`, `plotSensitivity`; `bridgeDrawing` option `StiffnessFactor`.
+- `appTheme`: colour `damage` (18 colours).
+
+### Added — tests and tools
+- 2 tests (106 in total): Damage-tab helpers in `testGuiHelpers`, damage highlight in `testDrawingGeometry`.
+- `checkBridgeConditionApp`: 6 Damage-tab rows (32 in total).
+- `tools/mutation_check.py`: 7 M7b mutants and an optional name-prefix filter.
+
 ## [0.7.0-M7] — 2026-11-05 (branch `claude/m7-stiffness-damage`)
 
 Milestone M7 (Stage 2): prescribed effective-stiffness loss and healthy vs damaged comparison. Source and tests were written by Claude Code.

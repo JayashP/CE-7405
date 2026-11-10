@@ -73,6 +73,24 @@ deformed = prims(arrayfun(@(p) isequal(p.color, th.deformed) && strcmp(p.kind, '
 assert(numel(deformed) == 1 && strcmp(deformed.lineStyle, '--') && abs(min(deformed.y) - 50*min(d.v)) < 1e-12, 'deformed shape: dashed, magnified v');
 fprintf('  PASS 1 axle on the bridge (solid), 2 off (dotted grey), dashed deformed shape magnified x50\n');
 
+%% Damaged elements are overdrawn in the damage colour with their EI factor
+model = createBeamModel(generateUniformMesh(20, 8), 2e9);
+model = addSupport(model, 1, 'pin');
+model = addSupport(model, 9, 'roller');
+damaged = applyStiffnessDamage(model, [3 4], 0.30);
+damaged = applyStiffnessDamage(damaged, 5, 0.50);         % adjacent run, different factor
+th = appTheme();
+prims = bridgeDrawing(model, struct('StiffnessFactor', damaged.elements.stiffnessFactor));
+runs = prims(arrayfun(@(p) strcmp(p.kind, 'line') && isequal(p.color, th.damage), prims));
+labels = prims(arrayfun(@(p) strcmp(p.kind, 'text') && isequal(p.color, th.damage), prims));
+assert(numel(runs) == 2 && isequal(runs(1).x, [5 10]) && isequal(runs(2).x, [10 12.5]), ...
+    'one thick line per run of equal factors: 5-10 m and 10-12.5 m');
+assert(all([runs.lineWidth] > 3), 'damage lines thicker than the beam');
+assert(isequal(sort({labels.text}), {'EI x 0.50', 'EI x 0.70'}), 'labels give the EI factor');
+plain = bridgeDrawing(model, struct('StiffnessFactor', ones(8, 1)));
+assert(~any(arrayfun(@(p) isequal(p.color, th.damage), plain)), 'healthy factors draw no highlight');
+fprintf('  PASS 2 adjacent damaged runs (5-10 m x0.70, 10-12.5 m x0.50) highlighted; none for a healthy model\n');
+
 %% Axis limits contain every primitive and leave room for labels
 model = createBeamModel(generateUniformMesh(20, 8), 2e9);
 model = addSupport(model, 1, 'pin');

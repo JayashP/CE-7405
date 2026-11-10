@@ -384,3 +384,17 @@ None of these block M1.
   - A statically determinate span keeps its reactions and moments (only deflection changes).
   - Indeterminate beams redistribute, matching closed-form compatibility and three-moment results.
 - **Not yet in the GUI.** A Damage tab (choose elements and d, then show healthy vs damaged) is a possible follow-up (M7b).
+
+## D-026 — Damage tab in the app (2026-11-10, M7b) — ACCEPTED
+
+- **Scope.** A sixth tab, "Damage (Stage 2)", placed before Matrices. It only calls the verified Stage 2 engine (D-025); it adds no new mechanics.
+- **Input.** One damaged region per application: "from x" and "to x" in m, which must be node coordinates (`elementsBetween`; an off-node value is rejected with `BridgeFE:notOnNode`), and a loss d in % with 0 ≤ d < 100 (`damageModelFromInputs`).
+  - Applying a new region replaces the earlier damage; regions are not combined in the app (the engine can combine them).
+  - The damaged model is kept separately in `app.DamagedModel`. `app.Model` stays healthy, so the Model, Vehicle, Envelopes and Matrices tabs always show the healthy bridge.
+  - Changing the model clears the damage; changing the vehicle clears only the damage results.
+- **Outputs.**
+  - Drawing: the damaged run is overdrawn thick in a plum colour (`appTheme().damage`), one line per run of equal factors, labelled `EI x 0.70`.
+  - "Compare healthy vs damaged" runs `compareHealthyDamaged` with the app's vehicle, step and direction. Moment and deflection envelopes are overlaid (healthy dashed, damaged solid). The table lists the six extremes and the maximum/minimum vertical reaction of every support, with the signed % of D-025 ("n/a (healthy = 0)" where the healthy value is zero).
+  - "Run sensitivity" moves the same d over every element (`damageSensitivity`, `'Refine', false`, step = max(app step, sweep step), default 0.5 m, to keep the sweep fast) for one chosen response, with a bar chart and a ranking table.
+- **Wording.** The tab states that d reduces model flexural rigidity and is not a percentage of corrosion, section loss or capacity (spec §§4.4, 14).
+- **Verification.** Helpers tested as data in Octave/MATLAB tests; the app wiring by 6 new rows of `checkBridgeConditionApp` (32 rows). The rendering itself needs the user's MATLAB screenshot.

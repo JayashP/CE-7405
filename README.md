@@ -6,7 +6,7 @@ This is a MATLAB direct-stiffness solver for a **2D equivalent Euler–Bernoulli
 - **Deadline:** 24 Nov 2026.
 - **Authoritative requirements:** `PROJECT_SPEC.md`.
 
-## Current status (2026-11-10, milestone M7)
+## Current status (2026-11-10, milestone M7b)
 
 | Capability | State |
 |---|---|
@@ -21,7 +21,7 @@ This is a MATLAB direct-stiffness solver for a **2D equivalent Euler–Bernoulli
 | Moving-load benchmarks (two-axle absolute maximum moment, spec 3-axle truck 1349.1 kN·m, two-span negative moment and uplift) | **PASS** in Octave (error ≤ about 1e‑5 %, target 0.5 %) and in MATLAB (V-008) |
 | Steel (E_s·I_s) and RCC (E_c·I_eff, user-supplied, constant) material input, per span; equal-EI steel/RCC equivalence | Implemented (M5); tested in GNU Octave 8.4.0 and MATLAB (82/82; V-010) |
 | Sage-green MATLAB app `BridgeConditionApp` (code-built): model, vehicle and moving-load view, envelopes, matrices, verification | Implemented (M6). MATLAB: 95/95 tests, scripted app check 27/27, all 5 tabs used (V-012). Octave: same results against stand-in components (V-011) |
-| Stage 2: prescribed EI loss EI_D = (1 − d)EI per element, healthy vs damaged moving-load comparison, sensitivity sweep over locations | Engine implemented (M7); 104/104 tests in GNU Octave and MATLAB (V-014); app tab in progress (M7b) |
+| Stage 2: prescribed EI loss EI_D = (1 − d)EI per element, healthy vs damaged moving-load comparison, sensitivity sweep over locations | Engine implemented (M7); 104/104 tests in GNU Octave and MATLAB (V-014). App tab "Damage (Stage 2)" (M7b): 106/106 tests and app check 32/32 in Octave (V-015); **MATLAB not run yet** |
 | Stages 3/4 (inverse identification, repair categories) | Not implemented (stretch goals) |
 
 See `VERIFICATION_LOG.md` for the actual numbers and `DEVELOPMENT_PLAN.md` for what comes next.
@@ -37,6 +37,8 @@ checkBridgeConditionApp(true)        % optional: scripted check of the app again
 ```
 
 The app has no calculations of its own: every number comes from the tested functions in `src/` (DECISIONS.md D-023).
+
+Tabs: Bridge model · Vehicle & moving load · Envelopes · Damage (Stage 2) · Matrices · Verification. On the Damage tab, enter a region on node coordinates and a loss d in %, press **Apply damage**, then **Compare healthy vs damaged** or **Run sensitivity** (DECISIONS.md D-026). d is a loss of model flexural rigidity, not a measure of real damage.
 
 ## Run the tests
 

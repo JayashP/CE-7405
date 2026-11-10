@@ -17,6 +17,9 @@ classdef BridgeConditionApp < handle
     %                          M, V and v diagrams, reactions at that position
     %     Envelopes            quasi-static crossing: max/min M, V, v envelopes,
     %                          critical vehicle positions, reaction envelopes
+    %     Damage (Stage 2)     prescribed EI loss EI_D = (1 - d) EI on a region;
+    %                          healthy vs damaged envelopes and reactions; a
+    %                          sensitivity sweep moving the same loss along the beam
     %     Matrices             k_e, global K, DOF status, F, U and R at the
     %                          current vehicle position (computational transparency)
     %     Verification         runs the automated test suite and shows its summary
@@ -46,6 +49,9 @@ classdef BridgeConditionApp < handle
         MovingLoad = []           % runMovingLoad result, empty until the Envelopes tab is run
         StaticResult = []         % solveStaticModel result shown on the Matrices tab
         LastError = ''            % message of the last input or analysis error ('' if none)
+        DamagedModel = []         % Model with the prescribed stiffness loss of the Damage tab (Stage 2)
+        DamageComparison = []     % compareHealthyDamaged result
+        DamageSensitivity = []    % damageSensitivity result
     end
 
     properties (Access = private)
@@ -101,6 +107,7 @@ classdef BridgeConditionApp < handle
                 ok = app.resetMovingLoad();
             end
             app.clearEnvelopes();
+            app.clearDamage();
             app.setStatus(sprintf('Model applied: %s', info.summary{2}));
         end
 
@@ -123,6 +130,7 @@ classdef BridgeConditionApp < handle
             app.MovingLoad = [];
             app.LastError = '';
             app.clearEnvelopes();
+            app.clearDamageResults();
             ok = true;
             if ~isempty(app.Model)
                 ok = app.resetMovingLoad();
@@ -232,6 +240,106 @@ classdef BridgeConditionApp < handle
                 'rcond(Kff) = %.3g.  Loads: permanent + vehicle at x_v = %.3f m.  Units: N, m, rad.'], ...
                 e, Le, EIeff(e), nDof, numel(res.freeDofs), numel(res.restrainedDofs), ...
                 res.diagnostics.rcondKff, app.Position);
+            ok = true;
+        end
+
+        function ok = applyDamageInputs(app)
+            %APPLYDAMAGEINPUTS Apply the Damage tab's loss to the healthy model (button "Apply damage").
+            c = app.Controls;
+            try
+                [damaged, ~, info] = damageModelFromInputs(app.Model, c.DamageFromField.Value, ...
+                    c.DamageToField.Value, c.LossField.Value);
+            catch err
+                ok = app.reportError(err, 'Damage input');
+                return
+            end
+            app.DamagedModel = damaged;
+            app.LastError = '';
+            app.clearDamageResults();
+            app.drawDamageModel();
+            c.DamageInfo.Value = {info.summary; ...
+                'd reduces MODEL flexural rigidity; it is not a percentage of corrosion, section loss or capacity.'};
+            app.setStatus(['Damage applied: ' info.summary]);
+            ok = true;
+        end
+
+        function clearDamage(app)
+            %CLEARDAMAGE Remove the prescribed loss (button "Clear damage"); the healthy model is unchanged.
+            app.DamagedModel = [];
+            app.clearDamageResults();
+            if ~isempty(app.Model)
+                app.drawDamageModel();
+            end
+            app.Controls.DamageInfo.Value = {'No damage applied. Choose a region on nodes and a loss d, then press Apply damage.'};
+        end
+
+        function ok = runDamageComparison(app)
+            %RUNDAMAGECOMPARISON Healthy vs damaged moving-load results (button "Compare healthy vs damaged").
+            ok = false;
+            if isempty(app.DamagedModel) || isempty(app.Vehicle)
+                % A reminder, not an analysis error: nothing is computed and LastError is kept.
+                msg = 'No damage is applied yet: press "Apply damage" first.';
+                app.setStatus(msg);
+                uialert(app.UIFigure, msg, 'Healthy vs damaged', 'Icon', 'info');
+                return
+            end
+            dlg = uiprogressdlg(app.UIFigure, 'Title', 'Healthy vs damaged', ...
+                'Message', 'Moving the vehicle across the healthy and the damaged bridge...', 'Indeterminate', 'on');
+            closer = onCleanup(@() close(dlg));
+            try
+                cmp = compareHealthyDamaged(app.Model, app.DamagedModel, app.Vehicle, 'Step', app.Step, ...
+                    'Direction', app.Direction);
+            catch err
+                ok = app.reportError(err, 'Damage comparison');
+                return
+            end
+            app.DamageComparison = cmp;
+            app.LastError = '';
+            c = app.Controls;
+            th = app.Theme;
+            h = cmp.healthy.envelope;
+            d = cmp.damaged.envelope;
+            plotEnvelopeComparison(c.DamageMomentAxes, cmp.stations, h.Mmax / 1e3, h.Mmin / 1e3, d.Mmax / 1e3, ...
+                d.Mmin / 1e3, th.sageDark, th.damage, 'M [kN*m]', 'Moment envelope: healthy (dashed) vs damaged');
+            plotEnvelopeComparison(c.DamageDeflectionAxes, cmp.stations, h.vmax * 1e3, h.vmin * 1e3, d.vmax * 1e3, ...
+                d.vmin * 1e3, th.sageDark, th.damage, 'v [mm]', 'Deflection envelope: healthy (dashed) vs damaged');
+            [data, columns] = damageComparisonTableData(cmp);
+            c.DamageTable.Data = data;
+            c.DamageTable.ColumnName = columns;
+            app.setStatus(sprintf('Healthy vs damaged: %d positions per model.', numel(cmp.healthy.positions)));
+            ok = true;
+        end
+
+        function ok = runDamageSensitivity(app)
+            %RUNDAMAGESENSITIVITY Move the same loss over every element and rank the influence (button "Run sensitivity").
+            ok = false;
+            c = app.Controls;
+            if isempty(app.Model) || isempty(app.Vehicle)
+                return
+            end
+            try
+                code = sensitivityQuantityCode(c.SensitivityDropDown.Value);
+                d = c.LossField.Value / 100;
+                opts = {'Step', max(app.Step, c.SensitivityStepField.Value), 'Direction', app.Direction, 'Refine', false};
+                if strcmp(code, 'Rmax')
+                    opts = [opts, {'Node', round(c.SupportNodeField.Value)}];
+                end
+                dlg = uiprogressdlg(app.UIFigure, 'Title', 'Sensitivity sweep', ...
+                    'Message', 'Moving the loss along the beam, one element at a time...', 'Indeterminate', 'on');
+                closer = onCleanup(@() close(dlg));
+                s = damageSensitivity(app.Model, app.Vehicle, d, code, opts{:});
+            catch err
+                ok = app.reportError(err, 'Sensitivity sweep');
+                return
+            end
+            app.DamageSensitivity = s;
+            app.LastError = '';
+            plotSensitivity(c.SensitivityAxes, s, app.Model, app.Theme.damage);
+            [data, columns] = sensitivityTableData(s, app.Model);
+            c.SensitivityTable.Data = data;
+            c.SensitivityTable.ColumnName = columns;
+            app.setStatus(sprintf('Sensitivity: d = %g %% moved over %d locations; most influential: elements %s.', ...
+                100 * d, numel(s.groups), data{1, 2}));
             ok = true;
         end
 
@@ -346,6 +454,30 @@ classdef BridgeConditionApp < handle
                 sprintf('%d positions at step %.4g m plus %d refined positions; travel %s.', ...
                     ml.nCoarse, ml.step, ml.nRefined, app.DirectionItems{(3 - ml.direction) / 2}); ...
                 'Permanent model loads are included at every position. Quasi-static: no impact or dynamic effects.'};
+        end
+
+        function clearDamageResults(app)
+            c = app.Controls;
+            app.DamageComparison = [];
+            app.DamageSensitivity = [];
+            c.DamageTable.Data = cell(0, 5);
+            c.SensitivityTable.Data = cell(0, 6);
+            cla(c.DamageMomentAxes);
+            cla(c.DamageDeflectionAxes);
+            cla(c.SensitivityAxes);
+        end
+
+        function drawDamageModel(app)
+            c = app.Controls;
+            factor = [];
+            if ~isempty(app.DamagedModel)
+                factor = app.DamagedModel.elements.stiffnessFactor;
+            end
+            prims = bridgeDrawing(app.Model, struct('SymbolSize', app.symbolSize(), 'StiffnessFactor', factor, ...
+                'ShowNumbers', c.NumbersCheckBox.Value, 'Theme', app.Theme));
+            cla(c.DamageAxes);
+            renderDrawing(c.DamageAxes, prims);
+            title(c.DamageAxes, 'Damaged region (prescribed EI loss) on the healthy model');
         end
 
         function clearEnvelopes(app)
@@ -556,6 +688,85 @@ classdef BridgeConditionApp < handle
             c.EnvReactionsTable = uitable(r3, 'Data', cell(0, 7), 'ColumnWidth', 'fit');
             c.EnvReactionsTable.Layout.Row = 6;
             c.EnvReactionsTable.Layout.Column = 1;
+
+            % ---- Tab: Damage (Stage 2)
+            t6 = uitab(tabs, 'Title', 'Damage (Stage 2)', 'BackgroundColor', th.background);
+            g6 = uigridlayout(t6, [1 2]);
+            g6.ColumnWidth = {400, '1x'};
+            g6.BackgroundColor = th.background;
+            p6 = uipanel(g6, 'Title', 'Prescribed stiffness loss', 'BackgroundColor', th.panel, 'FontWeight', 'bold', ...
+                'ForegroundColor', th.sageDark);
+            p6.Layout.Row = 1;
+            p6.Layout.Column = 1;
+            f6 = uigridlayout(p6, [12 2]);
+            f6.RowHeight = [repmat({26}, 1, 11), {'1x'}];
+            f6.ColumnWidth = {170, '1x'};
+            f6.BackgroundColor = th.panel;
+            c.DamageFromField = app.labeled(f6, 1, 'Damaged region from x [m]', uieditfield(f6, 'numeric', 'Value', 7.5, ...
+                'Tooltip', 'Must be a node coordinate'));
+            c.DamageToField = app.labeled(f6, 2, 'Damaged region to x [m]', uieditfield(f6, 'numeric', 'Value', 12.5, ...
+                'Tooltip', 'Must be a node coordinate, greater than "from"'));
+            c.LossField = app.labeled(f6, 3, 'Stiffness loss d [%]', uieditfield(f6, 'numeric', 'Value', 30, ...
+                'Limits', [0 99]));
+            b = uibutton(f6, 'push', 'Text', 'Apply damage', 'BackgroundColor', th.sage, 'FontColor', th.buttonText, ...
+                'FontWeight', 'bold', 'ButtonPushedFcn', @(~, ~) app.applyDamageInputs());
+            b.Layout.Row = 4;
+            b.Layout.Column = 1;
+            b = uibutton(f6, 'push', 'Text', 'Clear damage', 'ButtonPushedFcn', @(~, ~) app.clearDamage());
+            b.Layout.Row = 4;
+            b.Layout.Column = 2;
+            b = uibutton(f6, 'push', 'Text', 'Compare healthy vs damaged (moving load)', 'BackgroundColor', th.sage, ...
+                'FontColor', th.buttonText, 'FontWeight', 'bold', 'ButtonPushedFcn', @(~, ~) app.runDamageComparison());
+            b.Layout.Row = 5;
+            b.Layout.Column = [1 2];
+            lbl = uilabel(f6, 'Text', 'Sensitivity: same d moved along the beam', 'FontWeight', 'bold', 'FontColor', th.sageDark);
+            lbl.Layout.Row = 6;
+            lbl.Layout.Column = [1 2];
+            [~, quantityItems] = sensitivityQuantityCode();
+            c.SensitivityDropDown = app.labeled(f6, 7, 'Response', uidropdown(f6, 'Items', quantityItems, ...
+                'Value', quantityItems{1}));
+            c.SupportNodeField = app.labeled(f6, 8, 'Support node (for Rmax)', uieditfield(f6, 'numeric', 'Value', 1, ...
+                'Limits', [1 Inf], 'RoundFractionalValues', 'on'));
+            c.SensitivityStepField = app.labeled(f6, 9, 'Sweep position step [m]', uieditfield(f6, 'numeric', 'Value', 0.5, ...
+                'Limits', [0 Inf], 'LowerLimitInclusive', 'off'));
+            b = uibutton(f6, 'push', 'Text', 'Run sensitivity', 'BackgroundColor', th.sage, 'FontColor', th.buttonText, ...
+                'FontWeight', 'bold', 'ButtonPushedFcn', @(~, ~) app.runDamageSensitivity());
+            b.Layout.Row = 10;
+            b.Layout.Column = [1 2];
+            c.DamageInfo = uitextarea(f6, 'Editable', 'off', 'BackgroundColor', th.panel, 'FontColor', th.text, ...
+                'Value', {'No damage applied.'});
+            c.DamageInfo.Layout.Row = [11 12];
+            c.DamageInfo.Layout.Column = [1 2];
+            r6 = uigridlayout(g6, [3 2]);
+            r6.Layout.Row = 1;
+            r6.Layout.Column = 2;
+            r6.RowHeight = {190, '1x', '1x'};
+            r6.ColumnWidth = {'1x', 520};
+            r6.BackgroundColor = th.background;
+            c.DamageAxes = uiaxes(r6);
+            c.DamageAxes.Layout.Row = 1;
+            c.DamageAxes.Layout.Column = [1 2];
+            c.DamageMomentAxes = uiaxes(r6);
+            c.DamageMomentAxes.Layout.Row = 2;
+            c.DamageMomentAxes.Layout.Column = 1;
+            c.DamageDeflectionAxes = uiaxes(r6);
+            c.DamageDeflectionAxes.Layout.Row = 3;
+            c.DamageDeflectionAxes.Layout.Column = 1;
+            c.DamageTable = uitable(r6, 'Data', cell(0, 5), 'ColumnWidth', 'fit');
+            c.DamageTable.Layout.Row = 2;
+            c.DamageTable.Layout.Column = 2;
+            s6 = uigridlayout(r6, [2 1]);
+            s6.Layout.Row = 3;
+            s6.Layout.Column = 2;
+            s6.RowHeight = {'1x', '1x'};
+            s6.Padding = [0 0 0 0];
+            s6.BackgroundColor = th.background;
+            c.SensitivityAxes = uiaxes(s6);
+            c.SensitivityAxes.Layout.Row = 1;
+            c.SensitivityAxes.Layout.Column = 1;
+            c.SensitivityTable = uitable(s6, 'Data', cell(0, 6), 'ColumnWidth', 'fit');
+            c.SensitivityTable.Layout.Row = 2;
+            c.SensitivityTable.Layout.Column = 1;
 
             % ---- Tab 4: Matrices
             t4 = uitab(tabs, 'Title', 'Matrices', 'BackgroundColor', th.background);

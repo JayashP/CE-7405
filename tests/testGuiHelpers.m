@@ -143,6 +143,49 @@ cells = formatMatrixCells([0 2e9; -1.5 0.000123456], '%.4g');
 assert(isequal(cells, {'0', '2e+09'; '-1.5', '0.0001235'}), 'formatted matrix cells');
 fprintf('  PASS critical (6x7), reaction envelope (3x7) and current reaction tables; DOF labels; matrix cells\n');
 
+%% Damage-tab inputs and tables match the Stage 2 engine
+model = createBeamModel(generateUniformMesh(20, 8), 2e9);      % propped cantilever, 2.5 m elements
+model = addSupport(model, 1, 'fixed');
+model = addSupport(model, 9, 'roller');
+[damaged, els, info] = damageModelFromInputs(model, 5, 10, 30);
+assert(isequal(els(:)', [3 4]) && isequal(damaged, applyStiffnessDamage(model, [3 4], 0.30)), ...
+    '5-10 m, 30 %: elements 3-4 with factor 0.70');
+assert(~isempty(strfind(info.summary, 'Elements 3-4')) && ~isempty(strfind(info.summary, '0.7 EI')), 'damage summary text');
+same = damageModelFromInputs(model, 5, 10, 0);
+assert(isequal(same.elements.stiffnessFactor, ones(8, 1)), 'd = 0 % leaves the model healthy');
+assertThrows(@() damageModelFromInputs(model, 5, 10, 100), 'BridgeFE:invalidInput');
+assertThrows(@() damageModelFromInputs(model, 5, 10, -1), 'BridgeFE:invalidInput');
+assertThrows(@() damageModelFromInputs(model, 5, 11, 30), 'BridgeFE:notOnNode');
+cmp = compareHealthyDamaged(model, damaged, truck, 'Step', 0.5);
+[data, cols] = damageComparisonTableData(cmp);
+assert(numel(cols) == 5 && isequal(size(data), [6 + 2*2, 5]), '6 extremes + max/min of 2 vertical reactions (no couple rows)');
+r5 = find(strcmp(data(:, 1), 'Deflection v min [mm]'));
+c5 = cmp.critical(strcmp({cmp.critical.quantity}, 'v') & strcmp({cmp.critical.extreme}, 'min'));
+assert(numel(r5) == 1 && abs(str2double(data{r5, 2}) - c5.healthy*1e3) < 1e-3 ...
+    && abs(str2double(data{r5, 4}) - c5.change*1e3) < 1e-3 ...
+    && abs(str2double(data{r5, 5}) - c5.pctChange) < 1e-2, 'v min row: mm, change and signed %');
+assert(c5.change < 0 && str2double(data{r5, 5}) < 0, 'larger downward deflection: negative change and %');
+cmpSame = compareHealthyDamaged(model, model, truck, 'Step', 0.5);
+cmpSame.critical(1).healthy = 0;  cmpSame.critical(1).pctChange = NaN;   % a zero healthy value
+dataSame = damageComparisonTableData(cmpSame);
+assert(strcmp(dataSame{1, 5}, 'n/a (healthy = 0)') && strcmp(dataSame{2, 4}, '+0.000'), 'zero healthy value and zero change shown');
+[code, items] = sensitivityQuantityCode();
+assert(isempty(code) && numel(items) == 6, '6 sensitivity quantities');
+assert(strcmp(sensitivityQuantityCode(items{1}), 'vmin') && strcmp(sensitivityQuantityCode(items{6}), 'Rmax'), 'labels map to codes');
+assertThrows(@() sensitivityQuantityCode('deflection'), 'BridgeFE:invalidInput');
+s = damageSensitivity(model, truck, 0.30, 'vmin', 'Step', 1, 'Refine', false);
+[sdata, scols] = sensitivityTableData(s, model);
+assert(isequal(size(sdata), [8 6]) && strcmp(scols{4}, 'vmin [mm]'), 'one row per element, vmin in mm');
+top = s.rank(1);
+assert(strcmp(sdata{1, 1}, '1') && strcmp(sdata{1, 2}, sprintf('%d-%d', top, top)) ...
+    && abs(str2double(sdata{1, 5}) - s.change(top)*1e3) < 1e-4, 'rank 1 is the largest |change|');
+assert(all(diff(abs(cellfun(@str2double, sdata(:, 5)))) <= 1e-4), 'rows sorted by |change|, largest first');
+q = quantityDisplay('M');
+assert(strcmp(q.unit, 'kN*m') && q.scale == 1e-3, 'moment display unit');
+q = quantityDisplay('v');
+assert(strcmp(q.unit, 'mm') && q.scale == 1e3, 'deflection display unit');
+fprintf('  PASS damage inputs (elements 3-4, factor 0.70), comparison table (10 rows), sensitivity ranking (8 rows)\n');
+
 %% Theme colours are valid RGB triplets
 th = appTheme();
 names = fieldnames(th);

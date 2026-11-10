@@ -24,4 +24,5 @@ t.shear      = [0.545 0.427 0.200];
 t.deflection = [0.204 0.392 0.580];
 t.envelopeMax = [0.647 0.247 0.200];
 t.envelopeMin = [0.169 0.357 0.529];
+t.damage     = [0.580 0.235 0.557];   % elements with a prescribed stiffness loss (Stage 2)
 end

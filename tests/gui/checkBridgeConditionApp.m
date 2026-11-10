@@ -118,7 +118,36 @@ rows(end+1) = flag('E = 32e9 "GPa": model built and a unit warning reported', ok
 c.EField.Value = 32;
 app.applyModelInputs();
 
-% 9. Every button and value callback runs without error
+% 9. Damage tab (Stage 2) equals applyStiffnessDamage, compareHealthyDamaged and damageSensitivity
+c.DamageFromField.Value = 9;              % nodes of the 12 m + 15 m model (1.5 m and 1.875 m elements)
+c.DamageToField.Value = 13.875;
+c.LossField.Value = 40;
+ok = app.applyDamageInputs();
+refDamaged = applyStiffnessDamage(refModel, elementsBetween(refModel, 9, 13.875), 0.40);
+rows(end+1) = flag('Apply damage 9-13.875 m, d = 40 %: app model = applyStiffnessDamage(...)', ok ...
+    && isequal(app.DamagedModel, refDamaged) && isequal(app.Model, refModel));
+rows(end+1) = flag('damage drawing has the highlight (more objects than the healthy drawing)', ...
+    numel(c.DamageAxes.Children) > numel(c.ModelAxes.Children));
+ok = app.runDamageComparison();
+refCmp = compareHealthyDamaged(refModel, refDamaged, refVehicle, 'Step', app.Step, 'Direction', 1);
+rows(end+1) = flag('Compare: app result = compareHealthyDamaged(...)', ok ...
+    && isequal([app.DamageComparison.critical.damaged], [refCmp.critical.damaged]) ...
+    && isequal(app.DamageComparison.damaged.envelope, refCmp.damaged.envelope));
+rows(end+1) = flag('comparison table 6 + 2 x 3 reaction rows; M and v axes show 4 curves', ...
+    size(c.DamageTable.Data, 1) == 12 && numel(c.DamageMomentAxes.Children) >= 4 ...
+    && numel(c.DamageDeflectionAxes.Children) >= 4);
+c.SensitivityDropDown.Value = c.SensitivityDropDown.Items{1};   % largest downward deflection
+ok = app.runDamageSensitivity();
+refSens = damageSensitivity(refModel, refVehicle, 0.40, 'vmin', 'Step', max(app.Step, 0.5), 'Direction', 1, ...
+    'Refine', false);
+rows(end+1) = flag('Sensitivity (vmin): app result = damageSensitivity(...)', ok ...
+    && isequal(app.DamageSensitivity.change, refSens.change) && size(c.SensitivityTable.Data, 1) == numel(refSens.groups));
+app.clearDamage();
+rows(end+1) = flag('Clear damage: no damaged model, tables emptied, healthy model unchanged', ...
+    isempty(app.DamagedModel) && isempty(c.DamageTable.Data) && isequal(app.Model, refModel));
+app.applyDamageInputs();                  % leave a valid damage for the callback sweep
+
+% 10. Every button and value callback runs without error
 comps = collectComponents(app.UIFigure);
 nCalls = 0;
 failures = {};
@@ -162,7 +191,7 @@ end
 rows(end+1) = flag(sprintf('%d callbacks invoked (buttons, fields, slider, tabs) without error', nCalls), ...
     isempty(failures) && nCalls >= 15 && isempty(app.LastError));
 
-% 10. Verification tab (optional, runs the whole suite)
+% 11. Verification tab (optional, runs the whole suite)
 if includeVerification
     out = app.runVerification();
     rows(end+1) = flag('Verification tab: test suite reports 0 failed', ~isempty(regexp(out, 'Total: \d+ passed, 0 failed', 'once')));
@@ -170,7 +199,7 @@ end
 
 reportComparisons('BridgeConditionApp driven through its inputs vs direct engine calls', rows);
 if nargout == 0
-    clear rows   % no 'ans = 1x27 struct array' echo when called as a command
+    clear rows   % no 'ans = 1x32 struct array' echo when called as a command
 end
 end
 

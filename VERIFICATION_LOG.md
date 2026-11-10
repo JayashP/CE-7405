@@ -841,3 +841,39 @@ Notation: EI = 2e9 N·m², g = d/(1 − d). Results are copied from the log.
 | Evidence | Screenshot of the end of the TEST SUMMARY, shared by the user in the conversation on 2026-11-10. The image was not available as a file in the session, so it is not stored in `results/verification/` |
 
 **Status of M7:** verified in GNU Octave (V-013, with numbers) and in MATLAB (V-014, pass/fail). Merged into `main`.
+
+---
+
+## V-015 — 2026-11-10 — Milestone M7b (Damage tab) in GNU Octave
+
+| Item | Value |
+|---|---|
+| Platform | **GNU Octave 8.4.0**, Ubuntu 24.04.5 cloud container |
+| MATLAB | **NOT RUN.** The user needs to run `runAllTests`, `checkBridgeConditionApp(true)` and open the Damage tab; record the result as V-016 |
+| Code version | Branch `claude/m7b-damage-tab` |
+| Main suite | **106 passed, 0 failed, 106 tests** (104 earlier plus "Damage-tab inputs and tables match the Stage 2 engine" in `testGuiHelpers` and "Damaged elements are overdrawn in the damage colour with their EI factor" in `testDrawingGeometry`). Raw log: `results/verification/2026-11-10_M7b_octave-8.4.0_runAllTests.log` |
+| App check (stand-ins) | **32/32 PASS** (26 earlier rows unchanged, 6 new Damage-tab rows; 23 callbacks invoked without error). Raw log: `results/verification/2026-11-10_M7b_octave-8.4.0_gui_mock_check.log` |
+
+New app-check rows (two-span 12 + 15 m RCC model, region 9–13.875 m, d = 40 %, spec truck):
+
+| Row | Reference | Result |
+|---|---|---|
+| Apply damage | `applyStiffnessDamage(refModel, elementsBetween(refModel, 9, 13.875), 0.40)`; healthy model unchanged | `isequal` true — PASS |
+| Drawing highlight | more graphics objects than the healthy drawing | PASS |
+| Compare | `compareHealthyDamaged` with the same step and direction: critical damaged values and damaged envelopes | `isequal` true — PASS |
+| Comparison table and axes | 6 extremes + 2 × 3 reaction rows = 12; M and v axes show 4 curves | PASS |
+| Sensitivity (vmin) | `damageSensitivity(..., 0.40, 'vmin', 'Step', 0.5, 'Refine', false)` | `isequal(change)` true; one table row per element — PASS |
+| Clear damage | no damaged model, tables empty, healthy model unchanged | PASS |
+
+### Test-sensitivity (mutation) check
+
+- **Command:** `python3 -I tools/mutation_check.py <repo> <scratch_dir> 'M7b:'` (new optional name filter; the 43 earlier mutants were not rerun because no engine file changed).
+- **Result: 7 of 7 M7b faults detected**, each by the new `testGuiHelpers` or `testDrawingGeometry` test. Raw output: `results/verification/2026-11-10_M7b_mutation_check_octave-8.4.0.txt`.
+- **Two adjustments, recorded honestly:**
+  - "100 % loss accepted" (`>= 100` → `> 100` in `damageModelFromInputs`) survived because it is an **equivalent mutant**: `applyStiffnessDamage` rejects d ≥ 1 anyway. It was replaced by "summary names the wrong last element".
+  - "Drawing merges runs with different factors" survived at first: the drawing test used two separate damaged runs. The test now uses two **adjacent** runs with different factors (0.70 and 0.50), and the mutant is detected. No reference value was changed.
+
+### Limits of this evidence
+
+- GNU Octave only, with stand-in UI components. How MATLAB lays out and renders the Damage tab is **NOT VERIFIED IN MATLAB**.
+- d is a loss of model EI in an equivalent-beam segment; the tab says so. It is not a measure of real damage, corrosion or capacity.

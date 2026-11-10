@@ -1,6 +1,6 @@
 """Mutation check: verify that the M1 test suite detects deliberately injected solver bugs."""
 import shutil, subprocess, sys, pathlib, re
-# Usage: python3 -I tools/mutation_check.py <repo_root> <empty_scratch_dir>
+# Usage: python3 -I tools/mutation_check.py <repo_root> <empty_scratch_dir> [name_prefix]
 # Copies the repo once per mutation, injects one deliberate bug, runs the suite in
 # GNU Octave and reports which tests detect it. Never modifies <repo_root>.
 repo = pathlib.Path(sys.argv[1]).resolve()
@@ -55,7 +55,17 @@ mutations = [
   ('M7: moving-load fast path uses the material EI', 'src/movingload/prepareMovingLoad.m', 'prep.EI = effectiveEI(model);', 'prep.EI = model.elements.EI;'),
   ('M7: force recovery uses the material EI', 'src/solver/recoverElementForces.m', 'EI = effectiveEI(model);', 'EI = model.elements.EI;'),
   ('M7: zero healthy reference not excluded from percentages', 'src/damage/relativeChange.m', 'pct(abs(healthy) <= 1e-9 * scale) = NaN;', ''),
+  # M7b (Damage tab helpers)
+  ('M7b: damage tab passes the remaining fraction instead of the loss', 'src/gui/damageModelFromInputs.m', 'applyStiffnessDamage(model, elements, dPercent / 100);', 'applyStiffnessDamage(model, elements, 1 - dPercent / 100);'),
+  ('M7b: damage summary names the wrong last element', 'src/gui/damageModelFromInputs.m', '    elements(1), elements(end), xFrom', '    elements(1), elements(1), xFrom'),
+  ('M7b: deflection shown in m instead of mm', 'src/gui/quantityDisplay.m', "'unit', 'mm', 'scale', 1e3", "'unit', 'mm', 'scale', 1"),
+  ('M7b: comparison percentage loses its sign', 'src/gui/damageComparisonTableData.m', "    s = sprintf('%+.2f', p);", "    s = sprintf('%+.2f', abs(p));"),
+  ('M7b: sensitivity table not in rank order', 'src/gui/sensitivityTableData.m', '    g = s.rank(k);', '    g = k;'),
+  ('M7b: sensitivity labels mapped to the wrong codes', 'src/gui/sensitivityQuantityCode.m', "codes = {'vmin', 'Mmax',", "codes = {'Mmax', 'vmin',"),
+  ('M7b: drawing merges runs with different factors', 'src/visualization/bridgeDrawing.m', 'while last < numel(f) && f(last + 1) == f(e)', 'while last < numel(f) && f(last + 1) < 1'),
 ]
+only = sys.argv[3] if len(sys.argv) > 3 else ''   # optional name prefix, e.g. 'M7b:'
+mutations = [m for m in mutations if m[0].startswith(only)]
 for name, rel, old, new in mutations:
     d = work / re.sub(r'[^a-z0-9]+', '_', name.lower())
     if d.exists(): shutil.rmtree(d)

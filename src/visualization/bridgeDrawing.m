@@ -14,6 +14,9 @@ function prims = bridgeDrawing(model, opts)
 %     Direction    vehicle travel direction (+1 / -1) for the cab, default +1
 %     Deformed     struct with fields x [m] and y [m] (already magnified)
 %     DeformedLabel text shown with the deformed shape
+%     StiffnessFactor NE-by-1 factors 1 - d (model.elements.stiffnessFactor);
+%                  elements with a factor < 1 are overdrawn thick in the
+%                  damage colour with an 'EI x 0.70' label
 %     Theme        colours (APPTHEME), default appTheme()
 %   Drawn items: beam and nodes; pin, roller and fixed supports
 %   (SUPPORTSYMBOLGEOMETRY); permanent uniform loads (arrows with
@@ -107,6 +110,26 @@ if isfield(opts, 'Axles') && ~isempty(opts.Axles)
         prims = [prims, arrow(ax.x(k), gap, gap + 1.75*h, h, c, 1.4, style)]; %#ok<AGROW>
         prims(end+1) = drawingPrimitive('text', ax.x(k), body(2) + 0.12*h, c, ...
             'text', sprintf('%g kN', abs(ax.P(k)) / 1e3), 'vAlign', 'bottom', 'fontSize', 8); %#ok<AGROW>
+    end
+end
+
+% Elements with a prescribed stiffness loss (Stage 2)
+if isfield(opts, 'StiffnessFactor') && ~isempty(opts.StiffnessFactor)
+    f = opts.StiffnessFactor(:);
+    e = 1;
+    while e <= numel(f)
+        if f(e) >= 1
+            e = e + 1;
+            continue
+        end
+        last = e;
+        while last < numel(f) && f(last + 1) == f(e)
+            last = last + 1;
+        end
+        prims(end+1) = drawingPrimitive('line', [x(e), x(last + 1)], [0, 0], th.damage, 'lineWidth', 7); %#ok<AGROW>
+        prims(end+1) = drawingPrimitive('text', (x(e) + x(last + 1))/2, -0.25*h, th.damage, ...
+            'text', sprintf('EI x %.2f', f(e)), 'vAlign', 'top', 'fontSize', 8); %#ok<AGROW>
+        e = last + 1;
     end
 end
 

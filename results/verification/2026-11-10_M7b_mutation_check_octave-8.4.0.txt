@@ -1,0 +1,21 @@
+MUTATION: M7b: damage tab passes the remaining fraction instead of the loss
+  exit=1 summary=[('105', '1')]
+  detected by: testGuiHelpers / Damage-tab inputs and tables match the Stage 2 engine
+MUTATION: M7b: damage summary names the wrong last element
+  exit=1 summary=[('105', '1')]
+  detected by: testGuiHelpers / Damage-tab inputs and tables match the Stage 2 engine
+MUTATION: M7b: deflection shown in m instead of mm
+  exit=1 summary=[('105', '1')]
+  detected by: testGuiHelpers / Damage-tab inputs and tables match the Stage 2 engine
+MUTATION: M7b: comparison percentage loses its sign
+  exit=1 summary=[('105', '1')]
+  detected by: testGuiHelpers / Damage-tab inputs and tables match the Stage 2 engine
+MUTATION: M7b: sensitivity table not in rank order
+  exit=1 summary=[('105', '1')]
+  detected by: testGuiHelpers / Damage-tab inputs and tables match the Stage 2 engine
+MUTATION: M7b: sensitivity labels mapped to the wrong codes
+  exit=1 summary=[('105', '1')]
+  detected by: testGuiHelpers / Damage-tab inputs and tables match the Stage 2 engine
+MUTATION: M7b: drawing merges runs with different factors
+  exit=1 summary=[('105', '1')]
+  detected by: testDrawingGeometry / Damaged elements are overdrawn in the damage colour with their EI factor
