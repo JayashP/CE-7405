@@ -1,0 +1,45 @@
+MUTATION: M7: effectiveEI ignores the stiffness factor
+  exit=1 summary=[('98', '9')]
+  detected by: testGuiHelpers / Damage-tab inputs and tables match the Stage 2 engine; testGuiHelpers / Table numbers never show a negative zero, and the findings name the determinacy; testStiffnessDamage / Only the chosen element changes: K_D - K_H = -d * A_j'' k_j A_j; testStiffnessDamage / Simply supported beam: damage changes deflection only (statically determinate); testStiffnessDamage / Propped cantilever: damage redistributes the reactions (statically indeterminate); testStiffnessDamage / Two-span beam with span 1 damaged follows the three-moment equation ...
+MUTATION: M7: damage factor 1/(1+d) instead of 1-d
+  exit=1 summary=[('101', '6')]
+  detected by: testDrawingGeometry / Damaged elements are overdrawn in the damage colour with their EI factor; testStiffnessDamage / Only the chosen element changes: K_D - K_H = -d * A_j'' k_j A_j; testStiffnessDamage / Simply supported beam: damage changes deflection only (statically determinate); testStiffnessDamage / Propped cantilever: damage redistributes the reactions (statically indeterminate); testStiffnessDamage / Two-span beam with span 1 damaged follows the three-moment equation; testStiffnessDamage / Invalid damage input is rejected and material reassignment keeps the loss
+MUTATION: M7: moving-load fast path uses the material EI
+  exit=1 summary=[('106', '1')]
+  detected by: testStiffnessDamage / Moving-load fast path equals the static engine on a damaged model
+MUTATION: M7: force recovery uses the material EI
+  exit=1 summary=[('105', '2')]
+  detected by: testStiffnessDamage / Simply supported beam: damage changes deflection only (statically determinate); testStiffnessDamage / Propped cantilever: damage redistributes the reactions (statically indeterminate)
+MUTATION: M7: zero healthy reference not excluded from percentages
+  exit=1 summary=[('105', '2')]
+  detected by: testGuiHelpers / Table numbers never show a negative zero, and the findings name the determinacy; testStiffnessDamage / Moving-load comparison: determinate beam keeps forces, continuous beam redistributes
+MUTATION: M7b: damage tab passes the remaining fraction instead of the loss
+  exit=1 summary=[('106', '1')]
+  detected by: testGuiHelpers / Damage-tab inputs and tables match the Stage 2 engine
+MUTATION: M7b: damage summary names the wrong last element
+  exit=1 summary=[('106', '1')]
+  detected by: testGuiHelpers / Damage-tab inputs and tables match the Stage 2 engine
+MUTATION: M7b: deflection shown in m instead of mm
+  exit=1 summary=[('106', '1')]
+  detected by: testGuiHelpers / Damage-tab inputs and tables match the Stage 2 engine
+MUTATION: M7b: comparison percentage loses its sign
+  exit=1 summary=[('106', '1')]
+  detected by: testGuiHelpers / Damage-tab inputs and tables match the Stage 2 engine
+MUTATION: M7b: sensitivity table not in rank order
+  exit=1 summary=[('106', '1')]
+  detected by: testGuiHelpers / Damage-tab inputs and tables match the Stage 2 engine
+MUTATION: M7b: sensitivity labels mapped to the wrong codes
+  exit=1 summary=[('106', '1')]
+  detected by: testGuiHelpers / Damage-tab inputs and tables match the Stage 2 engine
+MUTATION: M7b: drawing merges runs with different factors
+  exit=1 summary=[('106', '1')]
+  detected by: testDrawingGeometry / Damaged elements are overdrawn in the damage colour with their EI factor
+MUTATION: M7c: round-off printed as a negative zero
+  exit=1 summary=[('105', '2')]
+  detected by: testGuiHelpers / Damage-tab inputs and tables match the Stage 2 engine; testGuiHelpers / Table numbers never show a negative zero, and the findings name the determinacy
+MUTATION: M7c: degree of indeterminacy off by one
+  exit=1 summary=[('106', '1')]
+  detected by: testGuiHelpers / Table numbers never show a negative zero, and the findings name the determinacy
+MUTATION: M7c: findings call a larger magnitude smaller
+  exit=1 summary=[('106', '1')]
+  detected by: testGuiHelpers / Table numbers never show a negative zero, and the findings name the determinacy

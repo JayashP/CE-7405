@@ -398,3 +398,16 @@ None of these block M1.
   - "Run sensitivity" moves the same d over every element (`damageSensitivity`, `'Refine', false`, step = max(app step, sweep step), default 0.5 m, to keep the sweep fast) for one chosen response, with a bar chart and a ranking table.
 - **Wording.** The tab states that d reduces model flexural rigidity and is not a percentage of corrosion, section loss or capacity (spec §§4.4, 14).
 - **Verification.** Helpers tested as data in Octave/MATLAB tests; the app wiring by 6 new rows of `checkBridgeConditionApp` (32 rows). The rendering itself needs the user's MATLAB screenshot.
+
+## D-027 — Damage-tab display revisions after the first MATLAB screenshots (2026-11-10, M7c) — ACCEPTED
+
+Problems seen in V-016 and the changes made. No engine code and no reference value changed.
+
+| Seen in MATLAB | Change |
+|---|---|
+| On a simple span the healthy moment curve vanished under the identical damaged curve, so it looked as if the healthy result was missing | `plotEnvelopeComparison` draws the damaged envelope first (thick, plum) and the healthy one **on top** (thin, dashed, dark grey), so coinciding curves stay visible |
+| The user asked why healthy and damaged forces are equal | A **Findings** box (`damageComparisonSummary`) states whether the beam is statically determinate (restrained DOFs = 2: forces cannot change with EI) or indeterminate (degree = restrained DOFs − 2: forces redistribute), the largest % change of an extreme and whether its magnitude grew, and the largest reaction change |
+| Round-off printed as `−0.000` and `−0.00 %` | `formatNumber` rounds for display and never prints a negative zero; zero changes have no sign. Stored results are unchanged |
+| Titles cut off in the normal window; sensitivity chart and table squeezed into a corner; `1 2 3 4 5 6` headings before the first run | Results moved into two sub-tabs, "Healthy vs damaged" (M, V and v envelopes, table, findings) and "Sensitivity along the beam" (bar chart and ranking table side by side). Short titles; column headings and "press …" hints from the start; the sub-tab switches to the result just computed |
+| `EI x 0.70` label small | Font size 11 |
+| Single-element groups shown as `8-8` | Shown as `8` |

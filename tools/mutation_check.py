@@ -59,10 +59,14 @@ mutations = [
   ('M7b: damage tab passes the remaining fraction instead of the loss', 'src/gui/damageModelFromInputs.m', 'applyStiffnessDamage(model, elements, dPercent / 100);', 'applyStiffnessDamage(model, elements, 1 - dPercent / 100);'),
   ('M7b: damage summary names the wrong last element', 'src/gui/damageModelFromInputs.m', '    elements(1), elements(end), xFrom', '    elements(1), elements(1), xFrom'),
   ('M7b: deflection shown in m instead of mm', 'src/gui/quantityDisplay.m', "'unit', 'mm', 'scale', 1e3", "'unit', 'mm', 'scale', 1"),
-  ('M7b: comparison percentage loses its sign', 'src/gui/damageComparisonTableData.m', "    s = sprintf('%+.2f', p);", "    s = sprintf('%+.2f', abs(p));"),
+  ('M7b: comparison percentage loses its sign', 'src/gui/damageComparisonTableData.m', "    s = formatNumber(p, 2, true);", "    s = formatNumber(abs(p), 2, true);"),
   ('M7b: sensitivity table not in rank order', 'src/gui/sensitivityTableData.m', '    g = s.rank(k);', '    g = k;'),
   ('M7b: sensitivity labels mapped to the wrong codes', 'src/gui/sensitivityQuantityCode.m', "codes = {'vmin', 'Mmax',", "codes = {'Mmax', 'vmin',"),
   ('M7b: drawing merges runs with different factors', 'src/visualization/bridgeDrawing.m', 'while last < numel(f) && f(last + 1) == f(e)', 'while last < numel(f) && f(last + 1) < 1'),
+  # M7c (Damage-tab display)
+  ('M7c: round-off printed as a negative zero', 'src/gui/formatNumber.m', 'if r == 0', 'if false'),
+  ('M7c: degree of indeterminacy off by one', 'src/gui/damageComparisonSummary.m', 'degree = numel(restrained) - 2;', 'degree = numel(restrained) - 1;'),
+  ('M7c: findings call a larger magnitude smaller', 'src/gui/damageComparisonSummary.m', 'if abs(c.damaged) > abs(c.healthy)', 'if abs(c.damaged) < abs(c.healthy)'),
 ]
 only = sys.argv[3] if len(sys.argv) > 3 else ''   # optional name prefix, e.g. 'M7b:'
 mutations = [m for m in mutations if m[0].startswith(only)]

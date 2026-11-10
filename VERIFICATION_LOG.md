@@ -905,3 +905,20 @@ Values shown in the Damage tab (MATLAB):
 - **Display findings** from these screenshots (fixed in M7c, D-027): the healthy curves are hidden under identical damaged curves; titles are cut off in the normal window; the sensitivity chart and table are small and show `1 2 3 4 5 6` column headings before the first run; round-off zeros are printed as `−0.000` and `−0.00 %`; the `EI x 0.70` label is small.
 
 **Status of M7b:** verified in GNU Octave (V-015) and in MATLAB (V-016). Merged into `main`.
+
+---
+
+## V-017 — 2026-11-10 — M7c (Damage-tab display revisions, D-027) in GNU Octave
+
+| Item | Value |
+|---|---|
+| Platform | **GNU Octave 8.4.0**, Ubuntu 24.04.5 cloud container |
+| MATLAB | **NOT RUN.** The user needs to run `runAllTests`, `checkBridgeConditionApp(true)` and send a Damage-tab screenshot; record as V-018 |
+| Code version | Branch `claude/m7c-damage-visuals` |
+| Main suite | **107 passed, 0 failed, 107 tests** (new: "Table numbers never show a negative zero, and the findings name the determinacy"). Raw log: `results/verification/2026-11-10_M7c_octave-8.4.0_runAllTests.log` |
+| App check (stand-ins) | **33/33 PASS**: the comparison row now also requires 4 curves on the new shear axes, and a new row checks that the findings equal `damageComparisonSummary` (two-span model: "degree 1") and that each run selects its result sub-tab. Raw log: `..._M7c_octave-8.4.0_gui_mock_check.log` |
+| Mutation check | `tools/mutation_check.py <repo> <scratch> M7`: **15 of 15** Stage 2 mutants detected (5 M7, 7 M7b, 3 new M7c). The M7b "percentage loses its sign" mutant now targets the `formatNumber` call that replaced `sprintf`. Raw output: `..._M7c_mutation_check_octave-8.4.0.txt` |
+
+The user's V-016 case recomputed in Octave (20 m simple span, 16 elements, elements 7–10, d = 30 %, spec truck, step 0.1 m): v min −24.925 → −30.839 mm, change −5.914 mm, −23.73 %. **Same as the MATLAB screenshot.** Moment, shear and reaction changes now display as `0.000` / `0.00` instead of `−0.000` / `−0.00`. Findings: "Statically determinate beam … Only deflections change."; "Largest change of an extreme: Deflection v min, −24.925 -> −30.839 mm (−23.73 %, larger magnitude)."; "Vertical reactions: unchanged (to 0.001 kN)."
+
+**Limits:** the layout and look of the sub-tabs are **NOT VERIFIED IN MATLAB**.

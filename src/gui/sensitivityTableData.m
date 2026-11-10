@@ -17,9 +17,13 @@ for k = 1:n
     els = s.groups{g};
     pct = 'n/a (healthy = 0)';
     if ~isnan(s.pctChange(g))
-        pct = sprintf('%+.2f', s.pctChange(g));
+        pct = formatNumber(s.pctChange(g), 2, true);
     end
-    data(k, :) = {sprintf('%d', k), sprintf('%d-%d', min(els), max(els)), sprintf('%g-%g', x(min(els)), x(max(els) + 1)), ...
-        sprintf('%.4f', s.values(g) * q.scale), sprintf('%+.4f', s.change(g) * q.scale), pct};
+    elementText = sprintf('%d-%d', min(els), max(els));
+    if min(els) == max(els)
+        elementText = sprintf('%d', els);
+    end
+    data(k, :) = {sprintf('%d', k), elementText, sprintf('%g-%g', x(min(els)), x(max(els) + 1)), ...
+        formatNumber(s.values(g) * q.scale, 4), formatNumber(s.change(g) * q.scale, 4, true), pct};
 end
 end

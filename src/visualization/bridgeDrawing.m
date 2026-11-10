@@ -128,7 +128,7 @@ if isfield(opts, 'StiffnessFactor') && ~isempty(opts.StiffnessFactor)
         end
         prims(end+1) = drawingPrimitive('line', [x(e), x(last + 1)], [0, 0], th.damage, 'lineWidth', 7); %#ok<AGROW>
         prims(end+1) = drawingPrimitive('text', (x(e) + x(last + 1))/2, -0.25*h, th.damage, ...
-            'text', sprintf('EI x %.2f', f(e)), 'vAlign', 'top', 'fontSize', 8); %#ok<AGROW>
+            'text', sprintf('EI x %.2f', f(e)), 'vAlign', 'top', 'fontSize', 11); %#ok<AGROW>
         e = last + 1;
     end
 end

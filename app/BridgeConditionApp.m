@@ -300,13 +300,18 @@ classdef BridgeConditionApp < handle
             h = cmp.healthy.envelope;
             d = cmp.damaged.envelope;
             plotEnvelopeComparison(c.DamageMomentAxes, cmp.stations, h.Mmax / 1e3, h.Mmin / 1e3, d.Mmax / 1e3, ...
-                d.Mmin / 1e3, th.sageDark, th.damage, 'M [kN*m]', 'Moment envelope: healthy (dashed) vs damaged');
+                d.Mmin / 1e3, th.text, th.damage, 'M [kN*m]', 'Moment envelope');
+            plotEnvelopeComparison(c.DamageShearAxes, cmp.stations, h.Vmax / 1e3, h.Vmin / 1e3, d.Vmax / 1e3, ...
+                d.Vmin / 1e3, th.text, th.damage, 'V [kN]', 'Shear envelope');
             plotEnvelopeComparison(c.DamageDeflectionAxes, cmp.stations, h.vmax * 1e3, h.vmin * 1e3, d.vmax * 1e3, ...
-                d.vmin * 1e3, th.sageDark, th.damage, 'v [mm]', 'Deflection envelope: healthy (dashed) vs damaged');
+                d.vmin * 1e3, th.text, th.damage, 'v [mm]', 'Deflection envelope');
             [data, columns] = damageComparisonTableData(cmp);
             c.DamageTable.Data = data;
             c.DamageTable.ColumnName = columns;
-            app.setStatus(sprintf('Healthy vs damaged: %d positions per model.', numel(cmp.healthy.positions)));
+            c.DamageFindings.Value = damageComparisonSummary(cmp, app.Model);
+            c.DamageResultTabs.SelectedTab = c.DamageCompareTab;
+            app.setStatus(sprintf('Healthy vs damaged: %d positions per model. Healthy dashed, damaged solid.', ...
+                numel(cmp.healthy.positions)));
             ok = true;
         end
 
@@ -338,7 +343,8 @@ classdef BridgeConditionApp < handle
             [data, columns] = sensitivityTableData(s, app.Model);
             c.SensitivityTable.Data = data;
             c.SensitivityTable.ColumnName = columns;
-            app.setStatus(sprintf('Sensitivity: d = %g %% moved over %d locations; most influential: elements %s.', ...
+            c.DamageResultTabs.SelectedTab = c.DamageSensitivityTab;
+            app.setStatus(sprintf('Sensitivity: d = %g %% moved over %d locations; most influential: element(s) %s.', ...
                 100 * d, numel(s.groups), data{1, 2}));
             ok = true;
         end
@@ -462,9 +468,14 @@ classdef BridgeConditionApp < handle
             app.DamageSensitivity = [];
             c.DamageTable.Data = cell(0, 5);
             c.SensitivityTable.Data = cell(0, 6);
-            cla(c.DamageMomentAxes);
-            cla(c.DamageDeflectionAxes);
-            cla(c.SensitivityAxes);
+            c.DamageFindings.Value = {'Press "Compare healthy vs damaged" to fill the plots, the table and these findings.'};
+            names = {'DamageMomentAxes', 'DamageShearAxes', 'DamageDeflectionAxes', 'SensitivityAxes'};
+            hints = {'Moment envelope (press Compare)', 'Shear envelope (press Compare)', ...
+                'Deflection envelope (press Compare)', 'Sensitivity (press Run sensitivity)'};
+            for k = 1:numel(names)
+                cla(c.(names{k}));
+                title(c.(names{k}), hints{k});
+            end
         end
 
         function drawDamageModel(app)
@@ -737,36 +748,53 @@ classdef BridgeConditionApp < handle
                 'Value', {'No damage applied.'});
             c.DamageInfo.Layout.Row = [11 12];
             c.DamageInfo.Layout.Column = [1 2];
-            r6 = uigridlayout(g6, [3 2]);
+            r6 = uigridlayout(g6, [2 1]);
             r6.Layout.Row = 1;
             r6.Layout.Column = 2;
-            r6.RowHeight = {190, '1x', '1x'};
-            r6.ColumnWidth = {'1x', 520};
+            r6.RowHeight = {170, '1x'};
             r6.BackgroundColor = th.background;
             c.DamageAxes = uiaxes(r6);
             c.DamageAxes.Layout.Row = 1;
-            c.DamageAxes.Layout.Column = [1 2];
-            c.DamageMomentAxes = uiaxes(r6);
-            c.DamageMomentAxes.Layout.Row = 2;
+            c.DamageAxes.Layout.Column = 1;
+            c.DamageResultTabs = uitabgroup(r6);
+            c.DamageResultTabs.Layout.Row = 2;
+            c.DamageResultTabs.Layout.Column = 1;
+            % Sub-tab "Healthy vs damaged": M, V, v envelopes | table and findings
+            c.DamageCompareTab = uitab(c.DamageResultTabs, 'Title', 'Healthy vs damaged', 'BackgroundColor', th.background);
+            gA = uigridlayout(c.DamageCompareTab, [3 2]);
+            gA.ColumnWidth = {'1x', 560};
+            gA.RowHeight = {'1x', '1x', '1x'};
+            gA.BackgroundColor = th.background;
+            c.DamageMomentAxes = uiaxes(gA);
+            c.DamageMomentAxes.Layout.Row = 1;
             c.DamageMomentAxes.Layout.Column = 1;
-            c.DamageDeflectionAxes = uiaxes(r6);
+            c.DamageShearAxes = uiaxes(gA);
+            c.DamageShearAxes.Layout.Row = 2;
+            c.DamageShearAxes.Layout.Column = 1;
+            c.DamageDeflectionAxes = uiaxes(gA);
             c.DamageDeflectionAxes.Layout.Row = 3;
             c.DamageDeflectionAxes.Layout.Column = 1;
-            c.DamageTable = uitable(r6, 'Data', cell(0, 5), 'ColumnWidth', 'fit');
-            c.DamageTable.Layout.Row = 2;
+            c.DamageTable = uitable(gA, 'Data', cell(0, 5), 'ColumnName', ...
+                {'Quantity', 'Healthy', 'Damaged', 'Change', 'Change [%]'}, 'ColumnWidth', 'fit');
+            c.DamageTable.Layout.Row = [1 2];
             c.DamageTable.Layout.Column = 2;
-            s6 = uigridlayout(r6, [2 1]);
-            s6.Layout.Row = 3;
-            s6.Layout.Column = 2;
-            s6.RowHeight = {'1x', '1x'};
-            s6.Padding = [0 0 0 0];
-            s6.BackgroundColor = th.background;
-            c.SensitivityAxes = uiaxes(s6);
+            c.DamageFindings = uitextarea(gA, 'Editable', 'off', 'BackgroundColor', th.panel, 'FontColor', th.text, ...
+                'FontSize', 13);
+            c.DamageFindings.Layout.Row = 3;
+            c.DamageFindings.Layout.Column = 2;
+            % Sub-tab "Sensitivity along the beam": bar chart | ranking table
+            c.DamageSensitivityTab = uitab(c.DamageResultTabs, 'Title', 'Sensitivity along the beam', ...
+                'BackgroundColor', th.background);
+            gB = uigridlayout(c.DamageSensitivityTab, [1 2]);
+            gB.ColumnWidth = {'1x', 560};
+            gB.BackgroundColor = th.background;
+            c.SensitivityAxes = uiaxes(gB);
             c.SensitivityAxes.Layout.Row = 1;
             c.SensitivityAxes.Layout.Column = 1;
-            c.SensitivityTable = uitable(s6, 'Data', cell(0, 6), 'ColumnWidth', 'fit');
-            c.SensitivityTable.Layout.Row = 2;
-            c.SensitivityTable.Layout.Column = 1;
+            c.SensitivityTable = uitable(gB, 'Data', cell(0, 6), 'ColumnName', ...
+                {'Rank', 'Elements', 'x [m]', 'Value', 'Change', 'Change [%]'}, 'ColumnWidth', 'fit');
+            c.SensitivityTable.Layout.Row = 1;
+            c.SensitivityTable.Layout.Column = 2;
 
             % ---- Tab 4: Matrices
             t4 = uitab(tabs, 'Title', 'Matrices', 'BackgroundColor', th.background);

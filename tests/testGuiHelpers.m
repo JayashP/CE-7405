@@ -168,7 +168,8 @@ assert(c5.change < 0 && str2double(data{r5, 5}) < 0, 'larger downward deflection
 cmpSame = compareHealthyDamaged(model, model, truck, 'Step', 0.5);
 cmpSame.critical(1).healthy = 0;  cmpSame.critical(1).pctChange = NaN;   % a zero healthy value
 dataSame = damageComparisonTableData(cmpSame);
-assert(strcmp(dataSame{1, 5}, 'n/a (healthy = 0)') && strcmp(dataSame{2, 4}, '+0.000'), 'zero healthy value and zero change shown');
+assert(strcmp(dataSame{1, 5}, 'n/a (healthy = 0)') && strcmp(dataSame{2, 4}, '0.000') && strcmp(dataSame{2, 5}, '0.00'), ...
+    'zero healthy value shown as n/a; zero change shown without a sign');
 [code, items] = sensitivityQuantityCode();
 assert(isempty(code) && numel(items) == 6, '6 sensitivity quantities');
 assert(strcmp(sensitivityQuantityCode(items{1}), 'vmin') && strcmp(sensitivityQuantityCode(items{6}), 'Rmax'), 'labels map to codes');
@@ -177,7 +178,7 @@ s = damageSensitivity(model, truck, 0.30, 'vmin', 'Step', 1, 'Refine', false);
 [sdata, scols] = sensitivityTableData(s, model);
 assert(isequal(size(sdata), [8 6]) && strcmp(scols{4}, 'vmin [mm]'), 'one row per element, vmin in mm');
 top = s.rank(1);
-assert(strcmp(sdata{1, 1}, '1') && strcmp(sdata{1, 2}, sprintf('%d-%d', top, top)) ...
+assert(strcmp(sdata{1, 1}, '1') && strcmp(sdata{1, 2}, sprintf('%d', top)) ...
     && abs(str2double(sdata{1, 5}) - s.change(top)*1e3) < 1e-4, 'rank 1 is the largest |change|');
 assert(all(diff(abs(cellfun(@str2double, sdata(:, 5)))) <= 1e-4), 'rows sorted by |change|, largest first');
 q = quantityDisplay('M');
@@ -185,6 +186,35 @@ assert(strcmp(q.unit, 'kN*m') && q.scale == 1e-3, 'moment display unit');
 q = quantityDisplay('v');
 assert(strcmp(q.unit, 'mm') && q.scale == 1e3, 'deflection display unit');
 fprintf('  PASS damage inputs (elements 3-4, factor 0.70), comparison table (10 rows), sensitivity ranking (8 rows)\n');
+
+%% Table numbers never show a negative zero, and the findings name the determinacy
+assert(strcmp(formatNumber(-2.3e-12, 3), '0.000') && strcmp(formatNumber(-0.0004, 3, true), '0.000'), 'round-off is 0.000');
+assert(strcmp(formatNumber(-0.0006, 3), '-0.001') && strcmp(formatNumber(5.9136, 3, true), '+5.914') ...
+    && strcmp(formatNumber(-23.7349, 2, true), '-23.73') && strcmp(formatNumber(1349.1024, 3), '1349.102'), 'rounding and sign');
+assert(strcmp(formatNumber(NaN, 2), 'n/a'), 'NaN shown as n/a');
+simple = createBeamModel(generateUniformMesh(20, 8), 2e9);              % 2.5 m elements
+simple = addSupport(simple, 1, 'pin');
+simple = addSupport(simple, 9, 'roller');
+cmp = compareHealthyDamaged(simple, applyStiffnessDamage(simple, 3:4, 0.3), truck, 'Step', 0.5);
+lines = damageComparisonSummary(cmp, simple);
+iv = strcmp({cmp.critical.quantity}, 'v') & strcmp({cmp.critical.extreme}, 'min');
+assert(numel(lines) == 3 && ~isempty(strfind(lines{1}, 'Statically determinate')), 'simple span: determinate');
+assert(~isempty(strfind(lines{2}, 'Deflection v min')) && ~isempty(strfind(lines{2}, 'larger magnitude')) ...
+    && ~isempty(strfind(lines{2}, formatNumber(cmp.critical(iv).pctChange, 2, true))), 'largest change: downward deflection');
+assert(strcmp(lines{3}, 'Vertical reactions: unchanged (to 0.001 kN).'), 'simple span: reactions unchanged');
+propped = createBeamModel(generateUniformMesh(20, 8), 2e9);
+propped = addSupport(propped, 1, 'fixed');
+propped = addSupport(propped, 9, 'roller');
+cmp = compareHealthyDamaged(propped, applyStiffnessDamage(propped, 1:2, 0.5), truck, 'Step', 0.5);
+lines = damageComparisonSummary(cmp, propped);
+assert(~isempty(strfind(lines{1}, 'indeterminate beam (degree 1)')) && ~isempty(strfind(lines{3}, 'Largest reaction change')), ...
+    'propped cantilever: degree 1, reactions redistribute');
+both = addSupport(createBeamModel(generateUniformMesh(20, 8), 2e9), 1, 'fixed');
+both = addSupport(both, 9, 'fixed');
+lines = damageComparisonSummary(compareHealthyDamaged(both, both, truck, 'Step', 1), both);
+assert(~isempty(strfind(lines{1}, '(degree 2)')) && strcmp(lines{2}, 'Largest change of an extreme: none (to the decimals shown).'), ...
+    'fixed-fixed: degree 2; no damage gives no change');
+fprintf('  PASS formatNumber (no -0.000); findings: simple span determinate, propped degree 1, fixed-fixed degree 2\n');
 
 %% Theme colours are valid RGB triplets
 th = appTheme();

@@ -24,6 +24,7 @@ Order is fixed by the spec:
 | M6 | Basic App Designer GUI over the verified engine (sage green, conventional supports, matrix inspection) | Nov 13 – 17 | **Done.** Octave: 95/95 tests, app check 27/27 against stand-ins (V-011). MATLAB: 95/95 tests, app check 27/27, all 5 tabs working (V-012). Merged to `main`; the layout tweaks from the screenshots still need a visual glance |
 | M7 | Stage 2: prescribed EI loss, healthy vs degraded comparison, redistribution on an indeterminate beam | Nov 18 – 20 | **Done.** 104/104 in Octave (V-013) and MATLAB (V-014). Merged to `main`. Next, as chosen by the user on 2026-11-10: Damage tab (M7b), then Stage 3 |
 | M7b | Damage tab in the app (D-026) | Nov 10 – 11 | **Done.** Octave 106/106, app check 32/32 (V-015); MATLAB 106/106, app check 33/33, tab used (V-016). Merged to `main` |
+| M7c | Damage-tab display revisions after V-016 (D-027) | Nov 10 | Octave 107/107, app check 33/33 (V-017). **MATLAB: NOT RUN** |
 | S3 | Stage 3 inverse search (stretch) | Nov 21 – 23, only if M1–M7 are verified | Deferred |
 | S4 | Stage 4 steel repair categories from sourced rules (stretch, last) | Only if time remains and sources are chosen | Deferred |
 | — | Stabilize, demo recording, final documentation | Nov 21 – 23 | — |

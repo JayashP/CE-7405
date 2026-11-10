@@ -2,6 +2,21 @@
 
 This file records every notable change to the source, tests and project records. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Dates are ISO 8601.
 
+## [0.7.2-M7c] — 2026-11-10 (branch `claude/m7c-damage-visuals`)
+
+Damage-tab display revisions after the first MATLAB screenshots (D-027). No engine change.
+
+### Added
+- `src/gui/formatNumber.m`: display rounding without negative zeros.
+- `src/gui/damageComparisonSummary.m`: findings text (determinate or indeterminate with degree, largest % change, largest reaction change).
+- Test "Table numbers never show a negative zero, and the findings name the determinacy" (107 tests); app-check row for the findings and sub-tabs (33 rows without the in-app test run); 3 M7c mutants.
+
+### Changed
+- Damage tab: results in sub-tabs "Healthy vs damaged" (M, V, v envelopes + table + findings) and "Sensitivity along the beam"; headings and hints before the first run.
+- `plotEnvelopeComparison`: healthy drawn dashed on top of the damaged curve.
+- `damageComparisonTableData`, `sensitivityTableData`: use `formatNumber`; single elements shown as `8`, not `8-8`.
+- `bridgeDrawing`: `EI x` label font 11.
+
 ## [0.7.1-M7b] — 2026-11-10 (branch `claude/m7b-damage-tab`)
 
 Milestone M7b: Damage tab in the app (D-026). Source and tests were written by Claude Code.
