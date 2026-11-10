@@ -1,0 +1,10 @@
+spec 3x5 proportional true E7 d=0.30 noise 1%: best E8 d=0.31 [0.29 0.34] J/J0=0.28 comp=2 region=6-8  hc=0 hNoise=0
+spec 3x5 proportional true E7 d=0.30 noise 2%: best E8 d=0.34 [0.30 0.39] J/J0=0.46 comp=4 region=6-10  hc=0 hNoise=0
+spec 3x5 proportional true E7 d=0.30 noise 5%: best E9 d=0.40 [0.30 0.45] J/J0=0.67 comp=7 region=6-13  hc=0 hNoise=0
+spec 3x5 proportional true E15 d=0.20 noise 2%: best E13 d=0.25 [0.20 0.30] J/J0=0.63 comp=9 region=9-18  hc=0 hNoise=0
+spec 3x5 proportional true E3 d=0.45 noise 2%: best E8 d=0.23 [0.15 0.29] J/J0=0.67 comp=8 region=4-12  hc=0 hNoise=0
+7x9 proportional true E7 d=0.30 noise 1%: best E7 d=0.29 [0.26 0.31] J/J0=0.32 comp=3 region=5-8  hc=0 hNoise=0
+7x9 proportional true E7 d=0.30 noise 2%: best E6 d=0.32 [0.25 0.35] J/J0=0.58 comp=6 region=3-9  hc=0 hNoise=0
+7x9 proportional true E7 d=0.30 noise 5%: best E4 d=0.44 [0.05 0.60] J/J0=0.90 comp=19 region=0-19  hc=0 hNoise=1
+7x9 proportional true E15 d=0.20 noise 2%: best E17 d=0.28 [0.10 0.40] J/J0=0.86 comp=13 region=6-19  hc=0 hNoise=0
+7x9 proportional true E3 d=0.45 noise 2%: best E3 d=0.42 [0.20 0.55] J/J0=0.83 comp=6 region=1-7  hc=0 hNoise=0

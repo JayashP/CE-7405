@@ -67,6 +67,14 @@ mutations = [
   ('M7c: round-off printed as a negative zero', 'src/gui/formatNumber.m', 'if r == 0', 'if false'),
   ('M7c: degree of indeterminacy off by one', 'src/gui/damageComparisonSummary.m', 'degree = numel(restrained) - 2;', 'degree = numel(restrained) - 1;'),
   ('M7c: findings call a larger magnitude smaller', 'src/gui/damageComparisonSummary.m', 'if abs(c.damaged) > abs(c.healthy)', 'if abs(c.damaged) < abs(c.healthy)'),
+  # S3 (Stage 3 inverse search)
+  ('S3: healthy candidate left out of the search', 'src/inverse/identifySingleDamage.m', 'evJ = J0;', 'evJ = Inf;'),
+  ('S3: no 1 % refinement by default', 'src/inverse/identifySingleDamage.m', "'RefineStep', 0.01,", "'RefineStep', 0,"),
+  ('S3: missing readings not excluded', 'src/inverse/identifySingleDamage.m', 'known = ~isnan(uObs);', 'known = true(size(uObs));'),
+  ('S3: permanent-load deflection not subtracted', 'src/inverse/predictSensorDeflections.m', 'u(:, p) = res.stations.v(:) - base.stations.v(:);', 'u(:, p) = res.stations.v(:);'),
+  ('S3: competing candidates ignore the ambiguity ratio', 'src/inverse/identifySingleDamage.m', 'threshold = max(opts.AmbiguityRatio * Jbest, floorJ);', 'threshold = max(Jbest, floorJ);'),
+  ('S3: search-limit flag never set', 'src/inverse/identifySingleDamage.m', 'best.d >= max(levels) - 1e-12', 'best.d > max(levels)'),
+  ('S3: noise not proportional to each reading', 'src/inverse/addMeasurementNoise.m', 'uNoisy = u .* (1 + level * z);', 'uNoisy = u + level * mean(abs(u(known))) * z;'),
 ]
 only = sys.argv[3] if len(sys.argv) > 3 else ''   # optional name prefix, e.g. 'M7b:'
 mutations = [m for m in mutations if m[0].startswith(only)]

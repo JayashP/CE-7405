@@ -22,7 +22,8 @@ This is a MATLAB direct-stiffness solver for a **2D equivalent Euler–Bernoulli
 | Steel (E_s·I_s) and RCC (E_c·I_eff, user-supplied, constant) material input, per span; equal-EI steel/RCC equivalence | Implemented (M5); tested in GNU Octave 8.4.0 and MATLAB (82/82; V-010) |
 | Sage-green MATLAB app `BridgeConditionApp` (code-built): model, vehicle and moving-load view, envelopes, matrices, verification | Implemented (M6). MATLAB: 95/95 tests, scripted app check 27/27, all 5 tabs used (V-012). Octave: same results against stand-in components (V-011) |
 | Stage 2: prescribed EI loss EI_D = (1 − d)EI per element, healthy vs damaged moving-load comparison, sensitivity sweep over locations | Engine implemented (M7); 104/104 tests in GNU Octave and MATLAB (V-014). App tab "Damage (Stage 2)" (M7b): 106/106 and 33/33 in MATLAB (V-016). Display revisions M7c (sub-tabs, findings text, no −0.000): 107/107 and 33/33 in Octave (V-017); MATLAB not run yet |
-| Stages 3/4 (inverse identification, repair categories) | Not implemented (stretch goals) |
+| Stage 3: single-region inverse search from sensor deflections (241-structure scan + 1 % refinement, RMSE, competing candidates, region of uncertainty) | Engine implemented; 115/115 tests in Octave (V-018); exact on noise-free synthetic data; **with 1–5 % noise, 1 m regions are not reliably localized** (noise study, V-018). MATLAB not run; no app tab yet. Synthetic data only, not field validation |
+| Stage 4 (repair categories) | Not implemented |
 
 See `VERIFICATION_LOG.md` for the actual numbers and `DEVELOPMENT_PLAN.md` for what comes next.
 
@@ -197,6 +198,7 @@ src/solver/            DOF partition, static solve, reactions, element forces
 src/postprocess/       sampled shear and moment diagrams, deflection at any x
 src/movingload/        factorize-once moving-load analysis, envelopes, critical positions
 src/damage/            Stage 2: prescribed stiffness loss, healthy vs damaged comparison, sensitivity
+src/inverse/           Stage 3: sensor deflections, single-region inverse search, synthetic noise
 src/util/              input-validation helpers
 tests/                 script-based unit and benchmark tests (test*.m)
 tests/helpers/         comparison/report helpers, portable runner, benchmark model builder

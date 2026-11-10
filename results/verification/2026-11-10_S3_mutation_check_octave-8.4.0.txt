@@ -1,0 +1,21 @@
+MUTATION: S3: healthy candidate left out of the search
+  exit=1 summary=[('114', '1')]
+  detected by: testInverseDamage / The undamaged bridge is recognized, and the coarse scan has 241 structures for 20 elements
+MUTATION: S3: no 1 % refinement by default
+  exit=1 summary=[('114', '1')]
+  detected by: testInverseDamage / Blind noise-free cases are recovered exactly, including losses between the 5 % steps
+MUTATION: S3: missing readings not excluded
+  exit=1 summary=[('113', '2')]
+  detected by: testInverseDamage / Data from a finer mesh and missing readings still give the true region; testInverseDamage / Invalid inverse input is rejected
+MUTATION: S3: permanent-load deflection not subtracted
+  exit=1 summary=[('114', '1')]
+  detected by: testInverseDamage / Sensor deflections equal the static engine and the closed form, vehicle only
+MUTATION: S3: competing candidates ignore the ambiguity ratio
+  exit=1 summary=[('114', '1')]
+  detected by: testInverseDamage / With noise the true element stays inside the reported region of uncertainty
+MUTATION: S3: search-limit flag never set
+  exit=1 summary=[('114', '1')]
+  detected by: testInverseDamage / Symmetric data are reported as ambiguous, and a loss beyond 60 % is flagged
+MUTATION: S3: noise not proportional to each reading
+  exit=1 summary=[('114', '1')]
+  detected by: testInverseDamage / Noise generator is reproducible on every platform and has the intended size

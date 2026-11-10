@@ -411,3 +411,28 @@ Problems seen in V-016 and the changes made. No engine code and no reference val
 | Titles cut off in the normal window; sensitivity chart and table squeezed into a corner; `1 2 3 4 5 6` headings before the first run | Results moved into two sub-tabs, "Healthy vs damaged" (M, V and v envelopes, table, findings) and "Sensitivity along the beam" (bar chart and ranking table side by side). Short titles; column headings and "press …" hints from the start; the sub-tab switches to the result just computed |
 | `EI x 0.70` label small | Font size 11 |
 | Single-element groups shown as `8-8` | Shown as `8` |
+
+## D-028 — Stage 3 single-region inverse search (2026-11-10, S3) — ACCEPTED
+
+Engine only (`src/inverse/`); an app tab is a later step. PROJECT_SPEC.md §7.
+
+- **Observations.** `uObs(i, p)` is the deflection [m, + up] at sensor `sensorX(i)` with the vehicle's front axle at `xvList(p)`. It is the deflection caused by the **vehicle only**, measured from the unloaded bridge. `predictSensorDeflections` therefore subtracts the response to any permanent loads (vehicle placed off the beam). Missing readings are `NaN` and are left out of J.
+- **Forward model.** This is the verified moving-load fast path (`prepareMovingLoad` with the sensors as stations, then `analyzeVehiclePosition`). It gives exact Euler–Bernoulli deflections at sensors between nodes (Hermite interpolation plus the fixed–fixed particular solution) and uses the effective EI = (1 − d)·EI.
+- **Candidates.**
+  - The healthy model is evaluated once.
+  - The coarse scan covers every group (default: each element) at d = 5 %, 10 %, …, 60 %. For 20 elements that is 240 + 1 = 241 structures.
+  - The 3 best groups are refined in 1 % steps within ±5 % of their coarse optimum, never above 60 %.
+  - Groups can be element ranges (`'Groups'`), e.g. 2 m regions.
+- **Objective.** J = RMSE = sqrt(mean((u_FE − u_obs)²)) over the m observed values; J_N = sqrt(Σr²/Σu_obs²) is also reported.
+- **Best candidate.** The candidate with minimum J. The healthy model wins ties, so no damage is reported without evidence.
+- **Competing candidates and region of uncertainty.**
+  - Every group whose best J is within `AmbiguityRatio` × J_best (default 1.10) competes. A J below 1e‑9·RMS(u_obs) counts as an exact fit, with ratio 1.
+  - The competing groups' x-ranges are merged into one or more regions of uncertainty. `dRange` is the range of d of the best group within the ratio.
+  - `healthyCompetes` is set when the healthy model is itself within the ratio.
+  - These are **fit-ratio sets, not calibrated confidence sets or probabilities** (spec §7).
+- **Search limit.** A best d at 60 % sets `boundaryFlag`. A larger true loss cannot be represented, and the location found is then not reliable (test: true E7 at 70 % gives E9 at 60 %, flagged).
+- **Optional noise check.** With a stated noise standard deviation σ (`'NoiseRMS'`), the healthy model is called consistent with the data if m·J0²/σ² ≤ m + 1.645·sqrt(2m). This is an approximate one-sided 95 % χ² test, assuming independent Gaussian noise of that size.
+- **Synthetic noise** (`addMeasurementNoise`):
+  - By default it is proportional to each reading, u(1 + level·z), the usual definition in damage-identification studies. Option `'rms'` gives one absolute σ = level × RMS(u).
+  - z comes from `deterministicNormal`, a documented LCG with Box–Muller, so a noisy case is **identical in MATLAB and Octave**; `rng` and `randn` streams differ between the two.
+- **Scope** (spec §§4.4, 7, 8): one degraded region; no physical mechanism (corrosion, cracking, …) is inferred. RCC inverse use is deferred, because cracking and an uncertain baseline I_eff can mimic damage. Agreement with self-generated data is **algorithm verification, not field validation**. No field data have been supplied.

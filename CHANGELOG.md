@@ -2,6 +2,18 @@
 
 This file records every notable change to the source, tests and project records. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Dates are ISO 8601.
 
+## [0.8.0-S3] — 2026-11-10 (branch `claude/s3-inverse-search`)
+
+Stage 3 engine: single-region inverse stiffness-loss search from sensor deflections (D-028). No app tab yet.
+
+### Added
+- `src/inverse/predictSensorDeflections.m`: vehicle-only deflections at sensors for known vehicle positions.
+- `src/inverse/identifySingleDamage.m`: healthy model once, 5 %–60 % coarse scan per group (241 structures for 20 elements), 1 % refinement, RMSE and normalized error, competing candidates, merged regions of uncertainty, search-limit flag, optional noise-consistency check.
+- `src/inverse/addMeasurementNoise.m`, `src/inverse/deterministicNormal.m`: reproducible synthetic noise, identical in MATLAB and Octave.
+- `tests/testInverseDamage.m` (8 tests, 115 in total): closed-form sensor deflections, blind noise-free cases, undamaged case, other mesh, missing data, one noise realization at 1–10 %, mirror ambiguity, 60 % limit, invalid input.
+- `tools/inverseNoiseStudy.m`: noise study over seeds (results in V-018).
+- `tools/mutation_check.py`: 7 S3 mutants.
+
 ## [0.7.2-M7c] — 2026-11-10 (branch `claude/m7c-damage-visuals`)
 
 Damage-tab display revisions after the first MATLAB screenshots (D-027). No engine change.
