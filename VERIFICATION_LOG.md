@@ -877,3 +877,31 @@ New app-check rows (two-span 12 + 15 m RCC model, region 9–13.875 m, d = 40 %,
 
 - GNU Octave only, with stand-in UI components. How MATLAB lays out and renders the Damage tab is **NOT VERIFIED IN MATLAB**.
 - d is a loss of model EI in an equivalent-beam segment; the tab says so. It is not a measure of real damage, corrosion or capacity.
+
+---
+
+## V-016 — 2026-11-10 — Milestone M7b in MATLAB (run by the user)
+
+| Item | Value |
+|---|---|
+| Platform | MATLAB on the user's computer; the Platform line is not in the screenshots |
+| Code version | Branch `claude/m7b-damage-tab` at `33c4f03` |
+| Main suite | **106 passed, 0 failed, 106 tests**. Screenshot: `results/verification/2026-11-10_M7b_matlab_runAllTests_summary.png` |
+| App check | `checkBridgeConditionApp(true)`: **33 of 33 rows PASS**, including the 6 Damage-tab rows, "24 callbacks invoked without error" (24 in MATLAB because the in-app "Run all tests" button is included) and "Verification tab: test suite reports 0 failed". Screenshot: `results/verification/2026-11-10_M7b_matlab_checkBridgeConditionApp.png` |
+| Damage tab, used by the user | 20 m simple span, spec truck, elements 7–10 (7.5–12.5 m), d = 30 %. Screenshots: `..._M7b_matlab_damage_tab_compare.png` (normal window) and `..._M7b_matlab_damage_tab_maximized_sensitivity.webp` (maximized, after the sensitivity run) |
+
+Values shown in the Damage tab (MATLAB):
+
+| Quantity | Healthy | Damaged | Change |
+|---|---|---|---|
+| M max [kN·m] | 1349.102 | 1349.102 | 0 (−0.000 printed) |
+| V max / V min [kN] | 289.040 / −261.040 | 289.040 / −261.040 | 0 |
+| v min [mm] | −24.925 | −30.839 | −5.914 (−23.73 %, larger downward) |
+| R at node 1 max / node 17 max [kN] | 289.200 / 261.200 | 289.200 / 261.200 | 0 |
+| Sensitivity, vmin, d = 30 % per element | — | most influential: element 8 (8.75–10 m) −1.6939 mm, element 9 −1.5881 mm, element 7 −1.4099 mm | — |
+
+- These agree with V-013 (Octave): there, the same truck on the same span gave vmin −24.925 → −30.837 mm (−23.72 %) for a 30 % loss on 8–10 m; here the region is 7.5–12.5 m, so the numbers differ slightly, as expected.
+- **Unchanged forces are correct, not a fault.** A simple span is statically determinate: its reactions, shears and moments follow from equilibrium alone and do not depend on EI. Only deflections change (spec §6; D-025; test "Simply supported beam: damage changes deflection only").
+- **Display findings** from these screenshots (fixed in M7c, D-027): the healthy curves are hidden under identical damaged curves; titles are cut off in the normal window; the sensitivity chart and table are small and show `1 2 3 4 5 6` column headings before the first run; round-off zeros are printed as `−0.000` and `−0.00 %`; the `EI x 0.70` label is small.
+
+**Status of M7b:** verified in GNU Octave (V-015) and in MATLAB (V-016). Merged into `main`.

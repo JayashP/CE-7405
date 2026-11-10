@@ -23,7 +23,7 @@ Order is fixed by the spec:
 | M5 | Steel / RCC input layer (E_s·I_s, E_c·I_eff) and equal-EI equivalence test | Nov 14 – 15 | **Done.** 82/82 tests (incl. M1–M4) pass in GNU Octave 8.4.0 (V-009) and MATLAB (V-010). Merged to `main` |
 | M6 | Basic App Designer GUI over the verified engine (sage green, conventional supports, matrix inspection) | Nov 13 – 17 | **Done.** Octave: 95/95 tests, app check 27/27 against stand-ins (V-011). MATLAB: 95/95 tests, app check 27/27, all 5 tabs working (V-012). Merged to `main`; the layout tweaks from the screenshots still need a visual glance |
 | M7 | Stage 2: prescribed EI loss, healthy vs degraded comparison, redistribution on an indeterminate beam | Nov 18 – 20 | **Done.** 104/104 in Octave (V-013) and MATLAB (V-014). Merged to `main`. Next, as chosen by the user on 2026-11-10: Damage tab (M7b), then Stage 3 |
-| M7b | Damage tab in the app (D-026) | Nov 10 – 11 | Octave 106/106, app check 32/32 against stand-ins (V-015). **MATLAB: NOT RUN** |
+| M7b | Damage tab in the app (D-026) | Nov 10 – 11 | **Done.** Octave 106/106, app check 32/32 (V-015); MATLAB 106/106, app check 33/33, tab used (V-016). Merged to `main` |
 | S3 | Stage 3 inverse search (stretch) | Nov 21 – 23, only if M1–M7 are verified | Deferred |
 | S4 | Stage 4 steel repair categories from sourced rules (stretch, last) | Only if time remains and sources are chosen | Deferred |
 | — | Stabilize, demo recording, final documentation | Nov 21 – 23 | — |
@@ -177,7 +177,7 @@ The original plan is kept below for traceability.
 
 **MATLAB result:** 104/104 (V-014). The user chose a Damage tab (M7b) before Stage 3.
 
-## M7b — Damage tab — Octave verified (V-015), MATLAB not run
+## M7b — Damage tab — done (Octave V-015, MATLAB V-016)
 
 - Tab "Damage (Stage 2)" (D-026), 5 helpers, 2 plotting functions, drawing highlight.
 - 2 new tests (106), 6 new app-check rows (32), 7 mutants all detected.
