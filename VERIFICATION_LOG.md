@@ -828,3 +828,16 @@ Notation: EI = 2e9 N·m², g = d/(1 − d). Results are copied from the log.
 - These results are from **GNU Octave only**; MATLAB has not been run.
 - **No GUI support for damage yet** (optional M7b).
 - d is a loss of model EI in an equivalent-beam segment. It is not a measure of real damage, corrosion or capacity.
+
+---
+
+## V-014 — 2026-11-10 — Milestone M7 in MATLAB (run by the user)
+
+| Item | Value |
+|---|---|
+| Platform | MATLAB on the user's computer; the Platform line is not in the screenshot |
+| Code version | Branch `claude/m7-stiffness-damage` at `7608eed` |
+| Result | **104 passed, 0 failed, 104 tests**, including the 9 Stage 2 tests in `testStiffnessDamage` |
+| Evidence | Screenshot of the end of the TEST SUMMARY, shared by the user in the conversation on 2026-11-10. The image was not available as a file in the session, so it is not stored in `results/verification/` |
+
+**Status of M7:** verified in GNU Octave (V-013, with numbers) and in MATLAB (V-014, pass/fail). Merged into `main`.

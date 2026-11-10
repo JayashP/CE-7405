@@ -33,7 +33,7 @@ Milestone M7 (Stage 2): prescribed effective-stiffness loss and healthy vs damag
 
 ### Verified
 - **GNU Octave 8.4.0:** 104 of 104 tests passed; scripted app check unchanged (26/26 without the in-app test run). See VERIFICATION_LOG V-013.
-- **MATLAB: NOT RUN.**
+- **MATLAB (recorded afterwards, V-014):** 104/104.
 
 ## [0.6.0-M6] — 2026-10-30 (branch `claude/m6-basic-gui`)
 
