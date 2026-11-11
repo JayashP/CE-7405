@@ -2,6 +2,23 @@
 
 This file records every notable change to the source, tests and project records. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Dates are ISO 8601.
 
+## [0.8.1-S3b] — 2026-11-11 (branch `claude/s3b-noise-region`)
+
+Stage 3 revision: noise-based region of uncertainty (user's option 3) and candidate region size (option 2), then corrected after an independent multi-agent review (D-029).
+
+### Added
+- `identifySingleDamage` `'likelihood'` method (`'NoiseLevel'`, `'NoiseAbsolute'`, `'Confidence'`):
+  - σ per reading from the healthy prediction; weighted misfit S; every group refined in 1 % steps; minimum between grid points;
+  - likelihood-ratio region S − S_best ≤ χ²(0.95, 2);
+  - fit check (`modelMisfit`, `gof`); `regionAtSearchLimit`; `minRMSE`; `rccBaseline` with warning `BridgeFE:rccInverse`.
+- `src/inverse/chiSquareQuantile.m` (no toolbox), `src/inverse/candidateGroups.m` (regions of a chosen length), `src/inverse/hashSeed32.m`.
+- `tests/testInverseUncertainty.m`; `tools/inverseNoiseStudy.m` now compares the ratio, χ² 1 m and χ² 2 m methods, plus an undamaged case.
+- `tools/mutation_check.py`: S3b mutants; optional test-file filter; 1200 s timeout.
+
+### Fixed
+- `deterministicNormal`: consecutive seeds gave correlated noise (seed used as the LCG state); the seed is now hashed. The V-018 noise study is superseded.
+- `identifySingleDamage`: a scalar `'Levels'` no longer crashes.
+
 ## [0.8.0-S3] — 2026-11-10 (branch `claude/s3-inverse-search`)
 
 Stage 3 engine: single-region inverse stiffness-loss search from sensor deflections (D-028). No app tab yet.

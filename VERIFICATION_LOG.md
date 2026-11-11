@@ -951,7 +951,9 @@ Setup unless stated: 20 m simple span, 20 elements of 1 m, EI = 2e9 N·m², spec
 | True loss 70 % (beyond the 60 % limit) | best d = 60 % and `boundaryFlag` | yes; best element E9, not E7: the location is not reliable beyond the limit |
 | E7 30 %, proportional noise, **seed 7 only** | true 6–7 m inside the reported region | 1 %: best E8, d 0.31, region 6–8 m; 2 %: E8, 0.34, 6–10 m; 5 %: E9, 0.40, 6–13 m; 10 %: E10, 0.48, 5–14 m — inside every time |
 
-### Noise study (not a pass/fail test)
+### Noise study (not a pass/fail test) — SUPERSEDED, see D-029 and V-019
+
+> **Superseded (2026-11-11).** An independent review found that `deterministicNormal` used the seed directly as the generator state, so seeds 1..10 gave almost the same first noise values: the rows below are **not** over independent noise draws. The seed is now hashed (D-029); the study was repeated with 20 independent seeds in V-019. The rows are kept unchanged as a record of what was run.
 
 `tools/inverseNoiseStudy.m`, 10 noise seeds per row, spec layout, default options. Raw output: `results/verification/2026-11-10_S3_noise_study_octave-8.4.0.txt`.
 

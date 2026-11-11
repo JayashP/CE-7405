@@ -48,13 +48,22 @@ fprintf('  PASS closed form to 1e-8 %%; damaged model with a permanent load, tra
 %% Noise generator is reproducible on every platform and has the intended size
 z = deterministicNormal(20000, 11);
 assert(isequal(z, deterministicNormal(20000, 11)) && ~isequal(z(1:10), deterministicNormal(10, 12)), 'same seed, same numbers');
-state = mod(1664525 * 11 + 1013904223, 2^32);                % first LCG step, by hand
+hashes = arrayfun(@hashSeed32, [0 1 2 3 7 123456789 4294967295]);
+assert(isequal(hashes, [0 1753845952 3507691905 1408362973 2492178918 2834422664 1734902346]), ...
+    'lowbias32 hash = independent Python implementation (arbitrary-precision integers)');
+state = mod(1664525 * hashSeed32(11) + 1013904223, 2^32);    % first LCG step from the hashed seed, by hand
 u1 = (state + 0.5) / 2^32;
 state = mod(1664525 * state + 1013904223, 2^32);
 u2 = (state + 0.5) / 2^32;
 assert(abs(z(1) - sqrt(-2*log(u1))*cos(2*pi*u2)) < 1e-14, 'Box-Muller of the first two LCG numbers');
 fprintf('  mean %.4f, standard deviation %.4f of 20000 numbers\n', mean(z), std(z));
 assert(abs(mean(z)) < 0.03 && abs(std(z) - 1) < 0.03, 'standard normal');
+first = arrayfun(@(s) deterministicNormal(1, s), 1:2000);     % first number of seeds 1..2000
+lag = corrcoef(first(1:end-1), first(2:end));
+fprintf('  first number over seeds 1..2000: mean %.3f, std %.3f, correlation of neighbouring seeds %.3f\n', ...
+    mean(first), std(first), lag(1, 2));
+assert(abs(mean(first)) < 0.1 && abs(std(first) - 1) < 0.1 && abs(lag(1, 2)) < 0.1, ...
+    'neighbouring seeds give unrelated numbers (no correlation through the seed)');
 u = [-0.010 NaN; -0.020 -0.005];
 [un, sigma] = addMeasurementNoise(u, 0.02, 3);
 zz = reshape(deterministicNormal(4, 3), 2, 2);
@@ -63,7 +72,7 @@ assert(isnan(un(1, 2)) && max(abs(un([1 2 4]) - u([1 2 4]).*(1 + 0.02*zz([1 2 4]
 [un, sigma] = addMeasurementNoise(u, 0.02, 3, 'rms');
 assert(all(abs(sigma([1 2 4]) - 0.02*sqrt(mean([0.01 0.02 0.005].^2))) < 1e-15), 'rms noise: one sigma');
 assert(isequal(addMeasurementNoise(u(:, 1), 0, 5), u(:, 1)), 'zero noise leaves the data unchanged');
-fprintf('  PASS reproducible normal numbers; proportional and rms noise; NaN stays missing\n');
+fprintf('  PASS hash = Python reference; reproducible, independent across seeds; proportional and rms noise; NaN kept\n');
 
 %% Blind noise-free cases are recovered exactly, including losses between the 5 % steps
 hidden = [7 0.30; 3 0.45; 15 0.20; 12 0.27; 19 0.55];        % [element, d]; never passed to the search

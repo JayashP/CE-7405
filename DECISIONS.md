@@ -436,3 +436,55 @@ Engine only (`src/inverse/`); an app tab is a later step. PROJECT_SPEC.md §7.
   - By default it is proportional to each reading, u(1 + level·z), the usual definition in damage-identification studies. Option `'rms'` gives one absolute σ = level × RMS(u).
   - z comes from `deterministicNormal`, a documented LCG with Box–Muller, so a noisy case is **identical in MATLAB and Octave**; `rng` and `randn` streams differ between the two.
 - **Scope** (spec §§4.4, 7, 8): one degraded region; no physical mechanism (corrosion, cracking, …) is inferred. RCC inverse use is deferred, because cracking and an uncertain baseline I_eff can mimic damage. Agreement with self-generated data is **algorithm verification, not field validation**. No field data have been supplied.
+
+## D-029 — Stage 3: noise-based region of uncertainty, fit check, candidate region size (2026-11-11, S3b) — ACCEPTED (user chose options 3 + 2)
+
+**Why.** In the V-018 noise study the D-028 "RMSE within 10 % of the best" region often missed the true damage. A region that looks precise but misses is what spec §7 warns against. The user compared three remedies on measured numbers and chose option 3 (a noise-based region) plus option 2 (selectable candidate region size). An independent multi-agent review (four reviewers, each serious finding checked by a skeptic) then changed several details, listed under "Review changes".
+
+- **Two methods, chosen by the input.**
+  - Without a stated noise level: `'ratio'`, unchanged from D-028.
+  - With `'NoiseLevel'` (a fraction of each reading) and/or `'NoiseAbsolute'` (a standard deviation in m): `'likelihood'`.
+- **Noise per reading:** σ_i = sqrt((NoiseLevel·|u_healthy,i|)² + NoiseAbsolute²), using the **healthy model's prediction**, never the observed readings.
+  - Weights from observed readings favour readings that noise happened to make smaller. That biases d low and inflates S (review finding).
+  - A reading whose σ_i = 0 (e.g. the truck off the span with only a proportional level) is rejected with a request for an absolute part.
+- **Best candidate.** It minimizes S = Σ(r_i/σ_i)² (weighted least squares).
+  - With one constant σ this is the same candidate as the spec's minimum RMSE (tested: S = m·J²/σ² for every structure).
+  - J (RMSE) and J_N are still computed and reported for every candidate (spec §7).
+- **Refinement.** With a stated noise level, **every** group is refined in 1 % steps within ±5 % of its coarse optimum, so region membership is never decided on the 5 % grid.
+  - About 400–440 structures instead of 265 for 20 elements, including the vertex structures.
+  - Tested: the same region and best fit as an exhaustive 1 % scan (1200 structures).
+- **Minimum between grid points.**
+  - For each group, **one more structure is analysed** at the vertex of the parabola through its lowest 1 % point and the two neighbours; the healthy value serves as the d = 0 neighbour. The vertex is used only when it lies strictly between the neighbours, never at d ≤ 0.
+  - Every S used for the best candidate, the region and the fit check is therefore a computed value, not an estimate (skeptic's refinement of the review fix). A loss between grid points with a small stated noise is not mistaken for a misfit.
+  - Tested: E7 at 27.4 % with 0.1 % stated noise gives S = 4.73 at the best 1 % point, and S = 0.0016 at the vertex d = 0.2739.
+- **Region of uncertainty.**
+  - Every group with S_min − S_min,best ≤ χ²(Confidence, 2), which is 5.99 for 95 %. This is the likelihood-ratio region for the two unknowns, location and loss. It is reported as merged x-ranges plus each group's d range on the 1 % grid.
+  - It is **approximate**: location is discrete, u is nonlinear in d, and d = 0 is a boundary. Its coverage is therefore **measured** (tools/inverseNoiseStudy, VERIFICATION_LOG), never asserted, and it is not a probability that a region is damaged.
+- **Healthy model.** If the healthy model is inside the region, `healthyCompetes` is set: "no damage" cannot be ruled out.
+- **Fit check.**
+  - If S_min,best > χ²(Confidence, dof), no candidate explains the data within the stated noise and `modelMisfit` is set.
+  - dof = m − 2, or m when the healthy model (no fitted unknowns) fits best.
+  - Causes: noise underestimated; wrong supports, loads or baseline EI; more than one damaged region.
+  - Tested: data from a fixed–roller beam analysed as pin–roller is flagged; with the correct supports it is not.
+- **χ² quantiles.** `chiSquareQuantile`: bisection on `gammainc` (core MATLAB and Octave; no Statistics Toolbox), for K ≥ 1, checked against table values.
+- **Candidate region size (option 2).** `candidateGroups(model, length)` gives contiguous element groups of about `length` metres, ending on nodes; a short last group of less than half the length is joined to the previous one. The groups are passed through `'Groups'`.
+  - Larger regions are more robust with few sensors.
+  - But the location is coarser, and d is spread over the region: a 30 % loss over 1 m looks like a smaller loss over 2 m.
+- **Synthetic noise generator (review finding).** `deterministicNormal` used the seed directly as the LCG state, so consecutive seeds gave almost the same first numbers: the first value for seeds 1–6 was −1.16, −1.64, −1.61, −1.07, −0.19, 0.75.
+  - Coverage measured over seeds 1..N was therefore **not** over independent noise draws, so the V-018 study and the first coverage numbers shown to the user on 2026-11-10 are **superseded**.
+  - The seed is now scrambled with the lowbias32 integer hash (`hashSeed32`, exact in doubles, checked against an independent Python implementation). Over seeds 1–2000 the first value now has mean 0.014, std 0.999 and correlation between neighbouring seeds of −0.007.
+- **Review changes**, in order of importance:
+  1. refine every group, instead of a fixed margin of 2 that failed at small σ;
+  2. σ from the healthy prediction;
+  3. seed hash;
+  4. a structure at each group's parabola vertex, so the minimum between grid points is computed;
+  5. removal of `healthyConsistentWithNoise`, an omnibus test that contradicted the region;
+  6. dof = m when the healthy model fits best;
+  7. scalar `'Levels'` no longer crashes;
+  8. `chiSquareQuantile` restricted to K ≥ 1;
+  9. `regionAtSearchLimit`: the region's d range reaching the 60 % limit is flagged even when the best d is below it;
+  10. one consistent best (the smallest computed S), which is also the anchor of the region and of the fit check;
+  11. `minRMSE` (spec §7's minimum-RMSE candidate) is reported alongside;
+  12. an RCC baseline gives warning `BridgeFE:rccInverse` and `rccBaseline = true` (spec §7 defers RCC).
+
+  The tests added for documented behaviour cover: σ with both parts, a 90 % confidence level, missing readings in likelihood mode, the p-value, small stated noise, the exhaustive 1 % comparison, and the healthy-best dof.

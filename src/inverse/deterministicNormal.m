@@ -4,22 +4,25 @@ function z = deterministicNormal(n, seed)
 %   pseudo-random standard-normal numbers for the integer SEED >= 0.
 %   MATLAB's rng and Octave's randn give different streams for the same
 %   seed; this generator does not, so synthetic noisy test cases are the
-%   same on both platforms. Uniform numbers come from the 32-bit linear
-%   congruential generator u(k+1) = (1664525 u(k) + 1013904223) mod 2^32
-%   (all products stay below 2^53, so double arithmetic is exact), turned
-%   into normal numbers by the Box-Muller transform. Adequate for test
-%   noise; not for statistics or cryptography.
+%   same on both platforms. The seed is first scrambled with HASHSEED32,
+%   so that consecutive seeds give unrelated streams (an LCG state that is
+%   the seed itself makes neighbouring seeds almost equal). Uniform numbers
+%   then come from the 32-bit linear congruential generator
+%   s(k+1) = (1664525 s(k) + 1013904223) mod 2^32, s(0) = HASHSEED32(SEED),
+%   u = (s + 0.5) / 2^32 (all products stay below 2^53, so double
+%   arithmetic is exact), turned into normal numbers by the Box-Muller
+%   transform. Adequate for synthetic test noise; not for cryptography.
 %
-%   See also ADDMEASUREMENTNOISE.
+%   See also ADDMEASUREMENTNOISE, HASHSEED32.
 
 if ~(isnumeric(n) && isscalar(n) && n >= 0 && n == round(n))
     error('BridgeFE:invalidInput', 'N must be a non-negative integer.');
 end
-if ~(isnumeric(seed) && isscalar(seed) && seed >= 0 && seed == round(seed))
-    error('BridgeFE:invalidInput', 'SEED must be a non-negative integer.');
+if ~(isnumeric(seed) && isscalar(seed) && seed >= 0 && seed < 2^32 && seed == round(seed))
+    error('BridgeFE:invalidInput', 'SEED must be an integer with 0 <= SEED < 2^32.');
 end
 m = 2^32;
-state = mod(double(seed), m);
+state = hashSeed32(seed);
 nPairs = ceil(n / 2);
 uni = zeros(2 * nPairs, 1);
 for k = 1:2 * nPairs

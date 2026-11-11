@@ -1,6 +1,6 @@
 """Mutation check: verify that the M1 test suite detects deliberately injected solver bugs."""
 import shutil, subprocess, sys, pathlib, re
-# Usage: python3 -I tools/mutation_check.py <repo_root> <empty_scratch_dir> [name_prefix]
+# Usage: python3 -I tools/mutation_check.py <repo_root> <empty_scratch_dir> [name_prefix [test_glob]]
 # Copies the repo once per mutation, injects one deliberate bug, runs the suite in
 # GNU Octave and reports which tests detect it. Never modifies <repo_root>.
 repo = pathlib.Path(sys.argv[1]).resolve()
@@ -72,9 +72,24 @@ mutations = [
   ('S3: no 1 % refinement by default', 'src/inverse/identifySingleDamage.m', "'RefineStep', 0.01,", "'RefineStep', 0,"),
   ('S3: missing readings not excluded', 'src/inverse/identifySingleDamage.m', 'known = ~isnan(uObs);', 'known = true(size(uObs));'),
   ('S3: permanent-load deflection not subtracted', 'src/inverse/predictSensorDeflections.m', 'u(:, p) = res.stations.v(:) - base.stations.v(:);', 'u(:, p) = res.stations.v(:);'),
-  ('S3: competing candidates ignore the ambiguity ratio', 'src/inverse/identifySingleDamage.m', 'threshold = max(opts.AmbiguityRatio * Jbest, floorJ);', 'threshold = max(Jbest, floorJ);'),
+  ('S3: competing candidates ignore the ambiguity ratio', 'src/inverse/identifySingleDamage.m', 'threshold = max(opts.AmbiguityRatio * best.J, floorJ);', 'threshold = max(best.J, floorJ);'),
   ('S3: search-limit flag never set', 'src/inverse/identifySingleDamage.m', 'best.d >= max(levels) - 1e-12', 'best.d > max(levels)'),
   ('S3: noise not proportional to each reading', 'src/inverse/addMeasurementNoise.m', 'uNoisy = u .* (1 + level * z);', 'uNoisy = u + level * mean(abs(u(known))) * z;'),
+  # S3b (noise-based region, fit check, candidate region size)
+  ('S3b: region uses 1 instead of 2 degrees of freedom', 'src/inverse/identifySingleDamage.m', 'delta = chiSquareQuantile(opts.Confidence, 2);', 'delta = chiSquareQuantile(opts.Confidence, 1);'),
+  ('S3b: readings not weighted by their own sigma', 'src/inverse/identifySingleDamage.m', 'S = sum((r ./ sigma(known)).^2);', 'S = sum(r.^2) / mean(sigma(known).^2);'),
+  ('S3b: best candidate by RMSE despite a stated noise level', 'src/inverse/identifySingleDamage.m', 'if likelihood\n    evF = evS;', 'if likelihood\n    evF = evJ;'),
+  ('S3b: only the 3 best groups refined with a stated noise level', 'src/inverse/identifySingleDamage.m', 'refine(:) = true;', 'refine(order(1:min(3, nG))) = true;'),
+  ('S3b: sigma from the noisy readings', 'src/inverse/identifySingleDamage.m', 'sigma = sqrt((p * abs(uHealthy)).^2 + s^2);', 'sigma = sqrt((p * abs(uObs)).^2 + s^2);'),
+  ('S3b: no structure at the parabola vertex', 'src/inverse/identifySingleDamage.m', 'if ~isnan(dv) && all(abs(evD(own) - dv) > 1e-9)', 'if false'),
+  ('S3b: parabola vertex allowed at d <= 0 or outside the neighbours', 'src/inverse/identifySingleDamage.m', 'if vertex > max(dl, 0) && vertex < dr', 'if true'),
+  ('S3b: region reaching the 60 % limit not flagged', 'src/inverse/identifySingleDamage.m', 'result.regionAtSearchLimit = any(evGroup(insidePoint) > 0 & evD(insidePoint) >= max(levels) - 1e-12);', 'result.regionAtSearchLimit = false;'),
+  ('S3b: no RCC caveat', 'src/inverse/identifySingleDamage.m', "any(strcmpi({model.materials(unique(ids)).type}, 'rcc'))", 'false'),
+  ('S3b: m - 2 degrees of freedom when the healthy model fits best', 'src/inverse/identifySingleDamage.m', '        dof = m;                               % the healthy model has no fitted unknowns', '        dof = m - 2;'),
+  ('S3b: seed used directly as the generator state', 'src/inverse/deterministicNormal.m', 'state = hashSeed32(seed);', 'state = mod(double(seed), m);'),
+  ('S3b: fit check without subtracting the 2 fitted unknowns', 'src/inverse/identifySingleDamage.m', 'dof = m - 2;', 'dof = m;'),
+  ('S3b: chi-square quantile from the wrong tail', 'src/inverse/chiSquareQuantile.m', '    if cdf(mid) < p', '    if cdf(mid) < 1 - p'),
+  ('S3b: short last region kept separate up to the full length', 'src/inverse/candidateGroups.m', 'if acc < 0.5 * regionLength - tol', 'if acc < regionLength - tol'),
 ]
 only = sys.argv[3] if len(sys.argv) > 3 else ''   # optional name prefix, e.g. 'M7b:'
 mutations = [m for m in mutations if m[0].startswith(only)]
@@ -82,11 +97,14 @@ for name, rel, old, new in mutations:
     d = work / re.sub(r'[^a-z0-9]+', '_', name.lower())
     if d.exists(): shutil.rmtree(d)
     shutil.copytree(repo, d, ignore=shutil.ignore_patterns('.git', 'results'))
+    if len(sys.argv) > 4:   # optional test-file glob: keep only matching tests (code under test used nowhere else)
+        for tf in (d / 'tests').glob('test*.m'):
+            if not tf.match(sys.argv[4]): tf.unlink()
     f = d / rel
     text = f.read_text()
     assert text.count(old) == 1, f'mutation target not found exactly once: {name}'
     f.write_text(text.replace(old, new))
-    p = subprocess.run(['timeout', '300', 'octave-cli', '--no-gui', '--norc', '--eval', 'runAllTests'], cwd=d, capture_output=True, text=True)
+    p = subprocess.run(['timeout', '1200', 'octave-cli', '--no-gui', '--norc', '--eval', 'runAllTests'], cwd=d, capture_output=True, text=True)
     out = p.stdout + p.stderr
     total = re.findall(r'Total: (\d+) passed, (\d+) failed', out)
     failed_tests = re.findall(r'^\s+FAIL\s+(\S+ / .*)$', out, re.M)
