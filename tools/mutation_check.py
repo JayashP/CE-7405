@@ -93,6 +93,11 @@ mutations = [
 ]
 only = sys.argv[3] if len(sys.argv) > 3 else ''   # optional name prefix, e.g. 'M7b:'
 mutations = [m for m in mutations if m[0].startswith(only)]
+import os
+shard = os.environ.get('MUTANT_SHARD', '')   # e.g. '0/3': run every 3rd mutant starting at 0 (parallel runs)
+if shard:
+    k, n_shards = map(int, shard.split('/'))
+    mutations = mutations[k::n_shards]
 for name, rel, old, new in mutations:
     d = work / re.sub(r'[^a-z0-9]+', '_', name.lower())
     if d.exists(): shutil.rmtree(d)

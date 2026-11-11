@@ -1,0 +1,40 @@
+Stage 3 coverage study (tools/inverseNoiseStudy.m), GNU Octave 8.4.0, 2026-11-11, code at commit 8791c8d
+20 independent noise seeds per row (hashed generator), proportional noise, spec layout (3 sensors x 5 positions)
+1 % and 2 % rows: inverseNoiseStudy(20, c) (run stopped by a container restart after the 2 % rows); 5 % rows: inverseNoiseStudy(20, c, 0.05)
+  true       noise  method     best right  covered  mean width [m]  misfit flags
+  E15 20 %     1 %  ratio-1m     4/20       14/20      4.0            0/20
+  E15 20 %     1 %  chi2-1m      6/20       20/20      5.0            2/20
+  E15 20 %     1 %  chi2-2m     12/20       20/20      4.9            2/20
+  E15 20 %     2 %  ratio-1m     2/20       17/20      8.6            0/20
+  E15 20 %     2 %  chi2-1m      4/20       20/20     11.2            2/20
+  E15 20 %     2 %  chi2-2m      6/20       20/20     11.9            2/20
+  E15 20 %     5 %  ratio-1m     0/20       17/20     13.7            0/20
+  E15 20 %     5 %  chi2-1m      2/20       20/20     18.9            2/20
+  E15 20 %     5 %  chi2-2m      5/20       20/20     19.1            2/20
+  E3 45 %      1 %  ratio-1m     6/20       17/20      4.7            0/20
+  E3 45 %      1 %  chi2-1m      9/20       20/20      6.2            1/20
+  E3 45 %      1 %  chi2-2m      6/20       20/20      7.1            1/20
+  E3 45 %      2 %  ratio-1m     3/20       17/20     10.2            0/20
+  E3 45 %      2 %  chi2-1m      9/20       20/20     12.2            1/20
+  E3 45 %      2 %  chi2-2m      5/20       20/20     13.1            1/20
+  E3 45 %      5 %  ratio-1m     2/20       13/20     14.2            0/20
+  E3 45 %      5 %  chi2-1m      7/20       20/20     19.8            1/20
+  E3 45 %      5 %  chi2-2m      6/20       20/20     19.8            1/20
+  E7 30 %      1 %  ratio-1m    11/20       18/20      2.1            0/20
+  E7 30 %      1 %  chi2-1m     18/20       20/20      3.5            2/20
+  E7 30 %      1 %  chi2-2m     19/20       20/20      4.3            2/20
+  E7 30 %      2 %  ratio-1m     8/20       16/20      4.5            0/20
+  E7 30 %      2 %  chi2-1m     12/20       20/20      7.7            2/20
+  E7 30 %      2 %  chi2-2m     13/20       20/20      8.2            2/20
+  E7 30 %      5 %  ratio-1m     3/20       14/20     10.0            0/20
+  E7 30 %      5 %  chi2-1m      4/20       20/20     16.4            2/20
+  E7 30 %      5 %  chi2-2m      7/20       20/20     16.7            2/20
+  none         1 %  ratio-1m     5/20       14/20     12.7            0/20
+  none         1 %  chi2-1m      4/20       20/20     20.0            2/20
+  none         1 %  chi2-2m      4/20       20/20     20.0            2/20
+  none         2 %  ratio-1m     5/20       14/20     15.9            0/20
+  none         2 %  chi2-1m      4/20       20/20     20.0            2/20
+  none         2 %  chi2-2m      4/20       20/20     20.0            2/20
+  none         5 %  ratio-1m     5/20       14/20     16.6            0/20
+  none         5 %  chi2-1m      4/20       20/20     20.0            2/20
+  none         5 %  chi2-2m      4/20       20/20     20.0            2/20

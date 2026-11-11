@@ -1,11 +1,11 @@
-function summary = inverseNoiseStudy(nSeeds, caseIndices)
+function summary = inverseNoiseStudy(nSeeds, caseIndices, levels)
 %INVERSENOISESTUDY Coverage of the Stage 3 region of uncertainty over noise seeds, for three methods.
 %   SUMMARY = INVERSENOISESTUDY(NSEEDS, CASEINDICES) repeats
 %   IDENTIFYSINGLEDAMAGE on synthetic data of the PROJECT_SPEC.md section 7
 %   layout (20 m simple span, 20 elements of 1 m, EI = 2e9 N*m^2, spec
 %   3-axle truck, sensors at L/4, L/2, 3L/4, front axle at 5, 10, 15, 20,
-%   25 m) with proportional noise of 1, 2 and 5 % and seeds 1..NSEEDS
-%   (default 10). Hidden cases (CASEINDICES selects, default all):
+%   25 m) with proportional noise LEVELS (default [0.01 0.02 0.05]) and
+%   seeds 1..NSEEDS (default 10). Hidden cases (CASEINDICES selects, default all):
 %     1  E7 at 30 %     2  E3 at 45 %     3  E15 at 20 %     4  undamaged
 %   Methods compared on the same noisy data:
 %     ratio-1m       1 m candidates, RMSE within 10 % of the best (D-028)
@@ -31,6 +31,9 @@ end
 if nargin < 2
     caseIndices = 1:4;
 end
+if nargin < 3
+    levels = [0.01 0.02 0.05];
+end
 model = createBeamModel(generateUniformMesh(20, 20), 2e9);
 model = addSupport(model, 1, 'pin');
 model = addSupport(model, 21, 'roller');
@@ -38,7 +41,6 @@ truck = createVehicle([80e3 120e3 120e3], [4.2 1.4]);
 sensors = [5 10 15];
 positions = [5 10 15 20 25];
 cases = [7 0.30; 3 0.45; 15 0.20; 0 0];
-levels = [0.01 0.02 0.05];
 methods = {'ratio-1m', 'chi2-1m', 'chi2-2m'};
 pairs = candidateGroups(model, 2);
 summary = struct('element', {}, 'd', {}, 'noise', {}, 'method', {}, 'bestRight', {}, 'covered', {}, ...

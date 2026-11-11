@@ -1,0 +1,63 @@
+MUTATION: S3: healthy candidate left out of the search
+  exit=1 summary=[('20', '2')]
+  detected by: testInverseDamage / The undamaged bridge is recognized, and the coarse scan has 241 structures for 20 elements; testInverseUncertainty / With one constant sigma the chi-square misfit is m J^2 / sigma^2 and selects the minimum-RMSE candidate
+MUTATION: S3: permanent-load deflection not subtracted
+  exit=1 summary=[('21', '1')]
+  detected by: testInverseDamage / Sensor deflections equal the static engine and the closed form, vehicle only
+MUTATION: S3: noise not proportional to each reading
+  exit=1 summary=[('18', '4')]
+  detected by: testInverseDamage / Noise generator is reproducible on every platform and has the intended size; testInverseUncertainty / A noisy case (one realization): the region contains the truth and equals an exhaustive 1 % scan; testInverseUncertainty / A wrong support assumption is flagged by the fit check; testInverseUncertainty / The undamaged bridge with noise is not reported as certainly damaged
+MUTATION: S3b: best candidate by RMSE despite a stated noise level
+  exit=1 summary=[('21', '1')]
+  detected by: testInverseUncertainty / A noisy case (one realization): the region contains the truth and equals an exhaustive 1 % scan
+MUTATION: S3b: no structure at the parabola vertex
+  exit=1 summary=[('21', '1')]
+  detected by: testInverseUncertainty / Losses between the 1 % grid points with a small stated noise are not mistaken for a misfit
+MUTATION: S3b: no RCC caveat
+  exit=1 summary=[('21', '1')]
+  detected by: testInverseUncertainty / An RCC baseline gives the spec's caveat
+MUTATION: S3b: fit check without subtracting the 2 fitted unknowns
+  exit=1 summary=[('20', '2')]
+  detected by: testInverseUncertainty / Noise-free data with a stated noise level: exact best fit, true region inside, no misfit; testInverseUncertainty / A different confidence level and missing readings change the thresholds as the tables say
+MUTATION: S3: no 1 % refinement by default
+  exit=1 summary=[('20', '2')]
+  detected by: testInverseDamage / Blind noise-free cases are recovered exactly, including losses between the 5 % steps; testInverseUncertainty / A noisy case (one realization): the region contains the truth and equals an exhaustive 1 % scan
+MUTATION: S3: competing candidates ignore the ambiguity ratio
+  exit=1 summary=[('21', '1')]
+  detected by: testInverseDamage / One noise realization (seed 7): the true E7 stays inside the reported region at 1-10 % noise
+MUTATION: S3b: region uses 1 instead of 2 degrees of freedom
+  exit=1 summary=[('20', '2')]
+  detected by: testInverseUncertainty / A noisy case (one realization): the region contains the truth and equals an exhaustive 1 % scan; testInverseUncertainty / A different confidence level and missing readings change the thresholds as the tables say
+MUTATION: S3b: only the 3 best groups refined with a stated noise level
+  exit=1 summary=[('21', '1')]
+  detected by: testInverseUncertainty / A noisy case (one realization): the region contains the truth and equals an exhaustive 1 % scan
+MUTATION: S3b: parabola vertex allowed at d <= 0 or outside the neighbours
+  exit=1 summary=[('20', '2')]
+  detected by: testInverseUncertainty / A wrong support assumption is flagged by the fit check; testInverseUncertainty / The undamaged bridge with noise is not reported as certainly damaged
+MUTATION: S3b: m - 2 degrees of freedom when the healthy model fits best
+  exit=1 summary=[('21', '1')]
+  detected by: testInverseUncertainty / The undamaged bridge with noise is not reported as certainly damaged
+MUTATION: S3b: chi-square quantile from the wrong tail
+  exit=1 summary=[('17', '5')]
+  detected by: testInverseUncertainty / Chi-square quantiles match the tables without a toolbox; testInverseUncertainty / A noisy case (one realization): the region contains the truth and equals an exhaustive 1 % scan; testInverseUncertainty / A wrong support assumption is flagged by the fit check; testInverseUncertainty / The undamaged bridge with noise is not reported as certainly damaged; testInverseUncertainty / A different confidence level and missing readings change the thresholds as the tables say
+MUTATION: S3: missing readings not excluded
+  exit=1 summary=[('19', '3')]
+  detected by: testInverseDamage / Data from a finer mesh and missing readings still give the true region; testInverseDamage / Invalid inverse input is rejected; testInverseUncertainty / A different confidence level and missing readings change the thresholds as the tables say
+MUTATION: S3: search-limit flag never set
+  exit=1 summary=[('21', '1')]
+  detected by: testInverseDamage / Symmetric data are reported as ambiguous, and a loss beyond 60 % is flagged
+MUTATION: S3b: readings not weighted by their own sigma
+  exit=1 summary=[('19', '3')]
+  detected by: testInverseUncertainty / Noise per reading comes from the healthy prediction, and S is the weighted misfit; testInverseUncertainty / A noisy case (one realization): the region contains the truth and equals an exhaustive 1 % scan; testInverseUncertainty / A wrong support assumption is flagged by the fit check
+MUTATION: S3b: sigma from the noisy readings
+  exit=1 summary=[('21', '1')]
+  detected by: testInverseUncertainty / Noise per reading comes from the healthy prediction, and S is the weighted misfit
+MUTATION: S3b: region reaching the 60 % limit not flagged
+  exit=1 summary=[('21', '1')]
+  detected by: testInverseUncertainty / A region that reaches the 60 % search limit is flagged even when the best loss is below it
+MUTATION: S3b: seed used directly as the generator state
+  exit=1 summary=[('21', '1')]
+  detected by: testInverseDamage / Noise generator is reproducible on every platform and has the intended size
+MUTATION: S3b: short last region kept separate up to the full length
+  exit=1 summary=[('21', '1')]
+  detected by: testInverseUncertainty / Candidate regions of a chosen length cover every element once and end on nodes

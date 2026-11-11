@@ -975,3 +975,63 @@ Setup unless stated: 20 m simple span, 20 elements of 1 m, EI = 2e9 N·m², spec
 - Example of a miss (seed 7, `..._S3_layout_comparison_seed7_...txt`): true E3 at 45 % with 2 % noise gave best E8 and region 4–12 m, which does not include 2–3 m.
 - More sensors and positions (7 × 9) changed individual results but, with one seed each, did not show a clear improvement; that needs the same study.
 - Possible improvements, not yet implemented: larger candidate regions (e.g. 2–4 m groups, already supported by `'Groups'`); more readings; a region based on the stated noise level (likelihood-ratio / χ² region) instead of the 10 % fit ratio.
+
+---
+
+## V-019 — 2026-11-11 — S3b (noise-based region, fit check, region size; D-029) in GNU Octave
+
+| Item | Value |
+|---|---|
+| Platform | **GNU Octave 8.4.0**, Ubuntu 24.04.5 cloud container |
+| MATLAB | **NOT RUN.** One MATLAB run on branch `claude/s3b-noise-region` covers M7c, S3 and S3b; record it as V-020 |
+| Code version | Branch `claude/s3b-noise-region`, commit `8791c8d` (study and suite); records added afterwards |
+| Main suite | **129 passed, 0 failed, 129 tests** (115 + 14 in `testInverseUncertainty`). Raw log: `results/verification/2026-11-11_S3b_octave-8.4.0_runAllTests.log` |
+| Independent review | Multi-agent workflow: 4 reviewers (statistics, code/compatibility, tests, spec), and a skeptic tried to refute each medium/high finding (16 agents). All confirmed findings and all low findings were fixed; the changes are listed in D-029. Two "high" findings were refuted only because they had already been fixed in the working tree when the skeptic checked; the skeptic confirmed the fixes |
+| Mutation check | `MUTANT_SHARD=k/3 python3 -I tools/mutation_check.py <repo> <scratch> S3 'testInverse*.m'` (3 parallel shards; only the Stage 3 test files run, since `src/inverse` is used nowhere else): **21 of 21** Stage 3 faults detected (7 S3 + 14 S3b). Raw output: `results/verification/2026-11-11_S3b_mutation_check_octave-8.4.0.txt` |
+
+Key test results (synthetic data, spec layout unless stated):
+
+| Test | Reference / criterion | Result |
+|---|---|---|
+| χ² quantiles | tables: 3.841459, 7.814728, 18.307038, 22.362032, 43.772972; exact −2 ln(1 − p) for 2 dof | ≤ 4.7e‑6 % (tables, 7 digits); 2.1e‑12 % (exact) |
+| Seed hash | lowbias32 = independent Python implementation (0, 1, 2, 3, 7, 123456789, 2³² − 1) | identical |
+| Seeds 1–2000, first number | independent draws | mean 0.014, std 0.999, neighbouring-seed correlation −0.007 |
+| Constant σ | S = m·J²/σ² for every structure; minimum S = minimum RMSE | yes (all 381 structures) |
+| σ with both parts | sqrt((0.02·\|u_healthy\|)² + (0.02 mm)²) | ≤ 1e‑15 m |
+| Loss between grid points (E7 at 27.4 %, noise-free, stated 0.1 %) | no false misfit | S = 4.73 at the best 1 % point; vertex d = 0.2739, S = 0.0016; no misfit |
+| Region vs exhaustive 1 % scan (1200 structures) | same groups and same best S | identical |
+| Wrong supports (data from fixed–roller, model pin–roller, 1 % noise) | `modelMisfit` | S = 60 022 against a limit of 25.0, flagged; correct supports not flagged |
+| 2 m regions, hidden 6–8 m at 30 % | exact recovery | yes, 206 structures |
+| Region reaching 60 % (E7 at 55 %, stated 5 %) | `regionAtSearchLimit` | d range [0.45 0.60], flagged, best d 0.55 not at the limit |
+| 90 % confidence; 3 readings missing | χ²(0.90, 2) = −2 ln 0.1, χ²(0.90, 13) = 19.812; m = 12, dof 10, χ²(0.95, 10) = 18.307 | yes; the 90 % region (11 groups) lies inside the 95 % region (12) |
+| RCC baseline | warning `BridgeFE:rccInverse`, `rccBaseline` | yes |
+
+### Coverage study (not a pass/fail test)
+
+`tools/inverseNoiseStudy.m`, **20 independent noise seeds** per row, spec layout (3 sensors × 5 truck positions, 1 m elements), proportional noise, the true noise level stated to the χ² methods. Raw output: `results/verification/2026-11-11_S3b_coverage_study_octave-8.4.0.txt` (the 1–2 % and 5 % rows came from two runs, because a container restart stopped the first). "Covered" means the true element lies in the reported region; for the undamaged case it means "no damage" stays in the region.
+
+| True | Noise | 10 % ratio, 1 m: covered | χ², 1 m: covered | χ², 2 m: covered | Best right (ratio / χ² 1 m / χ² 2 m) | Mean width, χ² 1 m |
+|---|---|---|---|---|---|---|
+| E7, 30 % | 1 % | 18/20 | **20/20** | 20/20 | 11 / 18 / 19 | 3.5 m |
+| E7, 30 % | 2 % | 16/20 | **20/20** | 20/20 | 8 / 12 / 13 | 7.7 m |
+| E7, 30 % | 5 % | 14/20 | **20/20** | 20/20 | 3 / 4 / 7 | 16.4 m |
+| E3, 45 % | 1 % | 17/20 | **20/20** | 20/20 | 6 / 9 / 6 | 6.2 m |
+| E3, 45 % | 2 % | 17/20 | **20/20** | 20/20 | 3 / 9 / 5 | 12.2 m |
+| E3, 45 % | 5 % | 13/20 | **20/20** | 20/20 | 2 / 7 / 6 | 19.8 m |
+| E15, 20 % | 1 % | 14/20 | **20/20** | 20/20 | 4 / 6 / 12 | 5.0 m |
+| E15, 20 % | 2 % | 17/20 | **20/20** | 20/20 | 2 / 4 / 6 | 11.2 m |
+| E15, 20 % | 5 % | 17/20 | **20/20** | 20/20 | 0 / 2 / 5 | 18.9 m |
+| none | 1, 2, 5 % | 14, 14, 14 /20 | **20, 20, 20 /20** | 20, 20, 20 /20 | — | 20 m |
+
+**Interpretation:**
+- **Region coverage.** The χ² region contained the truth in every run: 180/180 damaged and 60/60 undamaged, against 143/180 and 42/60 for the D-028 ratio region.
+  - At one seed, the three noise levels share the same random draws scaled by the level, so there are 80 distinct realizations. 80/80 gives a one-sided 95 % lower bound on coverage of about 96 %.
+  - The region is therefore **conservative**: at least as wide as needed, possibly wider.
+- **Width is the honest price.**
+  - About 3.5–6 m at 1 % noise, 8–12 m at 2 %.
+  - At 5 % noise it covers most of the 20 m span. With 3 sensors and 5 positions, 5 % noise does not allow localization, and the method now says so instead of naming a wrong element with false precision.
+- **Better best guess.** The weighted fit picks the exact element more often than the unweighted RMSE: 71/180 against 39/180 over the damaged rows.
+  - 2 m groups hit their (larger) target 79/180 times.
+  - Neither makes the single best guess reliable at ≥ 2 % noise; only more information (more sensors or truck positions, less noise) would.
+- **False alarms.** `modelMisfit` was set in 7 of 80 distinct correct-model realizations (8.8 %, nominal 5 %; binomial P(≥ 7 | 80, 0.05) = 0.105). This is consistent with the approximate χ² fit check, slightly above nominal.
+- **Scope.** Synthetic data from the same model class: this is algorithm verification. It is **not** field validation, and the counts are not probabilities that a real bridge region is damaged.
