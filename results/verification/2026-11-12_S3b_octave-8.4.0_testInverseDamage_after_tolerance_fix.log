@@ -1,0 +1,73 @@
+
+=== testInverseDamage / Sensor deflections equal the static engine and the closed form, vehicle only ===
+
+Sensor deflections: closed form (single 100 kN load) and the static engine
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  v(2.5 m), P at midspan [mm]                        -3.0598958333342       -3.0598958333333   8.331e-13    2.723e-11 rel<=1e-08%   PASS
+  v(5 m) [mm]                                        -5.7291666666682       -5.7291666666667   1.555e-12    2.715e-11 rel<=1e-08%   PASS
+  v(7.3 m), between nodes [mm]                       -7.5040958333353       -7.5040958333333   2.016e-12    2.687e-11 rel<=1e-08%   PASS
+  v(10 m) = PL^3/48EI [mm]                           -8.3333333333355       -8.3333333333333   2.149e-12    2.579e-11 rel<=1e-08%   PASS
+  vehicle-only v: max|fast path - static (total - permanent)| / max|v| [-]    7.8193272842087e-13                      0   7.819e-13          n/a abs<=1e-09    PASS
+  PASS expected error BridgeFE:offBeam: Sensor coordinates must lie on the beam (0 to 20 m).
+  PASS closed form to 1e-8 %; damaged model with a permanent load, travel toward -x, sensors between nodes = static engine
+--- PASS
+
+=== testInverseDamage / Noise generator is reproducible on every platform and has the intended size ===
+  mean 0.0113, standard deviation 1.0089 of 20000 numbers
+  first number over seeds 1..2000: mean 0.014, std 0.999, correlation of neighbouring seeds -0.007
+  PASS hash = Python reference; reproducible, independent across seeds; proportional and rms noise; NaN kept
+--- PASS
+
+=== testInverseDamage / Blind noise-free cases are recovered exactly, including losses between the 5 % steps ===
+  case 1: best element 7, d = 0.30, J = 0.00e+00 m, healthy J = 0.412 mm, 265 structures
+  case 2: best element 3, d = 0.45, J = 0.00e+00 m, healthy J = 0.176 mm, 265 structures
+  case 3: best element 15, d = 0.20, J = 0.00e+00 m, healthy J = 0.214 mm, 265 structures
+  case 4: best element 12, d = 0.27, J = 0.00e+00 m, healthy J = 0.446 mm, 265 structures
+  case 5: best element 19, d = 0.55, J = 0.00e+00 m, healthy J = 0.096 mm, 265 structures
+
+Blind noise-free cases (spec sensors L/4, L/2, 3L/4; 5 truck positions)
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  case 1: element found                                             7                      7   0.000e+00    0.000e+00 rel<=0%       PASS
+  case 1: loss d [%]                                               30                     30   0.000e+00    0.000e+00 rel<=1e-06%   PASS
+  case 2: element found                                             3                      3   0.000e+00    0.000e+00 rel<=0%       PASS
+  case 2: loss d [%]                                               45                     45   0.000e+00    0.000e+00 rel<=1e-06%   PASS
+  case 3: element found                                            15                     15   0.000e+00    0.000e+00 rel<=0%       PASS
+  case 3: loss d [%]                                               20                     20   0.000e+00    0.000e+00 rel<=1e-06%   PASS
+  case 4: element found                                            12                     12   0.000e+00    0.000e+00 rel<=0%       PASS
+  case 4: loss d [%]                                               27                     27   0.000e+00    0.000e+00 rel<=1e-06%   PASS
+  case 5: element found                                            19                     19   0.000e+00    0.000e+00 rel<=0%       PASS
+  case 5: loss d [%]                                               55                     55   0.000e+00    0.000e+00 rel<=1e-06%   PASS
+--- PASS
+
+=== testInverseDamage / The undamaged bridge is recognized, and the coarse scan has 241 structures for 20 elements ===
+  PASS undamaged data: best = healthy (d = 0); coarse scan = 241 structures
+--- PASS
+
+=== testInverseDamage / Data from a finer mesh and missing readings still give the true region ===
+  PASS other mesh for the data: E7 at 30 %; 3 missing readings: m = 12, E7 at 30 %
+--- PASS
+
+=== testInverseDamage / One noise realization (seed 7): the true E7 stays inside the reported region at 1-10 % noise ===
+  true: element 7 (6-7 m), d = 0.30; proportional noise, seed 7
+  noise   best    d     d range       J/J_healthy  competing  region [m]        healthy competes
+     1 %  E6    0.31  [0.27 0.34]   0.41          5         2-7               0
+     2 %  E5    0.35  [0.25 0.40]   0.69          5         2-7               0
+     5 %  E17   0.44  [0.05 0.60]   0.94         20         0-20              1
+    10 %  E17   0.48  [0.05 0.60]   0.98         20         0-20              1
+  PASS the true element is inside the reported region at 1, 2, 5 and 10 % noise, and competitors are listed
+--- PASS
+
+=== testInverseDamage / Symmetric data are reported as ambiguous, and a loss beyond 60 % is flagged ===
+  PASS mirror elements 7 and 14 tie (ratio 1.000000); true E7 at 70 %: best E9 at the 60 % limit, flagged (beyond the limit the location is not reliable)
+--- PASS
+
+=== testInverseDamage / Invalid inverse input is rejected ===
+  PASS expected error BridgeFE:invalidInput: Observed deflections must be a 3-by-5 matrix (sensors x vehicle positions).
+  PASS expected error BridgeFE:invalidInput: Observed deflections need at least one finite value (NaN = missing).
+  PASS expected error BridgeFE:invalidInput: The baseline model must be healthy (all stiffness factors 1).
+  PASS expected error BridgeFE:invalidInput: Levels must be values of d with 0 < d < 1.
+  PASS expected error BridgeFE:invalidInput: Groups must be a cell array of element index vectors (1 to 20).
+  PASS expected error BridgeFE:invalidInput: Unknown option 'Tolerance'.
+  PASS wrong data size, no data, damaged baseline, d >= 1, element 25 and unknown option are rejected
+--- PASS
+RESULT 8 of 8 passed

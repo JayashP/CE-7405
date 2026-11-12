@@ -1035,3 +1035,29 @@ Key test results (synthetic data, spec layout unless stated):
   - Neither makes the single best guess reliable at ≥ 2 % noise; only more information (more sensors or truck positions, less noise) would.
 - **False alarms.** `modelMisfit` was set in 7 of 80 distinct correct-model realizations (8.8 %, nominal 5 %; binomial P(≥ 7 | 80, 0.05) = 0.105). This is consistent with the approximate χ² fit check, slightly above nominal.
 - **Scope.** Synthetic data from the same model class: this is algorithm verification. It is **not** field validation, and the counts are not probabilities that a real bridge region is damaged.
+
+---
+
+## V-020 — 2026-11-12 — S3b in MATLAB, run 1 (run by the user): 128 passed, 1 failed
+
+| Item | Value |
+|---|---|
+| Platform | MATLAB on the user's computer (Platform line not in the screenshots) |
+| Code version | Branch `claude/s3b-noise-region` at `f9393a8` |
+| Result | **128 passed, 1 failed, 129 tests**. Failed: `testInverseDamage / Sensor deflections equal the static engine and the closed form, vehicle only`. Screenshots: `results/verification/2026-11-12_S3b_matlab_runAllTests_run1_*.png` |
+| Diagnostic | Not in the screenshots (printed further up). The cause below is therefore **inferred**, not read from MATLAB's message |
+
+**Inferred cause.** The section's last check compared the moving-load fast path with the static engine, on a damaged beam with a permanent load, travel toward −x and sensors between nodes, with a limit of 1e‑12 relative. Both are the same engine reached by two solver paths (a Cholesky factor, versus backslash plus a difference of two solutions), so they differ only by round-off.
+- Octave gives 7.8e‑13, already 78 % of that limit.
+- The expected round-off is up to about eps·cond(K_ff) = 2.2e‑16 × 1.6e5 ≈ 3.5e‑11, and MATLAB uses different linear-algebra libraries.
+- So 1e‑12 was tighter than round-off justifies.
+- The closed-form checks in the same section (errors about 2.7e‑11 % against a limit of 1e‑8 %) are very unlikely to differ between platforms.
+
+**Change (no analytical reference altered).**
+- The engine-against-engine check now uses 1e‑9, the same criterion as the damaged fast-path test in `testStiffnessDamage`.
+- It is a row of the printed comparison table, so the measured value is visible on both platforms (Octave: 7.819e‑13).
+- The closed-form limit of 1e‑8 % is unchanged.
+- The mutant "permanent-load deflection not subtracted" is still detected.
+- Octave log: `results/verification/2026-11-12_S3b_octave-8.4.0_testInverseDamage_after_tolerance_fix.log`.
+
+**Status:** MATLAB rerun pending. It will show MATLAB's measured value and confirm or refute the inferred cause.

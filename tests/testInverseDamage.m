@@ -31,17 +31,22 @@ rows = compareToReference('v(2.5 m), P at midspan [mm]', u(1)*1e3, -P*2.5*(3*400
 rows(end+1) = compareToReference('v(5 m) [mm]', u(2)*1e3, -P*5*(3*400 - 4*25)/(48*2e9)*1e3, 1e-8);
 rows(end+1) = compareToReference('v(7.3 m), between nodes [mm]', u(3)*1e3, -P*7.3*(3*400 - 4*7.3^2)/(48*2e9)*1e3, 1e-8);
 rows(end+1) = compareToReference('v(10 m) = PL^3/48EI [mm]', u(4)*1e3, -P*20^3/(48*2e9)*1e3, 1e-8);
-reportComparisons('Sensor deflections, single 100 kN load at midspan', rows);
 loaded = addUniformLoad(applyStiffnessDamage(model, 4:6, 0.4), -20e3);       % permanent load + damage
 xvB = [8.7 16.2];
 u = predictSensorDeflections(loaded, truck, xvB, [3.3 10 14.6], -1);
+worst = 0;
 for p = 1:2
     withTruck = modelWithVehicle(loaded, truck, xvB(p), -1);       % axles as point loads (needed for v inside elements)
     total = evaluateDeflection(withTruck, solveStaticModel(withTruck).U, [3.3 10 14.6]);
     permanent = evaluateDeflection(loaded, solveStaticModel(loaded).U, [3.3 10 14.6]);
-    assert(max(abs(u(:, p) - (total(:) - permanent(:)))) <= 1e-12 * max(abs(u(:))), ...
-        'vehicle-only deflection = static engine (total - permanent), position %d', p);
+    worst = max(worst, max(abs(u(:, p) - (total(:) - permanent(:)))) / max(abs(u(:))));
 end
+% Two solver paths of the same engine (Cholesky fast path vs backslash, then a difference of two
+% solutions): they differ only by round-off, up to about eps*cond(Kff) = 2.2e-16 * 1.6e5 = 3.5e-11.
+% Same criterion (1e-9) as the damaged fast-path test in testStiffnessDamage.
+rows(end+1) = compareToReference('vehicle-only v: max|fast path - static (total - permanent)| / max|v| [-]', ...
+    worst, 0, [], 1e-9);
+reportComparisons('Sensor deflections: closed form (single 100 kN load) and the static engine', rows);
 assertThrows(@() predictSensorDeflections(model, truck, 10, [5 21]), 'BridgeFE:offBeam');
 fprintf('  PASS closed form to 1e-8 %%; damaged model with a permanent load, travel toward -x, sensors between nodes = static engine\n');
 
