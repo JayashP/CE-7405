@@ -26,6 +26,7 @@ Order is fixed by the spec:
 | M7b | Damage tab in the app (D-026) | Nov 10 – 11 | **Done.** Octave 106/106, app check 32/32 (V-015); MATLAB 106/106, app check 33/33, tab used (V-016). Merged to `main` |
 | M7c | Damage-tab display revisions after V-016 (D-027) | Nov 10 | Octave 107/107, app check 33/33 (V-017); MATLAB with S3b (V-020). Merged to `main` |
 | S3 | Stage 3 inverse search (stretch) | Nov 10 – 14 | Engine done in Octave (V-018); revised with the user's options 3 + 2 and an independent review (D-029, V-019). MATLAB 129/129 (V-020). Merged to `main`. Next: app tab (M8) |
+| M8 | Identification (Stage 3) tab in the app (D-030) + display fixes | Nov 12 | Octave 135/135, app check 43/43, 10/10 non-equivalent mutants, independent review fixed (V-021). **MATLAB: NOT RUN** |
 | S4 | Stage 4 steel repair categories from sourced rules (stretch, last) | Only if time remains and sources are chosen | Deferred |
 | — | Stabilize, demo recording, final documentation | Nov 21 – 23 | — |
 | — | **Submission** | **Nov 24** | — |

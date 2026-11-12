@@ -90,6 +90,18 @@ mutations = [
   ('S3b: fit check without subtracting the 2 fitted unknowns', 'src/inverse/identifySingleDamage.m', 'dof = m - 2;', 'dof = m;'),
   ('S3b: chi-square quantile from the wrong tail', 'src/inverse/chiSquareQuantile.m', '    if cdf(mid) < p', '    if cdf(mid) < 1 - p'),
   ('S3b: short last region kept separate up to the full length', 'src/inverse/candidateGroups.m', 'if acc < 0.5 * regionLength - tol', 'if acc < regionLength - tol'),
+  # M8 (Identification tab helpers)
+  ('M8: synthetic noise in % passed as a fraction', 'src/gui/syntheticObservations.m', 'addMeasurementNoise(u, noisePercent / 100, seed)', 'addMeasurementNoise(u, noisePercent, seed)'),
+  ('M8: absolute noise mm converted with 1/100', 'src/gui/identificationOptions.m', "{'NoiseAbsolute', noiseAbsoluteMm / 1000}", "{'NoiseAbsolute', noiseAbsoluteMm / 100}"),
+  ('M8: every candidate shown as inside the region', 'src/gui/fitProfileData.m', "p.inRegion = ismember((1:nG)', [result.competing.group]');", 'p.inRegion = true(nG, 1);'),
+  ('M8: healthy row missing from the candidate table', 'src/gui/identificationTableData.m', 'if result.healthyCompetes || ~result.damageDetected', 'if false'),
+  ('M8: healthy-best region not reported', 'src/gui/identificationSummary.m', '    if ~isempty(result.competing)\n        dMax', '    if false\n        dMax'),
+  ('M8: sensors on a support kept', 'src/gui/identificationDefaults.m', "sensorX = sensorX(max(abs(uH), [], 2)' > small);", 'sensorX = sensorX;'),
+  ('M8: truth comparison answers the opposite', 'src/gui/identificationSummary.m', 'yesNo(inside), yesNo(covers)', 'yesNo(~inside), yesNo(covers)'),
+  ('M8: positions with all-zero readings kept', 'src/gui/identificationDefaults.m', 'positions = positions(max(abs(uH), [], 1) > small);', 'positions = positions;'),
+  ('M8: -x travel positions not mirrored', 'src/gui/identificationDefaults.m', '    positions = x(end) - offset;', '    positions = x(1) + offset;'),
+  ('M8: region bands drawn over the beam', 'src/visualization/bridgeDrawing.m', 'prims = [band, prims];', 'prims = [prims, band];'),
+  ('M8: readings mm converted with 1/100', 'src/gui/readingsFromTable.m', 'uObs = double(data) / 1000;', 'uObs = double(data) / 100;'),
 ]
 only = sys.argv[3] if len(sys.argv) > 3 else ''   # optional name prefix, e.g. 'M7b:'
 mutations = [m for m in mutations if m[0].startswith(only)]

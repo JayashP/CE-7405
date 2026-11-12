@@ -11,6 +11,6 @@ for k = 1:2:numel(nameValue)
         error('Mock:unknownProperty', '%s has no property ''%s''.', type, num2str(nameValue{k}));
     end
 end
-g = MockGraphic(type, [varargin, nameValue]);   % data, then the name-value options
-ax.Children{end+1} = g;
+ax.Children{end+1} = MockGraphic(type, [varargin, nameValue]);   % data, then the name-value options
+g = numel(ax.Children);   % numeric handle (index into Children), so handles concatenate like MATLAB's [h1 h2]
 end

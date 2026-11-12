@@ -17,6 +17,14 @@ function prims = bridgeDrawing(model, opts)
 %     StiffnessFactor NE-by-1 factors 1 - d (model.elements.stiffnessFactor);
 %                  elements with a factor < 1 are overdrawn thick in the
 %                  damage colour with an 'EI x 0.70' label
+%     Regions      K-by-2 [start end] m: Stage 3 region of uncertainty, a
+%                  light band behind the beam
+%     BestRegion   [start end] m: Stage 3 best fit, thick line on the beam,
+%                  with the text BestLabel below it
+%     TrueRegion   [start end] m: hidden true region of a synthetic case,
+%                  dashed box labelled 'true (hidden)'
+%     Sensors      sensor coordinates [m]: markers S1, S2, ... in a band
+%                  below the region labels
 %     Theme        colours (APPTHEME), default appTheme()
 %   Drawn items: beam and nodes; pin, roller and fixed supports
 %   (SUPPORTSYMBOLGEOMETRY); permanent uniform loads (arrows with
@@ -38,6 +46,14 @@ h = optionOr(opts, 'SymbolSize', 0.04 * L);
 gap = 0.08 * h;
 
 prims = drawingPrimitive('line', [x(1), x(end)], [0, 0], th.beam, 'lineWidth', 3);
+% Stage 3: region of uncertainty, a light band drawn BEHIND the beam
+regions = optionOr(opts, 'Regions', zeros(0, 2));
+band = [];
+for k = 1:size(regions, 1)
+    band = [band, drawingPrimitive('patch', regions(k, [1 2 2 1]), 0.22*h*[-1 -1 1 1], th.region, ...
+        'faceColor', th.region)]; %#ok<AGROW>
+end
+prims = [band, prims];
 prims(end+1) = drawingPrimitive('marker', x, zeros(size(x)), th.beam, 'marker', 'o', 'markerSize', 3);
 
 % Supports
@@ -131,6 +147,28 @@ if isfield(opts, 'StiffnessFactor') && ~isempty(opts.StiffnessFactor)
             'text', sprintf('EI x %.2f', f(e)), 'vAlign', 'top', 'fontSize', 11); %#ok<AGROW>
         e = last + 1;
     end
+end
+
+% Stage 3: best-fit region (thick line on the beam), hidden true region (dashed box), sensors
+best = optionOr(opts, 'BestRegion', []);
+if ~isempty(best)
+    prims(end+1) = drawingPrimitive('line', best, [0, 0], th.regionBest, 'lineWidth', 6);
+    prims(end+1) = drawingPrimitive('text', mean(best), -0.45*h, th.regionBest, 'text', ...
+        optionOr(opts, 'BestLabel', 'best fit'), 'vAlign', 'top', 'fontSize', 9);   % below: loads use the space above
+end
+truthX = optionOr(opts, 'TrueRegion', []);
+if ~isempty(truthX) && all(isfinite(truthX))
+    prims(end+1) = drawingPrimitive('line', truthX([1 2 2 1 1]), 0.4*h*[-1 -1 1 1 -1], th.truth, ...
+        'lineStyle', '--', 'lineWidth', 1.2);
+    prims(end+1) = drawingPrimitive('text', mean(truthX), -1.0*h, th.truth, 'text', 'true (hidden)', ...
+        'vAlign', 'top', 'fontSize', 8);
+end
+sensors = optionOr(opts, 'Sensors', []);
+for k = 1:numel(sensors)
+    % own band below the region labels (best fit -0.45h, hidden case -1.0h)
+    prims(end+1) = drawingPrimitive('marker', sensors(k), -1.65*h, th.sensor, 'marker', '^', 'markerSize', 7); %#ok<AGROW>
+    prims(end+1) = drawingPrimitive('text', sensors(k), -1.9*h, th.sensor, 'text', sprintf('S%d', k), ...
+        'vAlign', 'top', 'fontSize', 8); %#ok<AGROW>
 end
 
 % Deformed shape

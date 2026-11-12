@@ -53,6 +53,15 @@ m = addSupport(m, 7, 'fixed');
 prep = prepareMovingLoad(m, defaultEnvelopeStations(m.nodes.x, 4));
 res = analyzeVehiclePosition(prep, truck, 3, 1);
 writeCase(outDir, 'E_cantilever_truck_entering', bridgeDrawing(m, struct('Axles', res.axles)), responseDiagramData(res));
+
+% 5. Stage 3 identification view: two spans, sensors, region of uncertainty, best fit, hidden case
+m = createBeamModel(meshSpans([12 15], 8), EI);
+m = addSupport(m, 1, 'pin');
+m = addSupport(m, 9, 'roller');
+m = addSupport(m, 17, 'roller');
+m = addUniformLoad(m, -10e3);
+writeCase(outDir, 'F_stage3_identification', bridgeDrawing(m, struct('SymbolSize', 0.04 * 27, 'Sensors', [6.75 13.5 20.25], ...
+    'Regions', [6 12; 13.875 15.75], 'BestRegion', [9 10.5], 'BestLabel', 'best fit: d = 31 %', 'TrueRegion', [9 10.5])), []);
 fprintf('wrote previews to %s (theme moment colour %s)\n', outDir, mat2str(th.moment, 3));
 end
 

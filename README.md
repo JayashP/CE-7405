@@ -22,7 +22,7 @@ This is a MATLAB direct-stiffness solver for a **2D equivalent Euler–Bernoulli
 | Steel (E_s·I_s) and RCC (E_c·I_eff, user-supplied, constant) material input, per span; equal-EI steel/RCC equivalence | Implemented (M5); tested in GNU Octave 8.4.0 and MATLAB (82/82; V-010) |
 | Sage-green MATLAB app `BridgeConditionApp` (code-built): model, vehicle and moving-load view, envelopes, matrices, verification | Implemented (M6). MATLAB: 95/95 tests, scripted app check 27/27, all 5 tabs used (V-012). Octave: same results against stand-in components (V-011) |
 | Stage 2: prescribed EI loss EI_D = (1 − d)EI per element, healthy vs damaged moving-load comparison, sensitivity sweep over locations | Engine implemented (M7); 104/104 tests in GNU Octave and MATLAB (V-014). App tab "Damage (Stage 2)" (M7b): 106/106 and 33/33 in MATLAB (V-016). Display revisions M7c (sub-tabs, findings text, no −0.000): 107/107 and 33/33 in Octave (V-017); MATLAB not run yet |
-| Stage 3: single-region inverse search from sensor deflections (241-structure scan + 1 % refinement, RMSE, competing candidates, region of uncertainty) | Engine implemented and revised after an independent review (D-028, D-029): exact on noise-free synthetic data; with a stated noise level, a likelihood-ratio region of uncertainty, a fit check and selectable candidate region size. Octave results and the 20-seed coverage study in V-019; MATLAB 129/129 tests and app check (V-020). No app tab yet. Synthetic data only, not field validation |
+| Stage 3: single-region inverse search from sensor deflections (241-structure scan + 1 % refinement, RMSE, competing candidates, region of uncertainty) | Engine implemented and revised after an independent review (D-028, D-029): exact on noise-free synthetic data; with a stated noise level, a likelihood-ratio region of uncertainty, a fit check and selectable candidate region size. Octave results and the 20-seed coverage study in V-019; MATLAB 129/129 tests and app check (V-020). App tab "Identification (Stage 3)" (M8): 135/135 tests and app check 43/43 in Octave (V-021); MATLAB not run yet. Synthetic data only, not field validation |
 | Stage 4 (repair categories) | Not implemented |
 
 See `VERIFICATION_LOG.md` for the actual numbers and `DEVELOPMENT_PLAN.md` for what comes next.
@@ -39,7 +39,9 @@ checkBridgeConditionApp(true)        % optional: scripted check of the app again
 
 The app has no calculations of its own: every number comes from the tested functions in `src/` (DECISIONS.md D-023).
 
-Tabs: Bridge model · Vehicle & moving load · Envelopes · Damage (Stage 2) · Matrices · Verification. On the Damage tab, enter a region on node coordinates and a loss d in %, press **Apply damage**, then **Compare healthy vs damaged** or **Run sensitivity** (DECISIONS.md D-026). d is a loss of model flexural rigidity, not a measure of real damage.
+Tabs: Bridge model · Vehicle & moving load · Envelopes · Damage (Stage 2) · Identification (Stage 3) · Matrices · Verification. On the Damage tab, enter a region on node coordinates and a loss d in %, press **Apply damage**, then **Compare healthy vs damaged** or **Run sensitivity** (DECISIONS.md D-026). d is a loss of model flexural rigidity, not a measure of real damage.
+
+On the Identification tab, check the sensors and truck positions, press **Generate synthetic readings** (a hidden test case) or **New empty table** (type measured deflections in mm), state the reading noise and press **Run identification** (DECISIONS.md D-030). It reports where effective stiffness may have changed, with a region of uncertainty; on synthetic readings this checks the algorithm, not a real bridge.
 
 ## Run the tests
 

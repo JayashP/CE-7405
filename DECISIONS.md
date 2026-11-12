@@ -488,3 +488,54 @@ Engine only (`src/inverse/`); an app tab is a later step. PROJECT_SPEC.md §7.
   12. an RCC baseline gives warning `BridgeFE:rccInverse` and `rccBaseline = true` (spec §7 defers RCC).
 
   The tests added for documented behaviour cover: σ with both parts, a 90 % confidence level, missing readings in likelihood mode, the p-value, small stated noise, the exhaustive 1 % comparison, and the healthy-best dof.
+
+## D-030 — Identification tab (Stage 3) in the app (2026-11-12, M8) — ACCEPTED
+
+- **Scope.** A seventh tab, "Identification (Stage 3)", placed before Matrices. It calls only the verified Stage 3 engine (D-028, D-029) through tested helpers in `src/gui` and `src/visualization`. There is no new mechanics.
+- **Inputs.**
+  - Sensors and truck front-axle positions are typed as number lists.
+  - Defaults (`identificationDefaults`): sensors at L/4, L/2 and 3L/4. Positions at L/4, L/2, 3L/4, L and 5L/4 from the entry end, so mirrored for travel toward −x. Positions at which no axle is on the beam are dropped, because they would give zero readings. For the spec's 20 m span and 3-axle truck this is exactly spec §7: sensors at 5, 10, 15 m; positions 5, 10, 15, 20, 25 m.
+  - The vehicle and travel direction come from the Vehicle tab. A model or vehicle change resets the defaults and clears the readings.
+- **Readings.**
+  - **Synthetic test case:** a hidden region on node coordinates, a loss d in %, proportional noise in % and a seed (`syntheticObservations`). The hidden case is stored apart (`IdentTruth`); the search never receives it. It is shown on the drawing and in the summary only after the search.
+  - **Measured readings:** "New empty table" gives an editable table in mm (downward negative); an empty cell means missing.
+  - Editing any cell drops the synthetic truth, because it no longer describes the readings.
+  - A run is refused when the sensors or positions differ from those the table was made for.
+- **Search.**
+  - Stated reading noise: % of each reading and/or mm. Both 0 gives the D-028 ratio method, and the text says it is not a confidence region.
+  - Candidate regions: each element, 2 m or 4 m (`candidateGroups`, D-029 option 2).
+- **Outputs.**
+  - Drawing: sensors S1…; the region of uncertainty as a light band behind the beam; the best fit as a thick line with its loss; the hidden case as a dashed box.
+  - "Readings [mm]" sub-tab: the table, and a plot of readings (markers), the healthy model (dotted) and the best fit (solid) against truck position.
+  - "Fit by location" sub-tab: one bar per candidate region (S − S_best, or RMSE / best RMSE), amber inside the region; the limit dashed; "no damage" dotted. Bars above four times the limit are cut off and marked with a triangle.
+  - A candidates table, which includes "no damage" when it is inside the region.
+  - A plain-language summary: method, best fit, region, every limiting flag (failed fit check, healthy model competing, search limit, RCC), the comparison with the hidden case, and the caveats (synthetic data = algorithm check; the cause is not identified; fit measures are not probabilities).
+- **Display fixes from V-020.**
+  - `legend(ax, 'off')` after `cla`, so no empty legend boxes remain.
+  - No duplicate row numbers in the Damage tables.
+  - Node coordinates are shown with `%.6g` (13.875, not 13.88).
+  - Shorter plot titles.
+  - The best-fit label sits below the beam, where permanent-load arrows cannot cover it (found in a matplotlib preview).
+- **Independent review (12 agents: 3 reviewers — MATLAB UI, semantics, tests — plus a skeptic for each serious finding).** Confirmed and fixed:
+  1. **Hidden graphics handles (high; also a latent M6/M7b bug).** `cla(ax)` deletes only objects with visible handles. The plots used `HandleVisibility 'off'` to keep objects out of legends: envelope band, zero line and critical markers since M6; the comparison zero line since M7b; the Stage 3 sensor curves, labels and cut-off markers. In MATLAB and in real Octave graphics, such objects stay after `cla`: stale curves and labels remain visible and still set the axis scale. The skeptic reproduced this with Octave graphics.
+     - Now no plot uses hidden handles. Legends are built from explicit handles, `legend(ax, [h1 h2], labels)`.
+     - The Octave stand-ins return numeric handles, so they can check that form; the old stand-in `cla` wiped everything, which hid the bug.
+  2. **TeX label.** `'S - S_best'` would render as S − S_b est; it is now `'S - S_{best}'`.
+  3. **Fit chart layout.** The title overflowed the narrow chart. The chart now sits above the candidate table at full width, with the key moved into a legend.
+  4. **Crowded annotations.** Labels under the beam were 0.25h apart. Now: best fit at −0.45h, hidden case at −1.0h, sensors at −1.65h. No node numbers on this drawing.
+  5. **"No damage" best fit.** It hid the region where damage cannot be ruled out. It is now reported, and "no damage" is the first table row.
+  6. **Zero readings.** Default sensors or positions could give all-zero readings (an axle only on a support, or a sensor on a support), which the noise-based search rejects. They are dropped by checking the healthy prediction: on a 10 + 10 m bridge the sensor at L/2 is left out.
+  7. **Tests.**
+     - Exact object counts for the drawing and both plots, plus their legends.
+     - The ratio branch of the profile.
+     - The RCC, search-limit and "no damage" summary lines.
+     - A −x travel run through the tab.
+     - A tautological assertion was removed.
+- **Also fixed** (low findings):
+  - the summary names how the best fit is ranked, and shows the spec's minimum-RMSE candidate when it differs;
+  - the hidden case is compared by "best-fit region contains the true region", so 2 m and 4 m candidates work, with a note that the loss is then spread;
+  - an edited readings table updates the text and plot;
+  - the readings table headers are cleared on reset;
+  - "NaN = missing" wording;
+  - the S labels sit at the right-most position for −x travel.
+- **Found by the app check while fixing:** applying a vehicle also reset the user's hidden-case inputs. Now a vehicle change resets only the truck positions (which depend on it) and the readings.

@@ -1,0 +1,38 @@
+MUTATION: M8: synthetic noise in % passed as a fraction
+  exit=1 summary=[('26', '2')]
+  detected by: testIdentificationHelpers / Synthetic readings are the forward model of the hidden case plus reproducible noise; testIdentificationHelpers / The summary states every limiting flag in plain words
+MUTATION: M8: healthy row missing from the candidate table
+  exit=1 summary=[('27', '1')]
+  detected by: testIdentificationHelpers / The summary states every limiting flag in plain words
+MUTATION: M8: truth comparison answers the opposite
+  exit=1 summary=[('27', '1')]
+  detected by: testIdentificationHelpers / Fit profile, candidate table and summary describe the search result
+MUTATION: M8: region bands drawn over the beam
+  exit=1 summary=[('27', '1')]
+  detected by: testIdentificationHelpers / The drawing shows sensors, the region of uncertainty, the best fit and the hidden case
+MUTATION: M8: absolute noise mm converted with 1/100
+  exit=1 summary=[('27', '1')]
+  detected by: testIdentificationHelpers / Tab inputs become the documented search options, and readings come back in metres
+MUTATION: M8: healthy-best region not reported
+  exit=1 summary=[('27', '1')]
+  detected by: testIdentificationHelpers / The summary states every limiting flag in plain words
+MUTATION: M8: positions with no axle on the beam kept
+  exit=0 summary=[('28', '0')]
+  detected by:   NOT DETECTED
+MUTATION: M8: readings mm converted with 1/100
+  exit=1 summary=[('27', '1')]
+  detected by: testIdentificationHelpers / Tab inputs become the documented search options, and readings come back in metres
+MUTATION: M8: every candidate shown as inside the region
+  exit=1 summary=[('26', '2')]
+  detected by: testIdentificationHelpers / Fit profile, candidate table and summary describe the search result; testIdentificationHelpers / The summary states every limiting flag in plain words
+MUTATION: M8: sensors on a support kept
+  exit=1 summary=[('27', '1')]
+  detected by: testIdentificationHelpers / Default sensors and truck positions follow the spec and drop positions with no axle on the beam
+MUTATION: M8: -x travel positions not mirrored
+  exit=1 summary=[('27', '1')]
+  detected by: testIdentificationHelpers / Default sensors and truck positions follow the spec and drop positions with no axle on the beam
+--- after removing the redundant axle check (the mutant 'positions with no axle on the beam kept' was equivalent), replacement mutant:
+
+MUTATION: M8: positions with all-zero readings kept
+  exit=1 summary=[(5, 1)] (testIdentificationHelpers only)
+  detected by: testIdentificationHelpers / Default sensors and truck positions follow the spec and drop positions with no axle on the beam

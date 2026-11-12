@@ -25,5 +25,5 @@ grid(ax, 'on');
 xlim(ax, [x(1), x(end)]);
 xlabel(ax, 'location of the loss, x [m]');
 ylabel(ax, sprintf('change of %s [%s]', s.quantity, q.unit));
-title(ax, sprintf('Sensitivity: d = %g %% moved along the beam', 100 * s.d));
+title(ax, sprintf('Same loss d = %g %% at each location', 100 * s.d));
 end

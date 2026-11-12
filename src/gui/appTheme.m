@@ -25,4 +25,9 @@ t.deflection = [0.204 0.392 0.580];
 t.envelopeMax = [0.647 0.247 0.200];
 t.envelopeMin = [0.169 0.357 0.529];
 t.damage     = [0.580 0.235 0.557];   % elements with a prescribed stiffness loss (Stage 2)
+t.sensor     = [0.106 0.478 0.506];   % deflection sensors (Stage 3)
+t.region     = [0.965 0.851 0.639];   % region of uncertainty (Stage 3), light fill
+t.regionBest = [0.761 0.420 0.035];   % best-fit region (Stage 3)
+t.truth      = [0.200 0.200 0.200];   % hidden true region of a synthetic test case
+t.candidate  = [0.700 0.720 0.700];   % candidate regions outside the region of uncertainty
 end

@@ -151,7 +151,72 @@ rows(end+1) = flag('Clear damage: no damaged model, tables emptied, healthy mode
     isempty(app.DamagedModel) && isempty(c.DamageTable.Data) && isequal(app.Model, refModel));
 app.applyDamageInputs();                  % leave a valid damage for the callback sweep
 
-% 10. Every button and value callback runs without error
+% 10. Identification tab (Stage 3) equals syntheticObservations and identifySingleDamage
+[sRef, pRef] = identificationDefaults(refModel, refVehicle, 1);
+rows(end+1) = flag('Stage 3 defaults: sensors L/4, L/2, 3L/4; positions L/4..L (5L/4 has no axle on the 27 m beam)', ...
+    isequal(pRef, [6.75 13.5 20.25 27]) && ...
+    strcmp(c.SensorField.Value, numberListText(sRef)) && strcmp(c.IdentPositionsField.Value, numberListText(pRef)));
+c.HiddenFromField.Value = 9;              % node coordinates of the 12 m + 15 m model
+c.HiddenToField.Value = 10.5;
+c.HiddenLossField.Value = 30;
+c.SyntheticNoiseField.Value = 1;
+c.SeedField.Value = 3;
+ok = app.generateSyntheticReadings();
+[uRef, truthRef] = syntheticObservations(refModel, refVehicle, pRef, sRef, 1, 9, 10.5, 30, 1, 3);
+rows(end+1) = flag('Generate: readings table = 1000 x syntheticObservations(...) [mm]; hidden case kept apart', ok ...
+    && isequal(c.ReadingsTable.Data, 1e3 * uRef) && isequal(app.IdentTruth, truthRef) && isempty(app.IdentResult));
+c.SearchNoiseField.Value = 1;
+c.SearchNoiseAbsField.Value = 0;
+c.RegionSizeDropDown.Value = 'Each element';
+ok = app.runIdentification();
+opts = identificationOptions(refModel, 0, 1, 0, 1);
+ref = identifySingleDamage(refModel, refVehicle, pRef, sRef, c.ReadingsTable.Data / 1e3, opts{:});
+rows(end+1) = flag('Run: app result = identifySingleDamage(...) (best, region, fit check)', ok ...
+    && isequal(app.IdentResult.best.elements, ref.best.elements) && app.IdentResult.best.d == ref.best.d ...
+    && isequal([app.IdentResult.competing.group], [ref.competing.group]) ...
+    && isequal(app.IdentResult.uncertaintyRegions, ref.uncertaintyRegions) && app.IdentResult.gof.S == ref.gof.S);
+[refData, ~] = identificationTableData(ref);
+pf = fitProfileData(ref, refModel);
+cap = 4 * pf.threshold;                   % bars above 4 x the limit are cut and marked (plotFitProfile)
+nFit = numel(pf.value) + nnz(pf.value > cap) + 1 + (pf.healthyValue <= cap);
+rows(end+1) = flag('candidate table and summary text show that result; fit sub-tab selected', ...
+    isequal(c.CandidateTable.Data, refData) && isequal(c.IdentInfo.Value, identificationSummary(ref, truthRef)) ...
+    && strcmp(c.IdentResultTabs.SelectedTab.Title, 'Fit by location'));
+rows(end+1) = flag('fit chart: one bar per candidate, cut-off markers, limit and no-damage lines; legend', ...
+    numel(c.FitAxes.Children) == nFit && any(strcmp(c.FitAxes.Legend, 'limit')));
+rows(end+1) = flag('readings plot: 4 objects per sensor (healthy, best fit, readings, label); 3 legend entries', ...
+    numel(c.ReadingsAxes.Children) == 4 * numel(sRef) && isequal(c.ReadingsAxes.Legend, {'healthy model', 'best fit', 'readings'}));
+expected = bridgeDrawing(refModel, struct('SymbolSize', 0.04 * 27, 'Theme', appTheme(), 'Sensors', sRef, ...
+    'Regions', ref.uncertaintyRegions, 'BestRegion', ref.best.x, 'BestLabel', ...
+    sprintf('best fit: d = %s %%', formatNumber(100 * ref.best.d, 1)), 'TrueRegion', truthRef.x));
+rows(end+1) = flag('drawing = bridgeDrawing with sensors, region, best fit and hidden case (object by object)', ...
+    numel(c.IdentAxes.Children) == numel(expected));
+c.RegionSizeDropDown.Value = '2 m regions';
+ok = app.runIdentification();
+rows(end+1) = flag('2 m candidate regions: groups = candidateGroups(model, 2)', ok ...
+    && isequal(app.IdentResult.groups, candidateGroups(refModel, 2)));
+c.RegionSizeDropDown.Value = 'Each element';
+c.SensorField.Value = '5 10';
+ok = app.runIdentification();
+rows(end+1) = flag('sensors changed after the readings: run refused with a message', ~ok ...
+    && ~isempty(strfind(app.LastError, 'readings table')));
+c.SensorField.Value = numberListText(sRef);
+c.DirectionDropDown.Value = '-x (right to left)';
+app.applyVehicleInputs();
+[sNeg, pNeg] = identificationDefaults(refModel, refVehicle, -1);
+okGen = app.generateSyntheticReadings();
+uNeg = syntheticObservations(refModel, refVehicle, pNeg, sNeg, -1, 9, 10.5, 30, 1, 3);
+okRun = app.runIdentification();
+optsNeg = identificationOptions(refModel, 0, 1, 0, -1);
+refNeg = identifySingleDamage(refModel, refVehicle, pNeg, sNeg, uNeg, optsNeg{:});
+rows(end+1) = flag('-x travel: mirrored positions, readings and result = direct calls with direction -1', okGen && okRun ...
+    && strcmp(c.IdentPositionsField.Value, numberListText(pNeg)) && isequal(c.ReadingsTable.Data, 1e3 * uNeg) ...
+    && isequal([app.IdentResult.competing.group], [refNeg.competing.group]) && app.IdentResult.best.d == refNeg.best.d);
+c.DirectionDropDown.Value = '+x (left to right)';
+app.applyVehicleInputs();
+app.generateSyntheticReadings();
+
+% 11. Every button and value callback runs without error
 comps = collectComponents(app.UIFigure);
 nCalls = 0;
 failures = {};
@@ -195,7 +260,7 @@ end
 rows(end+1) = flag(sprintf('%d callbacks invoked (buttons, fields, slider, tabs) without error', nCalls), ...
     isempty(failures) && nCalls >= 15 && isempty(app.LastError));
 
-% 11. Verification tab (optional, runs the whole suite)
+% 12. Verification tab (optional, runs the whole suite)
 if includeVerification
     out = app.runVerification();
     rows(end+1) = flag('Verification tab: test suite reports 0 failed', ~isempty(regexp(out, 'Total: \d+ passed, 0 failed', 'once')));
@@ -203,7 +268,7 @@ end
 
 reportComparisons('BridgeConditionApp driven through its inputs vs direct engine calls', rows);
 if nargout == 0
-    clear rows   % no 'ans = 1x33 struct array' echo when called as a command
+    clear rows   % no 'ans = 1x43 struct array' echo when called as a command
 end
 end
 

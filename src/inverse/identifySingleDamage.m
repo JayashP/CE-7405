@@ -68,6 +68,7 @@ function result = identifySingleDamage(model, vehicle, xvList, sensorX, uObs, va
 %
 %   RESULT fields (SI units):
 %     method                     'ratio' or 'likelihood'
+%     ambiguityRatio, noiseLevel, noiseAbsolute, confidence   the options used
 %     m, sigma                   number of readings; per-reading sigma ([]
 %                                for 'ratio')
 %     Jhealthy, JNhealthy, Shealthy, uHealthy    healthy model fit
@@ -277,6 +278,10 @@ result.method = 'ratio';
 if likelihood
     result.method = 'likelihood';
 end
+result.ambiguityRatio = opts.AmbiguityRatio;
+result.noiseLevel = opts.NoiseLevel;
+result.noiseAbsolute = opts.NoiseAbsolute;
+result.confidence = opts.Confidence;
 result.m = m;
 result.sigma = sigma;
 result.Jhealthy = J0;

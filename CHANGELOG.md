@@ -2,6 +2,27 @@
 
 This file records every notable change to the source, tests and project records. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Dates are ISO 8601.
 
+## [0.9.0-M8] — 2026-11-12 (branch `claude/m8-identification-tab`)
+
+Identification (Stage 3) tab in the app (D-030), plus display fixes from the S3b MATLAB screenshots.
+
+### Added
+- App tab "Identification (Stage 3)":
+  - inputs: sensors, truck positions, synthetic hidden case or measured readings, stated noise, candidate region size;
+  - outputs: drawing with sensors, region, best fit and hidden case; readings plot and table; fit-by-location chart; candidates table; summary.
+- Public app methods `generateSyntheticReadings`, `newEmptyReadings`, `runIdentification`; properties `IdentTruth`, `IdentResult`.
+- `src/gui`: `identificationDefaults`, `syntheticObservations`, `candidateRegionLength`, `identificationOptions`, `fitProfileData`, `identificationTableData`, `identificationSummary`, `readingsFromTable`, `numberListText`.
+- `src/visualization`: `plotFitProfile`, `plotReadings`; `bridgeDrawing` options `Regions`, `BestRegion`, `BestLabel`, `TrueRegion`, `Sensors`.
+- `appTheme`: colours `sensor`, `region`, `regionBest`, `truth`, `candidate`.
+- `identifySingleDamage` result also records `ambiguityRatio`, `noiseLevel`, `noiseAbsolute`, `confidence`.
+- Tests: `tests/testIdentificationHelpers.m`; 7 app-check rows (40 without the in-app test run); 9 M8 mutants; preview case F (Stage 3 drawing).
+
+### Changed / fixed
+- No empty legend boxes after clearing plots; no duplicate row numbers in the Damage tables; coordinates shown as 13.875 (not 13.88); shorter titles.
+- **Latent bug since M6/M7b, found by the independent review:** objects drawn with `HandleVisibility 'off'` survived `cla`. `plotEnvelope`, `plotEnvelopeComparison`, `plotReadings` and `plotFitProfile` now build legends from explicit handles and hide nothing.
+- Review fixes in the Stage 3 helpers (D-030): TeX label, chart layout, annotation bands, "no damage" best fit, zero-reading defaults, summary wording; a vehicle change keeps the user's sensors and hidden-case inputs.
+- Mock components: `legend(ax, 'off')`, `legend(ax, handles, labels)`; graphics calls return numeric handles; `text(..., 'HandleVisibility', ...)`.
+
 ## [0.8.1-S3b] — 2026-11-11 (branch `claude/s3b-noise-region`)
 
 Stage 3 revision: noise-based region of uncertainty (user's option 3) and candidate region size (option 2), then corrected after an independent multi-agent review (D-029).

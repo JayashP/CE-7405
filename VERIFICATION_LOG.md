@@ -1077,3 +1077,35 @@ Key test results (synthetic data, spec layout unless stated):
   - the "Rank" column repeats the table's row numbers;
   - node coordinates such as 13.875 m are displayed as "13.88", which would be rejected if retyped;
   - the axes toolbar overlaps plot titles.
+
+---
+
+## V-021 — 2026-11-12 — M8 Identification (Stage 3) tab in GNU Octave
+
+| Item | Value |
+|---|---|
+| Platform | **GNU Octave 8.4.0**, Ubuntu 24.04.5 cloud container |
+| MATLAB | **NOT RUN.** The user needs to run `runAllTests`, `checkBridgeConditionApp(true)` and use the new tab; record as V-022 |
+| Code version | Branch `claude/m8-identification-tab` |
+| Main suite | **135 passed, 0 failed, 135 tests** (129 + 6 in `testIdentificationHelpers`). Raw log: `results/verification/2026-11-12_M8_octave-8.4.0_runAllTests.log` |
+| App check (stand-ins) | **43/43 PASS** (33 earlier rows, of which the envelope rows now run with explicit legend handles; 10 new Stage 3 rows; 27 callbacks without error). Raw log: `..._M8_octave-8.4.0_gui_mock_check.log` |
+| Mutation check | 11 M8 faults (3 parallel shards, Stage 3 test files only). **10 detected; 1 equivalent:** "positions with no axle on the beam kept" survived because the new zero-reading filter drops those positions anyway. The redundant axle check was removed, and its replacement "positions with all-zero readings kept" is detected. Raw output: `..._M8_mutation_check_octave-8.4.0.txt` |
+| Independent review | 12 agents, D-030. **High:** hidden-handle objects survive `cla`; this was also latent in the M6/M7b envelope plots, and the skeptic reproduced it with real Octave graphics. **Medium (7):** TeX label, title overflow, crowded annotations, "no damage" best fit hiding its region, zero-reading defaults, untested plots and summary flags. All fixed, with tests. One test-gap claim was refuted |
+| Drawing preview | matplotlib render of the Stage 3 drawing primitives (not a MATLAB screenshot): `results/verification/2026-11-12_M8_preview_stage3_drawing_matplotlib.png`. The first render showed the best-fit label covered by load arrows; this was fixed |
+
+New app-check rows (two-span 12 + 15 m RCC model, 10 kN/m, spec truck):
+
+| Row | Reference | Result |
+|---|---|---|
+| Defaults | sensors 6.75, 13.5, 20.25 m; positions 6.75, 13.5, 20.25, 27 m (33.75 m: no axle on the beam) | PASS |
+| Generate | readings table = 1000 × `syntheticObservations(…, 9, 10.5, 30 %, 1 %, seed 3)`; truth kept apart | `isequal` true — PASS |
+| Run (1 % stated, each element) | `identifySingleDamage` with `identificationOptions(model, 0, 1, 0, 1)`: best, competing groups, regions, S | identical — PASS |
+| Table and summary | `identificationTableData`, `identificationSummary(ref, truth)` | identical — PASS |
+| Fit chart | one bar per candidate + cut-off markers + limit (+ no-damage) line; legend contains "limit" | exact count — PASS |
+| Readings plot | 4 objects per sensor; legend {healthy model, best fit, readings} | exact — PASS |
+| Drawing | object count = `bridgeDrawing` with sensors, region, best fit, hidden case | exact — PASS |
+| 2 m regions | groups = `candidateGroups(model, 2)` | PASS |
+| Sensors changed after the readings | run refused with a message | PASS |
+| −x travel | mirrored positions; readings and result = direct calls with direction −1 | PASS (after fixing: applying a vehicle reset the user's hidden-case inputs) |
+
+**Limits:** layout, rendering and real legend appearance are **NOT VERIFIED IN MATLAB**; the stand-ins check property names, values and object counts only. All Stage 3 results shown by the tab for synthetic readings are algorithm verification, not field validation.
