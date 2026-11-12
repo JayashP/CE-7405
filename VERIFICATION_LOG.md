@@ -1061,3 +1061,19 @@ Key test results (synthetic data, spec layout unless stated):
 - Octave log: `results/verification/2026-11-12_S3b_octave-8.4.0_testInverseDamage_after_tolerance_fix.log`.
 
 **Status:** MATLAB rerun pending. It will show MATLAB's measured value and confirm or refute the inferred cause.
+
+### V-020, run 2 (2026-11-12, after commit `c4d306b`)
+
+| Item | Value |
+|---|---|
+| Main suite | **129 passed, 0 failed, 129 tests**. Screenshot: `results/verification/2026-11-12_S3b_matlab_runAllTests_run2_summary.png` |
+| App check | `checkBridgeConditionApp(true)`: every row visible in the screenshot is PASS, from the M, V, v envelope row through "24 callbacks invoked … without error" and "Verification tab: test suite reports 0 failed", and no error was raised (the check throws if any row fails). The first rows are above the visible part. Screenshot: `..._S3b_matlab_checkBridgeConditionApp.png` |
+| Damage sub-tabs | Screenshots `..._S3b_matlab_damage_subtab_healthy_vs_damaged.png` (after "Clear damage", placeholders shown) and `..._S3b_matlab_damage_subtab_sensitivity.png` (two-span 12 + 15 m RCC model with 10 kN/m, d = 40 %: most influential element 13, 19.5–21.375 m, vmin change −1.4448 mm, −17.02 %) |
+
+- The inferred cause of run 1 (the 1e‑12 round-off limit) is consistent with run 2 passing with the 1e‑9 criterion. MATLAB's measured value is in the printed table, but not in the screenshots.
+- **Status:** M7c, S3 and S3b are verified in GNU Octave (V-017, V-018, V-019) and MATLAB (V-020), and merged into `main`.
+- **Display findings for the next milestone:**
+  - empty legend boxes stay in cleared axes (`cla` does not remove a legend);
+  - the "Rank" column repeats the table's row numbers;
+  - node coordinates such as 13.875 m are displayed as "13.88", which would be rejected if retyped;
+  - the axes toolbar overlaps plot titles.
