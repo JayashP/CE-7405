@@ -1109,3 +1109,27 @@ New app-check rows (two-span 12 + 15 m RCC model, 10 kN/m, spec truck):
 | −x travel | mirrored positions; readings and result = direct calls with direction −1 | PASS (after fixing: applying a vehicle reset the user's hidden-case inputs) |
 
 **Limits:** layout, rendering and real legend appearance are **NOT VERIFIED IN MATLAB**; the stand-ins check property names, values and object counts only. All Stage 3 results shown by the tab for synthetic readings are algorithm verification, not field validation.
+
+---
+
+## V-022 — 2026-11-13 — M8 in MATLAB, run 1 (run by the user)
+
+| Item | Value |
+|---|---|
+| Platform | MATLAB on the user's computer (Platform line not in the screenshots) |
+| Code version | Branch `claude/m8-identification-tab` at `71ddb4f` |
+| Main suite | **135 passed, 0 failed, 135 tests.** Screenshot: `results/verification/2026-11-13_M8_matlab_runAllTests_summary.png` |
+| App check | `checkBridgeConditionApp(true)`: **42 of 44 rows PASS, 2 FAIL**: "fit chart: one bar per candidate, … ; legend" and "readings plot: 4 objects per sensor …; 3 legend entries". All other Stage 3 rows passed in MATLAB, including Generate, Run = `identifySingleDamage`, table and summary, drawing object by object, 2 m regions, the refused run, −x travel, 28 callbacks and the in-app test run. Screenshot: `..._M8_matlab_checkBridgeConditionApp_run1.png` |
+
+**Cause (found from the code).** Both failing rows read `ax.Legend` as a cell array of labels, which is how the Octave stand-ins stored it. In MATLAB, `ax.Legend` is a Legend object with the labels in `.String`, so `strcmp(ax.Legend, 'limit')` and `isequal(ax.Legend, {…})` are false whatever is drawn. These are the only two places in the repository that read `.Legend`. **The check was wrong; nothing shows an app defect.** Each failing row also contained an object count, which MATLAB therefore did not report on separately.
+
+**Changes (test harness only; no app or engine change):**
+- The stand-ins now store the legend like MATLAB (`[]`, or an object with `.String`).
+- Like MATLAB, `cla` now **keeps** an existing legend. The old stand-in removed it, which is why it could never show the empty legend boxes the user saw in V-020.
+- The check reads labels through `legendStrings(ax)` (`ax.Legend.String`, or `{}`).
+- Each failing row is split in two (object count; legend), so a failure shows which part failed.
+- The "Clear damage" row also requires that no legend is left.
+- Shown to work: with `legend(ax, 'off')` removed from `clearDamageResults` in a scratch copy, the corrected check fails on that row.
+- Octave with stand-ins: **45/45 PASS**. Raw log: `results/verification/2026-11-13_M8_octave-8.4.0_gui_mock_check_after_legend_fix.log`. `runAllTests` does not use the stand-ins and is unaffected.
+
+**Status:** MATLAB rerun of `checkBridgeConditionApp(true)` pending (expect 46 rows PASS), together with screenshots of the Identification tab.

@@ -5,8 +5,7 @@ if ~isa(ax, 'MockUIAxes')
 end
 switch 'cla'
     case 'cla'
-        ax.Children = {};
-        ax.Legend = {};
+        ax.Children = {};   % like MATLAB, cla keeps an existing legend (remove it with legend(ax, 'off'))
     case 'hold'
         if ~any(strcmp(varargin{1}, {'on', 'off'}))
             error('Mock:value', 'hold option must be on or off.');

@@ -1,7 +1,7 @@
 function legend(ax, labels, varargin)
 %LEGEND Mock legend on a MockUIAxes: legend(ax, {labels}, 'Location', ...) (GNU Octave app check only).
 if isa(ax, 'MockUIAxes') && ischar(labels) && strcmp(labels, 'off')
-    ax.Legend = {};                 % legend(ax, 'off') removes the legend
+    ax.Legend = [];                 % legend(ax, 'off') removes the legend
     return
 end
 handles = [];
@@ -39,5 +39,7 @@ end
 if isempty(handles) && visible ~= numel(labels)
     error('Mock:value', 'legend has %d labels but %d visible graphics objects.', numel(labels), visible);
 end
-ax.Legend = labels;
+lg = struct();
+lg.String = labels;                 % like MATLAB's Legend object: labels in .String
+ax.Legend = lg;
 end

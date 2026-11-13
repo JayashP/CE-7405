@@ -147,8 +147,9 @@ rows(end+1) = flag('Sensitivity (vmin): app result = damageSensitivity(...)', ok
     && isequal(app.DamageSensitivity.change, refSens.change) && size(c.SensitivityTable.Data, 1) == numel(refSens.groups) ...
     && strcmp(c.DamageResultTabs.SelectedTab.Title, c.DamageSensitivityTab.Title));
 app.clearDamage();
-rows(end+1) = flag('Clear damage: no damaged model, tables emptied, healthy model unchanged', ...
-    isempty(app.DamagedModel) && isempty(c.DamageTable.Data) && isequal(app.Model, refModel));
+rows(end+1) = flag('Clear damage: no damaged model, tables emptied, healthy model unchanged, no legend left', ...
+    isempty(app.DamagedModel) && isempty(c.DamageTable.Data) && isequal(app.Model, refModel) ...
+    && isempty(legendStrings(c.DamageMomentAxes)) && isempty(c.DamageMomentAxes.Children));
 app.applyDamageInputs();                  % leave a valid damage for the callback sweep
 
 % 10. Identification tab (Stage 3) equals syntheticObservations and identifySingleDamage
@@ -182,10 +183,14 @@ nFit = numel(pf.value) + nnz(pf.value > cap) + 1 + (pf.healthyValue <= cap);
 rows(end+1) = flag('candidate table and summary text show that result; fit sub-tab selected', ...
     isequal(c.CandidateTable.Data, refData) && isequal(c.IdentInfo.Value, identificationSummary(ref, truthRef)) ...
     && strcmp(c.IdentResultTabs.SelectedTab.Title, 'Fit by location'));
-rows(end+1) = flag('fit chart: one bar per candidate, cut-off markers, limit and no-damage lines; legend', ...
-    numel(c.FitAxes.Children) == nFit && any(strcmp(c.FitAxes.Legend, 'limit')));
-rows(end+1) = flag('readings plot: 4 objects per sensor (healthy, best fit, readings, label); 3 legend entries', ...
-    numel(c.ReadingsAxes.Children) == 4 * numel(sRef) && isequal(c.ReadingsAxes.Legend, {'healthy model', 'best fit', 'readings'}));
+rows(end+1) = flag('fit chart: one bar per candidate, cut-off markers, limit and no-damage lines', ...
+    numel(c.FitAxes.Children) == nFit);
+rows(end+1) = flag('fit chart legend names the region, the limit and no damage', ...
+    all(ismember({'in region', 'limit'}, legendStrings(c.FitAxes))));
+rows(end+1) = flag('readings plot: 4 objects per sensor (healthy, best fit, readings, label)', ...
+    numel(c.ReadingsAxes.Children) == 4 * numel(sRef));
+rows(end+1) = flag('readings plot legend: healthy model, best fit, readings', ...
+    isequal(legendStrings(c.ReadingsAxes), {'healthy model', 'best fit', 'readings'}));
 expected = bridgeDrawing(refModel, struct('SymbolSize', 0.04 * 27, 'Theme', appTheme(), 'Sensors', sRef, ...
     'Regions', ref.uncertaintyRegions, 'BestRegion', ref.best.x, 'BestLabel', ...
     sprintf('best fit: d = %s %%', formatNumber(100 * ref.best.d, 1)), 'TrueRegion', truthRef.x));
@@ -268,7 +273,18 @@ end
 
 reportComparisons('BridgeConditionApp driven through its inputs vs direct engine calls', rows);
 if nargout == 0
-    clear rows   % no 'ans = 1x43 struct array' echo when called as a command
+    clear rows   % no 'ans = 1x45 struct array' echo when called as a command
+end
+end
+
+function s = legendStrings(ax)
+% Legend labels of an axes: MATLAB's ax.Legend is [] or a Legend object with the labels in .String
+% (the Octave stand-ins store the same shape).
+lg = ax.Legend;
+if isempty(lg)
+    s = {};
+else
+    s = lg.String;
 end
 end
 

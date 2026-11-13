@@ -14,7 +14,7 @@ classdef MockUIAxes < MockComponent
         Title = ''
         XLabel = ''
         YLabel = ''
-        Legend = {}
+        Legend = []          % like MATLAB: [] or a legend with a String property (cell of labels)
     end
     methods
         function obj = MockUIAxes(parent, args)
