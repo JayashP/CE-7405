@@ -4,7 +4,9 @@ function plotFitProfile(ax, p, x, th)
 %   region of FITPROFILEDATA result P over its x-range (beam nodes X [m],
 %   theme TH): amber inside the region of uncertainty, grey outside; the
 %   dashed line is the region limit (P.threshold), the dotted line the
-%   healthy model ("no damage"), with a legend above the chart. Bars taller
+%   healthy model ("no damage"), with a legend above the chart. The best
+%   fit is the reference (its bar has zero height), so it is marked with a
+%   star on the axis. Bars taller
 %   than four times the limit are cut off and marked with a triangle, so
 %   the regions near the limit stay readable. For the ratio method the bars
 %   start at 1 (RMSE / best RMSE). No object has hidden handles, so the
@@ -42,6 +44,11 @@ for g = 1:numel(p.value)
             'MarkerEdgeColor', th.text, 'MarkerFaceColor', th.text);
     end
 end
+if p.bestGroup > 0
+    handles = [handles, plot(ax, (p.x1(p.bestGroup) + p.x2(p.bestGroup)) / 2, base, 'LineStyle', 'none', ...
+        'Marker', 'p', 'MarkerSize', 12, 'MarkerEdgeColor', th.text, 'MarkerFaceColor', th.regionBest)];
+    labels{end+1} = 'best fit';
+end
 handles = [handles, plot(ax, [x(1), x(end)], [p.threshold, p.threshold], 'Color', th.text, 'LineStyle', '--', ...
     'LineWidth', 1.2)];
 labels{end+1} = 'limit';
@@ -54,8 +61,8 @@ hold(ax, 'off');
 legend(ax, handles, labels, 'Location', 'northoutside', 'Orientation', 'horizontal');
 grid(ax, 'on');
 xlim(ax, [x(1), x(end)]);
-ylim(ax, [base, cap * 1.05 + (cap == base)]);
+top = cap * 1.05 + (cap == base);
+ylim(ax, [base - 0.05 * (top - base), top]);   % room for the star of the best fit on the axis
 xlabel(ax, 'candidate region x [m]');
 ylabel(ax, p.label);
-title(ax, 'Fit by location');
 end

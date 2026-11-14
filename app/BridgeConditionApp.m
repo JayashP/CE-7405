@@ -441,8 +441,10 @@ classdef BridgeConditionApp < handle
             [data, columns] = identificationTableData(result);
             c.CandidateTable.Data = data;
             c.CandidateTable.ColumnName = columns;
-            plotReadings(c.ReadingsAxes, positions, uObs, result.uHealthy, result.best.u, th);
-            c.IdentInfo.Value = identificationSummary(result, app.IdentTruth);
+            plotReadings(c.ReadingsAxes, positions, sensors, uObs, result.uHealthy, result.best.u, th);
+            [summary, flags] = identificationSummary(result, app.IdentTruth);
+            c.IdentResultText.Value = summary;
+            c.IdentInfo.Value = [summary(2); flags; {'Full result: "Summary" tab.'}];
             app.drawIdentification();
             c.IdentResultTabs.SelectedTab = c.IdentFitTab;
             app.setStatus(sprintf('Identification: %d structures analysed; %d candidate region(s) in the region of uncertainty.', ...
@@ -633,8 +635,9 @@ classdef BridgeConditionApp < handle
             c = app.Controls;
             app.IdentResult = [];
             c.CandidateTable.Data = cell(0, 7);
+            c.IdentResultText.Value = {'Press "Run identification": the result appears here.'};
             cla(c.FitAxes);
-            title(c.FitAxes, 'Fit by location');
+            legend(c.FitAxes, 'off');
             cla(c.ReadingsAxes);
             legend(c.ReadingsAxes, 'off');
             title(c.ReadingsAxes, 'Readings and fits');
@@ -665,7 +668,7 @@ classdef BridgeConditionApp < handle
             c.ReadingsTable.ColumnEditable = true(1, numel(positions));
             app.clearIdentificationResults();
             uHealthy = predictSensorDeflections(app.Model, app.Vehicle, positions, sensors, app.Direction);
-            plotReadings(c.ReadingsAxes, positions, uObs, uHealthy, [], app.Theme);
+            plotReadings(c.ReadingsAxes, positions, sensors, uObs, uHealthy, [], app.Theme);
             c.IdentResultTabs.SelectedTab = c.IdentReadingsTab;
         end
 
@@ -680,7 +683,7 @@ classdef BridgeConditionApp < handle
                 s = app.ReadingsSetup;
                 uObs = readingsFromTable(c.ReadingsTable.Data, numel(s.sensors), numel(s.positions));
                 uHealthy = predictSensorDeflections(app.Model, app.Vehicle, s.positions, s.sensors, app.Direction);
-                plotReadings(c.ReadingsAxes, s.positions, uObs, uHealthy, [], app.Theme);
+                plotReadings(c.ReadingsAxes, s.positions, s.sensors, uObs, uHealthy, [], app.Theme);
             catch err
                 app.setStatus(['Readings edited: ' err.message]);
                 return
@@ -1081,7 +1084,7 @@ classdef BridgeConditionApp < handle
             gR = uigridlayout(c.IdentReadingsTab, [1 2]);
             gR.ColumnWidth = {520, '1x'};
             gR.BackgroundColor = th.background;
-            c.ReadingsTable = uitable(gR, 'Data', zeros(0, 0), 'ColumnWidth', 'auto', ...
+            c.ReadingsTable = uitable(gR, 'Data', zeros(0, 0), 'ColumnWidth', 'fit', ...
                 'CellEditCallback', @(~, ~) app.onReadingsEdited());
             c.ReadingsTable.Layout.Row = 1;
             c.ReadingsTable.Layout.Column = 1;
@@ -1090,7 +1093,7 @@ classdef BridgeConditionApp < handle
             c.ReadingsAxes.Layout.Column = 2;
             c.IdentFitTab = uitab(c.IdentResultTabs, 'Title', 'Fit by location', 'BackgroundColor', th.background);
             gF = uigridlayout(c.IdentFitTab, [2 1]);
-            gF.RowHeight = {'1x', 190};
+            gF.RowHeight = {'1x', 210};
             gF.BackgroundColor = th.background;
             c.FitAxes = uiaxes(gF);
             c.FitAxes.Layout.Row = 1;
@@ -1099,6 +1102,14 @@ classdef BridgeConditionApp < handle
                 {'Region x [m]', 'Elements', 'Best d [%]', 'd range [%]', 'Remaining EI', 'RMSE [mm]', 'Fit'});
             c.CandidateTable.Layout.Row = 2;
             c.CandidateTable.Layout.Column = 1;
+            % Sub-tab "Summary": the full plain-language result at full width
+            c.IdentSummaryTab = uitab(c.IdentResultTabs, 'Title', 'Summary', 'BackgroundColor', th.background);
+            gS = uigridlayout(c.IdentSummaryTab, [1 1]);
+            gS.BackgroundColor = th.background;
+            c.IdentResultText = uitextarea(gS, 'Editable', 'off', 'BackgroundColor', th.panel, 'FontColor', th.text, ...
+                'Value', {'Press "Run identification": the result appears here.'});
+            c.IdentResultText.Layout.Row = 1;
+            c.IdentResultText.Layout.Column = 1;
 
             % ---- Tab 4: Matrices
             t4 = uitab(tabs, 'Title', 'Matrices', 'BackgroundColor', th.background);

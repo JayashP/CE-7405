@@ -149,7 +149,17 @@ r2 = identifySingleDamage(model, truck, positions, sensors, u2, 'NoiseLevel', 0.
 text2 = strjoin(identificationSummary(r2, truth2)', ' ');
 assert(~isempty(strfind(text2, 'Best-fit region contains the true region: yes')) ...
     && ~isempty(strfind(text2, 'longer than the hidden region')), '2 m candidates around a 1 m hidden case');
-fprintf('  PASS ratio warning, failed fit check, search limits, RCC, healthy best and longer candidates are stated\n');
+[~, flRatio] = identificationSummary(rr);
+[~, flMisfit] = identificationSummary(rm);
+[~, flHealthy] = identificationSummary(r3, truth3);
+[~, flLimit] = identificationSummary(ra);
+[~, flExact] = identificationSummary(identifySingleDamage(model, truck, positions, sensors, obs, 'NoiseLevel', 0.01, ...
+    'Groups', {7}));                                         % exact data, one candidate: nothing limits the result
+hasFlag = @(fl, s) any(~cellfun(@isempty, strfind(fl, s)));
+assert(hasFlag(flRatio, 'NOT a confidence region') && hasFlag(flMisfit, 'FIT CHECK FAILED') ...
+    && hasFlag(flHealthy, 'Damage cannot be ruled out') && hasFlag(flLimit, '60 % search limit') && isempty(flExact), ...
+    'limiting flags returned for the app''s left box; none for an exact single-candidate fit');
+fprintf('  PASS ratio warning, failed fit check, search limits, RCC, healthy best and longer candidates are stated (and flagged)\n');
 
 %% The drawing shows sensors, the region of uncertainty, the best fit and the hidden case
 th = appTheme();

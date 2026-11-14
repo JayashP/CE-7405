@@ -22,6 +22,11 @@ Identification (Stage 3) tab in the app (D-030), plus display fixes from the S3b
 - **Latent bug since M6/M7b, found by the independent review:** objects drawn with `HandleVisibility 'off'` survived `cla`. `plotEnvelope`, `plotEnvelopeComparison`, `plotReadings` and `plotFitProfile` now build legends from explicit handles and hide nothing.
 - Review fixes in the Stage 3 helpers (D-030): TeX label, chart layout, annotation bands, "no damage" best fit, zero-reading defaults, summary wording; a vehicle change keeps the user's sensors and hidden-case inputs.
 - Mock components: `legend(ax, 'off')`, `legend(ax, handles, labels)`; graphics calls return numeric handles; `text(..., 'HandleVisibility', ...)`.
+- After the MATLAB screenshots (2026-11-14):
+  - best-fit star in the fit chart; sensor legend with colour and marker; two-line readings title; readings table `ColumnWidth` 'fit';
+  - "Summary" sub-tab; left box with the best fit and every limiting flag (`identificationSummary` second output);
+  - search-limit text uses the actual limit;
+  - stand-ins store legends like MATLAB (`.String`) and keep them after `cla`; multi-line titles.
 
 ## [0.8.1-S3b] — 2026-11-11 (branch `claude/s3b-noise-region`)
 

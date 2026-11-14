@@ -1,4 +1,4 @@
-function lines = identificationSummary(result, truth)
+function [lines, flags] = identificationSummary(result, truth)
 %IDENTIFICATIONSUMMARY Plain-language result of the Stage 3 search, for the app.
 %   LINES = IDENTIFICATIONSUMMARY(RESULT) returns a cell column of text
 %   lines describing an IDENTIFYSINGLEDAMAGE RESULT: the method, the best
@@ -7,6 +7,10 @@ function lines = identificationSummary(result, truth)
 %   does not say. LINES = IDENTIFICATIONSUMMARY(RESULT, TRUTH) adds the
 %   hidden case of a synthetic test (SYNTHETICOBSERVATIONS) and whether
 %   the search found it.
+%   [LINES, FLAGS] = IDENTIFICATIONSUMMARY(...) also returns the lines that
+%   limit how far the result can be trusted (ratio method, damage not ruled
+%   out, healthy model in the region, failed fit check, search limit, RCC),
+%   so the app can show them next to the best fit.
 %
 %   See also IDENTIFYSINGLEDAMAGE, SYNTHETICOBSERVATIONS.
 
@@ -15,6 +19,7 @@ if nargin < 2
 end
 likelihood = strcmp(result.method, 'likelihood');
 lines = {};
+flags = cell(0, 1);
 if likelihood
     parts = {};
     if ~isempty(result.noiseLevel) && result.noiseLevel > 0
@@ -29,6 +34,7 @@ else
     lines{end+1, 1} = sprintf(['Method: no noise level stated, so candidates within %g %% of the best RMSE are listed. ' ...
         'This is NOT a confidence region; state a noise level for a noise-based one. %d readings, %d structures.'], ...
         100 * (result.ambiguityRatio - 1), result.m, result.nStructures);
+    flags{end+1, 1} = 'No noise level stated: the listed candidates are NOT a confidence region.';
 end
 b = result.best;
 ranking = 'smallest RMSE';
@@ -59,10 +65,12 @@ else
         dMax = max(arrayfun(@(c) c.dRange(2), result.competing));
         lines{end+1, 1} = sprintf('Damage cannot be ruled out in: %s (%d candidate region(s), loss up to %s %%).', ...
             regions, numel(result.competing), formatNumber(100 * dMax, 1));
+        flags{end+1, 1} = lines{end};
     end
 end
 if result.healthyCompetes
     lines{end+1, 1} = 'No damage cannot be ruled out: the healthy model is also inside the region.';
+    flags{end+1, 1} = lines{end};
 end
 if likelihood && ~isempty(result.gof) && ~isnan(result.gof.threshold)
     if result.modelMisfit
@@ -70,18 +78,24 @@ if likelihood && ~isempty(result.gof) && ~isnan(result.gof.threshold)
             'readings within the stated noise. The noise may be underestimated, or supports, loads, baseline EI or ' ...
             'the one-region assumption are wrong. Do not rely on the region.'], formatNumber(result.gof.S, 1), ...
             formatNumber(result.gof.threshold, 1), result.gof.dof);
+        flags{end+1, 1} = 'FIT CHECK FAILED: no single region explains the readings within the stated noise. Do not rely on the region.';
     else
         lines{end+1, 1} = sprintf('Fit check passed: S = %s <= %s (%d degrees of freedom).', ...
             formatNumber(result.gof.S, 1), formatNumber(result.gof.threshold, 1), result.gof.dof);
     end
 end
 if result.boundaryFlag
-    lines{end+1, 1} = 'Best loss at the 60 % search limit: a larger loss cannot be represented, and the location is not reliable.';
+    lines{end+1, 1} = sprintf(['Best loss at the %g %% search limit: a larger loss cannot be represented, and the location ' ...
+        'is not reliable.'], 100 * max(result.levels));
+    flags{end+1, 1} = lines{end};
 elseif result.regionAtSearchLimit
-    lines{end+1, 1} = 'The region reaches the 60 % search limit: larger losses were not evaluated (d ranges are open above).';
+    lines{end+1, 1} = sprintf(['The region reaches the %g %% search limit: larger losses were not evaluated (d ranges ' ...
+        'are open above).'], 100 * max(result.levels));
+    flags{end+1, 1} = lines{end};
 end
 if result.rccBaseline
     lines{end+1, 1} = 'RCC baseline: normal cracking or an uncertain I_eff can mimic a stiffness loss (spec section 7).';
+    flags{end+1, 1} = lines{end};
 end
 if ~isempty(truth)
     if truth.d > 0

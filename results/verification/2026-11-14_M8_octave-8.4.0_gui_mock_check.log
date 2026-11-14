@@ -1,0 +1,116 @@
+warning: function /home/user/ce-7405/tools/gui_mock/axis.m shadows a core library function
+warning: function /home/user/ce-7405/tools/gui_mock/patch.m shadows a core library function
+warning: function /home/user/ce-7405/tools/gui_mock/grid.m shadows a core library function
+warning: function /home/user/ce-7405/tools/gui_mock/ylim.m shadows a core library function
+warning: function /home/user/ce-7405/tools/gui_mock/close.m shadows a core library function
+warning: function /home/user/ce-7405/tools/gui_mock/uipanel.m shadows a core library function
+warning: function /home/user/ce-7405/tools/gui_mock/ylabel.m shadows a core library function
+warning: function /home/user/ce-7405/tools/gui_mock/text.m shadows a core library function
+warning: function /home/user/ce-7405/tools/gui_mock/uifigure.m shadows a core library function
+warning: function /home/user/ce-7405/tools/gui_mock/hold.m shadows a core library function
+warning: function /home/user/ce-7405/tools/gui_mock/xlim.m shadows a core library function
+warning: function /home/user/ce-7405/tools/gui_mock/legend.m shadows a core library function
+warning: function /home/user/ce-7405/tools/gui_mock/title.m shadows a core library function
+warning: function /home/user/ce-7405/tools/gui_mock/uitable.m shadows a core library function
+warning: function /home/user/ce-7405/tools/gui_mock/xlabel.m shadows a core library function
+warning: function /home/user/ce-7405/tools/gui_mock/drawnow.m shadows a built-in function
+warning: function /home/user/ce-7405/tools/gui_mock/cla.m shadows a core library function
+warning: function /home/user/ce-7405/tools/gui_mock/plot.m shadows a core library function
+warning: RCC modulus E = 3.2e+19 Pa is outside the usual 10-70 GPa. Check the units (the engine expects Pa); the material was still created.
+warning: called from
+    defineMaterial at line 68 column 5
+    buildModelFromInputs at line 70 column 10
+    applyModelInputs at line 97 column 31
+    checkBridgeConditionApp at line 116 column 4
+    runGuiMockCheck at line 23 column 1
+
+warning: RCC baseline: normal cracking or an uncertain I_eff can mimic a stiffness loss, so the result cannot be separated from them (PROJECT_SPEC.md section 7). Use it only with a defensibly established baseline E_c*I_eff.
+warning: called from
+    identifySingleDamage at line 173 column 5
+    runIdentification at line 432 column 24
+    checkBridgeConditionApp at line 172 column 4
+    runGuiMockCheck at line 23 column 1
+
+warning: RCC baseline: normal cracking or an uncertain I_eff can mimic a stiffness loss, so the result cannot be separated from them (PROJECT_SPEC.md section 7). Use it only with a defensibly established baseline E_c*I_eff.
+warning: called from
+    identifySingleDamage at line 173 column 5
+    checkBridgeConditionApp at line 174 column 5
+    runGuiMockCheck at line 23 column 1
+
+warning: RCC baseline: normal cracking or an uncertain I_eff can mimic a stiffness loss, so the result cannot be separated from them (PROJECT_SPEC.md section 7). Use it only with a defensibly established baseline E_c*I_eff.
+warning: called from
+    identifySingleDamage at line 173 column 5
+    runIdentification at line 432 column 24
+    checkBridgeConditionApp at line 205 column 4
+    runGuiMockCheck at line 23 column 1
+
+warning: RCC baseline: normal cracking or an uncertain I_eff can mimic a stiffness loss, so the result cannot be separated from them (PROJECT_SPEC.md section 7). Use it only with a defensibly established baseline E_c*I_eff.
+warning: called from
+    identifySingleDamage at line 173 column 5
+    runIdentification at line 432 column 24
+    checkBridgeConditionApp at line 214 column 4
+    runGuiMockCheck at line 23 column 1
+
+warning: RCC baseline: normal cracking or an uncertain I_eff can mimic a stiffness loss, so the result cannot be separated from them (PROJECT_SPEC.md section 7). Use it only with a defensibly established baseline E_c*I_eff.
+warning: called from
+    identifySingleDamage at line 173 column 5
+    runIdentification at line 432 column 24
+    checkBridgeConditionApp at line 228 column 7
+    runGuiMockCheck at line 23 column 1
+
+warning: RCC baseline: normal cracking or an uncertain I_eff can mimic a stiffness loss, so the result cannot be separated from them (PROJECT_SPEC.md section 7). Use it only with a defensibly established baseline E_c*I_eff.
+warning: called from
+    identifySingleDamage at line 173 column 5
+    checkBridgeConditionApp at line 230 column 8
+    runGuiMockCheck at line 23 column 1
+
+
+BridgeConditionApp driven through its inputs vs direct engine calls
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  start-up model = buildModelFromInputs(default inputs) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  start-up vehicle = vehicleFromInputs(default inputs) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  start-up position is the crossing start, x_v = 0 (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  model tab drawing has > 10 graphics objects (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  Apply model with 2 spans, RCC, 10 kN/m succeeds (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  app model = buildModelFromInputs(the same inputs) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  model summary text is shown (1 = yes)                             1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  x_v = 16.4 m: max|U_app - U_engine| / max|U| [-]                      0                      0   0.000e+00          n/a abs<=1e-12    PASS
+  x_v = 16.4 m: max|R_app - R_engine| / max|R| [-]                      0                      0   0.000e+00          n/a abs<=1e-12    PASS
+  reaction table shows 3 supports and R_B of the engine (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  beam, M, V and v axes are drawn (1 = yes)                         1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  Forward moves x_v by one step [m]                               0.1                    0.1   1.416e-15    1.416e-12 rel<=1e-09%   PASS
+  Run moving-load analysis succeeds (1 = yes)                       1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  app envelopes = runMovingLoad envelopes (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  app critical values = runMovingLoad critical values (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  critical table 6 x 7, reaction envelope table 3 rows (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  M, V and v envelope axes show the max and min curves (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  Matrices tab fills (1 = yes)                                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  Matrices tab: max|U_app - U_static| / max|U| [-]                      0                      0   0.000e+00          n/a abs<=1e-12    PASS
+  k_e table 4 x 4, K table nDof x nDof, DOF table nDof rows (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  K(1,1) shown as the engine value (1 = yes)                        1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  direction -x: Direction = -1 and x_v starts at the right end (27 m) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  2 support entries for 3 span ends: rejected, message shown, model kept (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  axle loads '80 abc': rejected with a message naming 'abc' (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  E = 32e9 "GPa": model built and a unit warning reported (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  Apply damage 9-13.875 m, d = 40 %: app model = applyStiffnessDamage(...) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  damage drawing has the highlight (more objects than the healthy drawing) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  Compare: app result = compareHealthyDamaged(...) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  comparison table 6 + 2 x 3 reaction rows; M, V and v axes show 4 curves (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  findings = damageComparisonSummary (indeterminate, degree 1); results sub-tab shown (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  Sensitivity (vmin): app result = damageSensitivity(...) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  Clear damage: no damaged model, tables emptied, healthy model unchanged, no legend left (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  Stage 3 defaults: sensors L/4, L/2, 3L/4; positions L/4..L (5L/4 has no axle on the 27 m beam) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  Generate: readings table = 1000 x syntheticObservations(...) [mm]; hidden case kept apart (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  Run: app result = identifySingleDamage(...) (best, region, fit check) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  candidate table and summary text show that result; fit sub-tab selected (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  left box: best fit, every limiting flag and a pointer to the Summary tab (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  fit chart: one bar per candidate, cut-off markers, best-fit star, limit and no-damage lines (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  fit chart legend names the region, the best fit and the limit (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  readings plot: 3 objects per sensor (healthy, best fit, readings) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  readings plot legend names each sensor by colour: S1 (x = 6.75 m), ... (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  drawing = bridgeDrawing with sensors, region, best fit and hidden case (object by object) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  no noise stated: ratio method, its chart (bars from 1) and the "not a confidence region" flag (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  2 m candidate regions: groups = candidateGroups(model, 2) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  sensors changed after the readings: run refused with a message (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  -x travel: mirrored positions, readings and result = direct calls with direction -1 (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  27 callbacks invoked (buttons, fields, slider, tabs) without error (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS

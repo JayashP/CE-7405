@@ -1133,3 +1133,42 @@ New app-check rows (two-span 12 + 15 m RCC model, 10 kN/m, spec truck):
 - Octave with stand-ins: **45/45 PASS**. Raw log: `results/verification/2026-11-13_M8_octave-8.4.0_gui_mock_check_after_legend_fix.log`. `runAllTests` does not use the stand-ins and is unaffected.
 
 **Status:** MATLAB rerun of `checkBridgeConditionApp(true)` pending (expect 46 rows PASS), together with screenshots of the Identification tab.
+
+### V-022 continued (2026-11-14): Identification tab used in MATLAB
+
+Screenshots: `results/verification/2026-11-14_M8_matlab_identification_fit_by_location.png` and `..._identification_readings.png`. Case: 20 m simple span, 16 elements, spec truck, sensors 5/10/15 m, positions 5–25 m; hidden element 5 (5–6.25 m) at 30 %; 1 % noise, seed 1; search with 1 % stated noise, each element.
+
+| Shown in MATLAB | Value |
+|---|---|
+| Best fit (smallest S) | element 5 (5–6.25 m), d = 30.2 % (remaining EI × 0.698), RMSE 0.0882 mm, J_N 0.66 % — the hidden region |
+| Region of uncertainty | 3.75–7.5 m (elements 4, 5, 6); loss in the best region 27.0–33.0 % |
+| Minimum-RMSE candidate (spec §7) | element 5, d = 33.0 %, RMSE 0.0703 mm (same element, different d) |
+| Fit check | passed (S = 10.6 ≤ 22.4, 13 degrees of freedom) |
+| Structures analysed | 322 |
+
+- The result agrees with the design: the true region is found, and the 95 % region is three elements wide at 1 % noise, consistent with the V-019 coverage study.
+- The `checkBridgeConditionApp(true)` rerun after `523cfab` was **not** included; still pending.
+
+**Display findings from these screenshots and their fixes** (D-030 addendum):
+
+| Finding | Fix |
+|---|---|
+| The best region's bar has height 0 (it is the reference), so the most important candidate looked like a gap | A star marks the best fit on the axis, legend "best fit"; the y-axis starts slightly below 0 to show it |
+| Sensor labels S1–S3 piled up at x_v = 25 m; the legend explained line styles but not the colours | The legend names each sensor by colour ("S1 (x = 5 m)"); the title explains the styles: dots = readings, solid = best fit, dotted = healthy model |
+| The readings table cut off the x_v = 25 m column | `ColumnWidth` 'fit' |
+| The full summary was in a small scrolling box on the left | It has its own full-width **"Summary"** sub-tab (about 886 px wide at the default window size, so about 11 lines). The left box shows the best-fit line, **every limiting flag** and a pointer |
+
+**Independent review of these display changes** (4 agents; a skeptic for each finding):
+- **Confirmed, medium:** my first version put the summary beside the table in a fixed 720 px table column. 720 was measured in screenshot pixels at 125 % display scaling (about 577 real pixels), so the summary would have been only about 156 px wide, about 53 wrapped lines with a quarter visible, which is worse than before. Replaced by the Summary sub-tab.
+- **Confirmed, medium:** the left box showed the best fit without its caveats. It now also lists the flags: failed fit check, "no damage" not ruled out, search limit, RCC, and the ratio method not being a confidence region. `identificationSummary` returns them as a second output.
+- **Low, also fixed:**
+  - the readings title was too wide, so it is now two lines;
+  - more than 6 sensors would have repeated colours, so each sensor now has a colour and a marker shape;
+  - the test's cut-off formula did not match the chart for the ratio method, so it now mirrors `plotFitProfile`, with a ratio-method run added;
+  - the left box was unchecked and is now compared with the summary and flags.
+- **Found while testing:** the search-limit text said "60 %" whatever the highest level; it now uses the actual limit.
+
+After the fixes:
+- Octave `runAllTests`: **135/135** (`results/verification/2026-11-14_M8_octave-8.4.0_runAllTests.log`).
+- App check (stand-ins): **47/47** (`..._M8_octave-8.4.0_gui_mock_check.log`), including the rows for the left box and the ratio-method chart.
+- MATLAB: rerun pending (expect 48 rows with `checkBridgeConditionApp(true)`).

@@ -539,3 +539,11 @@ Engine only (`src/inverse/`); an app tab is a later step. PROJECT_SPEC.md §7.
   - "NaN = missing" wording;
   - the S labels sit at the right-most position for −x travel.
 - **Found by the app check while fixing:** applying a vehicle also reset the user's hidden-case inputs. Now a vehicle change resets only the truck positions (which depend on it) and the readings.
+- **Addendum after the first MATLAB screenshots of the tab (2026-11-14):**
+  - the best fit is marked with a star in the fit chart, because its bar has zero height;
+  - the readings legend names the sensors by colour and marker, and the line styles are explained in a two-line title;
+  - the readings table auto-fits its columns;
+  - the full summary has its own "Summary" sub-tab;
+  - the left box shows the best fit and every limiting flag.
+
+  A side-by-side summary next to the table was rejected after review: at the default window size it would have been about 156 px wide.

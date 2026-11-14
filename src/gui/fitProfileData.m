@@ -9,7 +9,8 @@ function p = fitProfileData(result, model)
 %     inRegion   the group is in the region of uncertainty
 %   and scalars threshold (chi2Region, or the ambiguity ratio),
 %   healthyValue (the same measure for the healthy model), label (axis
-%   label, TeX) and ratio (true for the ratio method).
+%   label, TeX), ratio (true for the ratio method) and bestGroup (the
+%   best-fit group, 0 when the healthy model fits best).
 %   A group is in the region when value <= threshold.
 %
 %   See also IDENTIFYSINGLEDAMAGE, PLOTFITPROFILE.
@@ -52,4 +53,5 @@ for g = 1:nG
     p.d(g) = ev.d(own(i));
 end
 p.inRegion = ismember((1:nG)', [result.competing.group]');
+p.bestGroup = result.best.group;                 % 0 when the healthy model fits best
 end
