@@ -120,11 +120,14 @@ assertFiniteRealScalar(q, sprintf('Uniform load [%s]', U.distributed.unit));
 if q < 0
     error('BridgeFE:invalidInput', 'Enter the uniform load as a downward magnitude (>= 0) in %s.', U.distributed.unit);
 end
+E = double(in.E);                 % an integer class would saturate when scaled to SI
+I = double(in.I);
+q = double(q);
 
 % SI engine model
 [x, xs] = meshSpans(spans * U.length.toSI, elements);
 lastwarn('');
-material = defineMaterial(in.materialType, in.E * U.modulus.toSI, in.I * U.inertia.toSI, name, basis);
+material = defineMaterial(in.materialType, E * U.modulus.toSI, I * U.inertia.toSI, name, basis);
 [warnMessage, warnId] = lastwarn;
 warnings = {};
 if strcmp(warnId, 'BridgeFE:unusualModulus')
@@ -161,7 +164,7 @@ info.summary = { ...
         numberText(elements, ' + '), nn - 1, nn, 2*nn); ...
     sprintf('Supports: %s', strjoin(supportText, ', ')); ...
     sprintf('Material: %s (%s): E = %g %s, %s = %g %s, EI = %.6g %s', material.name, material.type, ...
-        in.E, U.modulus.unit, material.inertiaLabel, in.I, U.inertia.unit, EIdisplay, EIunit); ...
+        E, U.modulus.unit, material.inertiaLabel, I, U.inertia.unit, EIdisplay, EIunit); ...
     sprintf('Basis: %s', material.basis); ...
     sprintf('Permanent uniform load: %g %s downward', q, U.distributed.unit)};
 end

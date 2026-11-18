@@ -42,6 +42,11 @@ cells = in;
 cells.spanLengths = {20, 20};                         % a uitable column may come as a cell array
 cells.elementsPerSpan = {16; 16};
 assert(isequal(buildModelFromTables(cells), model), 'cell-array table columns');
+ints = in;
+ints.E = int32(200);                                  % integer classes are read as double, not saturated
+ints.elementsPerSpan = int32([16 16]);
+ints.udlDown = uint8(20);
+assert(isequal(buildModelFromTables(ints), model), 'integer-class inputs');
 cant = struct('spanLengths', 8, 'elementsPerSpan', 4, 'supportTypes', {{'free', 'FIXED'}}, 'materialType', 'rcc', ...
     'E', 32, 'I', 0.0625, 'materialName', 'Deck', 'materialBasis', 'test Ieff');
 oldCant = struct('spans', '8', 'elementsPerSpan', 4, 'supports', 'free FIXED', 'materialType', 'rcc', ...
@@ -175,8 +180,8 @@ v = vehicleFromTable([80 120 120], [4.2 1.4], 'spec truck');
 assert(isequal(v, createVehicle([80e3 120e3 120e3], [4.2 1.4], 'spec truck')) ...
     && isequal(v, vehicleFromInputs('80 120 120', '4.2 1.4', 'spec truck')), 'SI axle table = createVehicle in N and m');
 assert(isequal(vehicleFromTable({80; 120; 120}, {4.2; 1.4}, 'spec truck', SI), v), 'cell-array table columns, U = SI');
-single = vehicleFromTable(100, [], '');
-assert(isequal(single, vehicleFromInputs('100', '', '')) && strcmp(single.name, 'vehicle'), 'single axle, default name');
+oneAxle = vehicleFromTable(100, [], '');
+assert(isequal(oneAxle, vehicleFromInputs('100', '', '')) && strcmp(oneAxle.name, 'vehicle'), 'single axle, default name');
 hl = vehicleFromTable([8 32 32], [14 14], 'HL-93 axles', US);
 reportComparisons('US axle table (8, 32, 32 kip; 14, 14 ft) -> SI engine vehicle', [ ...
     compareToReference('front axle [N] = 8 kip', hl.axleLoads(1), 8 * kip, 1e-12), ...

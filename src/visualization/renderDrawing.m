@@ -9,7 +9,9 @@ function renderDrawing(ax, prims, U)
 %   units U (UNITSYSTEM, default SI): every x and y coordinate [m] is
 %   divided by U.length.toSI (one scale for both, so the shapes are kept)
 %   and the x axis is labelled 'x [ft]' or 'x [m]'. Line widths, marker and
-%   font sizes are in points and do not change.
+%   font sizes are in points and do not change. Text is drawn bold where
+%   its fontWeight is 'bold' (DRAWINGPRIMITIVE; normal if the field is
+%   absent).
 %
 %   See also BRIDGEDRAWING, DRAWINGPRIMITIVE, UNITSYSTEM.
 
@@ -33,7 +35,11 @@ for k = 1:numel(prims)
         case 'patch'
             patch(ax, p.x, p.y, p.faceColor, 'EdgeColor', p.color, 'LineWidth', p.lineWidth);
         case 'text'
-            text(ax, p.x, p.y, p.text, 'Color', p.color, 'FontSize', p.fontSize, 'FontWeight', p.fontWeight, ...
+            weight = 'normal';
+            if isfield(p, 'fontWeight')
+                weight = p.fontWeight;
+            end
+            text(ax, p.x, p.y, p.text, 'Color', p.color, 'FontSize', p.fontSize, 'FontWeight', weight, ...
                 'HorizontalAlignment', p.hAlign, 'VerticalAlignment', p.vAlign, 'Interpreter', 'none');
         otherwise
             error('BridgeFE:invalidInput', 'Unknown primitive kind ''%s''.', p.kind);
