@@ -68,6 +68,8 @@ slip = in;
 slip.E = 200e9;                                      % Pa typed into the GPa column
 [~, slipInfo] = buildModelFromTables(slip);
 assert(numel(slipInfo.warnings) == 1 && ~isempty(strfind(slipInfo.warnings{1}, 'outside the usual')), 'unit warning');
+[~, nextInfo] = buildModelFromTables(in);
+assert(isempty(nextInfo.warnings), 'no warning carried over from the previous call');
 res = solveStaticModel(model);
 B = findNodeAtX(model, 20);
 reportComparisons('Model from SI tables (two 20 m spans, q = 20 kN/m down): Benchmark D', [ ...

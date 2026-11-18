@@ -126,7 +126,7 @@ q = double(q);
 
 % SI engine model
 [x, xs] = meshSpans(spans * U.length.toSI, elements);
-lastwarn('');
+lastwarn('', '');                 % clear both the message and the identifier
 material = defineMaterial(in.materialType, E * U.modulus.toSI, I * U.inertia.toSI, name, basis);
 [warnMessage, warnId] = lastwarn;
 warnings = {};
