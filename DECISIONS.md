@@ -547,3 +547,18 @@ Engine only (`src/inverse/`); an app tab is a later step. PROJECT_SPEC.md §7.
   - the left box shows the best fit and every limiting flag.
 
   A side-by-side summary next to the table was rejected after review: at the default window size it would have been about 156 px wide.
+
+## D-031 — Input redesign, unit system, MATLAB-style app colours (2026-11-19, M9) — ACCEPTED (user's choices)
+
+The user found the text-list inputs confusing. They chose the following after seeing HTML mockups in both palettes (`docs/design_previews/`):
+
+- **Unit system:** one global switch, **SI** (m, mm, kN, kN·m, kN/m, GPa, m⁴) or **US customary** (ft, in, kip, kip·ft, kip/ft, ksi, in⁴), for every input and result (`unitSystem`). Per-field units were rejected, because mixed units would confuse; tonne-force and mm⁴ are therefore not offered. The engine stays SI. Conversions are exact factors (NIST SP 811).
+- **Spans:** a table (length, elements per span) with **+ Add span** / **− Remove span**. Element counts may differ per span. **One material for all spans.**
+- **Supports:** one row per span end, lettered **A, B, C, …** (also drawn under the supports), with a type drop-down: **Pin, Roller, Fixed, Free**. There is no guided support. Pin and roller act alike in the bending-only model; a tooltip says so.
+- **Vehicle:** an axle table (load, spacing to the next axle) with **+ Add axle** / **− Remove axle**. Presets:
+  - the spec's illustrative 3-axle truck;
+  - **AASHTO HL-93 design truck, axle loads only:** 8, 32, 32 kip; 14 ft spacings (the rear spacing is variable 14–30 ft in AASHTO LRFD 3.6.1.2.2, and 14 ft is used). No design lane load and no dynamic load allowance;
+  - custom.
+- **Region inputs** (damage region, hidden region) become node drop-downs, so a coordinate can never be "not on a node" in either unit system.
+- **Colours:** the **app is MATLAB-style** (light grey window, white panels, blue #0072BD buttons, MATLAB line colours). Thin lines use only blue, orange, purple and dark red, which pass the contrast and colour-blind checks on white; yellow appears only as a light fill. All drawing colours are distinct. **Slides keep the sage theme.** This changes the earlier sage-green preference for the GUI (spec §9/§13) at the user's request.
+- **Drawing declutter**, found in the mockups: close axles share one label (e.g. "2 x 120 kN"), and the load label sits at the left end of the load.
