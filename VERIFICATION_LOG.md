@@ -1172,3 +1172,19 @@ After the fixes:
 - Octave `runAllTests`: **135/135** (`results/verification/2026-11-14_M8_octave-8.4.0_runAllTests.log`).
 - App check (stand-ins): **47/47** (`..._M8_octave-8.4.0_gui_mock_check.log`), including the rows for the left box and the ratio-method chart.
 - MATLAB: rerun pending (expect 48 rows with `checkBridgeConditionApp(true)`).
+
+### V-022, run 2 (2026-11-18, branch `claude/m8-identification-tab` at `931a33a`)
+
+| Item | Value |
+|---|---|
+| Main suite | **135 passed, 0 failed, 135 tests**. Screenshot: `results/verification/2026-11-18_M8_matlab_runAllTests_summary.png` |
+| App check | `checkBridgeConditionApp(true)`: **all rows PASS**, from start-up through "Verification tab: test suite reports 0 failed", with no error at the end (the check stops with an error if any row fails). This includes the rows that failed in run 1 (fit chart count and legend, readings plot count and legend), the left-box row, the ratio-method row and −x travel. Screenshots: `..._M8_matlab_checkBridgeConditionApp_part1.png`, `..._part2.png` |
+| Warnings printed | `..._M8_matlab_checkBridgeConditionApp_warnings.png`: the deliberate unit-slip warning (section 8 types 32e9 into the GPa field) and the spec §7 RCC caveat `BridgeFE:rccInverse`, once per identification run, because the check's bridge is RCC. Both are expected behaviour, not failures |
+| Tab used | Four screenshots shared in the conversation (Readings [mm], Fit by location, Summary, Envelopes after two runs). They were not available as files in the session, so they are **not stored**. Shown: legend by sensor colour and marker; two-line title; best-fit star at 5–6.25 m; full-width summary ("True region inside the reported region: yes. Best-fit region contains the true region: yes"; fit check passed, S = 10.6 ≤ 22.4); Envelopes critical markers drawn once after two runs, which confirms in MATLAB the hidden-handle fix (D-030) |
+
+**Status of M8:** verified in GNU Octave (V-021) and MATLAB (V-022). Merged into `main`.
+
+**Remaining cosmetics, moved to M8b:**
+- the readings table still cuts the last column (x_v = 25 m);
+- the Envelopes critical table shows `-0.000` (that table predates `formatNumber`);
+- the check prints the expected RCC caveat six times.
