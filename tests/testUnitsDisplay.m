@@ -189,7 +189,7 @@ end
 assert(showsFixed(tok{3}, before / kip, 3) && showsFixed(tok{4}, after / kip, 3), 'largest reaction change in kip');
 fprintf('  PASS SI unchanged; %d US rows and the findings = SI quantities / factor; percentages unchanged\n', size(d, 1));
 
-%% Findings: "unchanged" means below the last decimal shown in the chosen force unit
+%% Findings: a reaction change below the last decimal shown in the chosen force unit counts as unchanged
 same = compareHealthyDamaged(propped, propped, truck, 'Step', 1);
 lines0 = damageComparisonSummary(same, propped);
 lines = damageComparisonSummary(same, propped, US);
