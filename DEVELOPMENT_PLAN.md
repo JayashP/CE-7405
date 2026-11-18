@@ -27,7 +27,7 @@ Order is fixed by the spec:
 | M7c | Damage-tab display revisions after V-016 (D-027) | Nov 10 | Octave 107/107, app check 33/33 (V-017); MATLAB with S3b (V-020). Merged to `main` |
 | S3 | Stage 3 inverse search (stretch) | Nov 10 – 14 | Engine done in Octave (V-018); revised with the user's options 3 + 2 and an independent review (D-029, V-019). MATLAB 129/129 (V-020). Merged to `main`. Next: app tab (M8) |
 | M8 | Identification (Stage 3) tab in the app (D-030) + display fixes | Nov 12 – 18 | **Done.** Octave (V-021); MATLAB 135/135, app check all PASS, tab used (V-022). Merged to `main` |
-| M8b | Cosmetic follow-ups (−0.000 in Envelopes tables, readings table width, quieter app check) | Nov 18 | Octave 135/135, app check 48/48 (V-023). **MATLAB: NOT RUN** |
+| M8b | Cosmetic follow-ups (−0.000 in Envelopes tables, readings table width, quieter app check) | Nov 18 | **Done.** Octave 135/135, app check 48/48 (V-023); MATLAB app check all PASS (V-024). Merged to `main` |
 | S4 | Stage 4 steel repair categories from sourced rules (stretch, last) | Only if time remains and sources are chosen | Deferred |
 | — | Stabilize, demo recording, final documentation | Nov 21 – 23 | — |
 | — | **Submission** | **Nov 24** | — |

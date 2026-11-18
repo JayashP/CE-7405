@@ -1200,3 +1200,13 @@ After the fixes:
 | Main suite | **135 passed, 0 failed** (the negative-zero test now also covers the Envelopes tables). Raw log: `results/verification/2026-11-18_M8b_octave-8.4.0_runAllTests.log` |
 | App check (stand-ins) | **48/48 PASS**; RCC caveat printed 0 times. Raw log: `..._M8b_octave-8.4.0_gui_mock_check.log` |
 | MATLAB | **NOT RUN.** Expected `checkBridgeConditionApp(true)`: 49 rows PASS, with only the unit-slip warning printed; record as V-024 |
+
+## V-024 — 2026-11-18 — M8b in MATLAB (run by the user)
+
+| Item | Value |
+|---|---|
+| Code version | Branch `claude/m8b-polish` at `4af1c39` |
+| App check | `checkBridgeConditionApp(true)`: **all rows PASS**, including the new "RCC bridge: rccBaseline set and the spec section 7 caveat shown in the left box" and "Verification tab: test suite reports 0 failed". No error at the end (the check stops with an error if any row fails). The only warning text is the tail of the deliberate unit-slip warning ("In checkBridgeConditionApp (line 122)"); the six RCC caveat messages of V-022 are gone. Screenshots: `results/verification/2026-11-18_M8b_matlab_checkBridgeConditionApp_part1.png`, `..._part2.png` |
+| Main suite | Not rerun in MATLAB for M8b. The change to `src/gui` is display formatting only (`formatNumber` in three table helpers), and the Verification-tab row ran the whole suite inside the app with 0 failed |
+
+**Status of M8b:** verified in Octave (V-023) and MATLAB (V-024). Merged into `main`.
