@@ -20,7 +20,7 @@ for k = 1:numel(c)
     if isempty(axles)
         axles = '(none)';
     end
-    data(k, :) = {labels.(c(k).quantity), c(k).extreme, sprintf('%.3f', c(k).value * s), ...
-        sprintf('%.3f', c(k).x), sprintf('%.3f', c(k).xv), axles, sprintf('%.3f', c(k).coarseValue * s)};
+    data(k, :) = {labels.(c(k).quantity), c(k).extreme, formatNumber(c(k).value * s, 3), ...
+        formatNumber(c(k).x, 3), formatNumber(c(k).xv, 3), axles, formatNumber(c(k).coarseValue * s, 3)};   % no -0.000
 end
 end

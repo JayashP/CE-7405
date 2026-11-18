@@ -1188,3 +1188,15 @@ After the fixes:
 - the readings table still cuts the last column (x_v = 25 m);
 - the Envelopes critical table shows `-0.000` (that table predates `formatNumber`);
 - the check prints the expected RCC caveat six times.
+
+---
+
+## V-023 — 2026-11-18 — M8b cosmetic follow-ups in GNU Octave
+
+| Item | Value |
+|---|---|
+| Code version | Branch `claude/m8b-polish` (from `main` at `c5f00c8`) |
+| Changes | (1) The Envelopes critical and reaction tables and the current-reaction table use `formatNumber`: `-0.000` becomes `0.000`. On the simple span with the spec truck, M min was printed `-0.000` in MATLAB (V-022); the old formatting reproduces `-0.000` in Octave and the new one gives `0.000`. (2) Readings table column 520 → 640 px, so five truck-position columns fit. (3) `checkBridgeConditionApp` turns off the expected `BridgeFE:rccInverse` caveat while it runs (its bridge is RCC) and checks it instead in a new row (`rccBaseline` and the "RCC baseline:" line in the left box); the deliberate unit-slip warning stays on, because the app detects it through `lastwarn` |
+| Main suite | **135 passed, 0 failed** (the negative-zero test now also covers the Envelopes tables). Raw log: `results/verification/2026-11-18_M8b_octave-8.4.0_runAllTests.log` |
+| App check (stand-ins) | **48/48 PASS**; RCC caveat printed 0 times. Raw log: `..._M8b_octave-8.4.0_gui_mock_check.log` |
+| MATLAB | **NOT RUN.** Expected `checkBridgeConditionApp(true)`: 49 rows PASS, with only the unit-slip warning printed; record as V-024 |

@@ -214,7 +214,10 @@ both = addSupport(both, 9, 'fixed');
 lines = damageComparisonSummary(compareHealthyDamaged(both, both, truck, 'Step', 1), both);
 assert(~isempty(strfind(lines{1}, '(degree 2)')) && strcmp(lines{2}, 'Largest change of an extreme: none (to the decimals shown).'), ...
     'fixed-fixed: degree 2; no damage gives no change');
-fprintf('  PASS formatNumber (no -0.000); findings: simple span determinate, propped degree 1, fixed-fixed degree 2\n');
+crit = criticalTableData(runMovingLoad(simple, truck, 'Step', 0.5));
+reac = reactionEnvelopeTableData(runMovingLoad(simple, truck, 'Step', 0.5), simple.nodes.x);
+assert(~any(strcmp([crit(:); reac(:)], '-0.000')), 'Envelopes tables: round-off is 0.000, never -0.000');
+fprintf('  PASS formatNumber (no -0.000, also in the Envelopes tables); findings: simple span determinate, propped degree 1, fixed-fixed degree 2\n');
 
 %% Theme colours are valid RGB triplets
 th = appTheme();

@@ -19,7 +19,7 @@ for k = 1:n
         label = 'couple [kN*m]';
     end
     data(k, :) = {sprintf('%d', r.node(k)), sprintf('%.3f', x(r.node(k))), label, ...
-        sprintf('%.3f', r.Rmax(k) / 1e3), sprintf('%.3f', r.RmaxXv(k)), ...
-        sprintf('%.3f', r.Rmin(k) / 1e3), sprintf('%.3f', r.RminXv(k))};
+        formatNumber(r.Rmax(k) / 1e3, 3), formatNumber(r.RmaxXv(k), 3), ...
+        formatNumber(r.Rmin(k) / 1e3, 3), formatNumber(r.RminXv(k), 3)};   % no -0.000
 end
 end

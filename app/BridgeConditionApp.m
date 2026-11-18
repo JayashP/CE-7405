@@ -1082,7 +1082,7 @@ classdef BridgeConditionApp < handle
             c.IdentResultTabs.Layout.Column = 1;
             c.IdentReadingsTab = uitab(c.IdentResultTabs, 'Title', 'Readings [mm]', 'BackgroundColor', th.background);
             gR = uigridlayout(c.IdentReadingsTab, [1 2]);
-            gR.ColumnWidth = {520, '1x'};
+            gR.ColumnWidth = {640, '1x'};        % room for five truck-position columns without scrolling
             gR.BackgroundColor = th.background;
             c.ReadingsTable = uitable(gR, 'Data', zeros(0, 0), 'ColumnWidth', 'fit', ...
                 'CellEditCallback', @(~, ~) app.onReadingsEdited());

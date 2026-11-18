@@ -21,6 +21,12 @@ if nargin < 1
 end
 app = BridgeConditionApp();
 closer = onCleanup(@() delete(app));
+% The check's two-span bridge is RCC, so every identification run issues the spec section 7 caveat
+% 'BridgeFE:rccInverse'. It is expected here and is checked in a row (result flag and the text in the
+% app), so it is not printed six times. The deliberate unit-slip warning of section 8 is left on: the
+% app detects it through lastwarn.
+rccWarning = warning('off', 'BridgeFE:rccInverse');
+restoreRccWarning = onCleanup(@() warning(rccWarning));
 c = app.Controls;
 truckName = 'Illustrative 3-axle truck';
 refVehicle = vehicleFromInputs('80 120 120', '4.2 1.4', truckName);
@@ -187,6 +193,8 @@ rows(end+1) = flag('candidate table and summary text show that result; fit sub-t
     && strcmp(c.IdentResultTabs.SelectedTab.Title, 'Fit by location'));
 rows(end+1) = flag('left box: best fit, every limiting flag and a pointer to the Summary tab', ...
     isequal(c.IdentInfo.Value, [refSummary(2); refFlags; {'Full result: "Summary" tab.'}]));
+rows(end+1) = flag('RCC bridge: rccBaseline set and the spec section 7 caveat shown in the left box', ...
+    app.IdentResult.rccBaseline && any(strncmp(c.IdentInfo.Value, 'RCC baseline:', 13)));
 rows(end+1) = flag('fit chart: one bar per candidate, cut-off markers, best-fit star, limit and no-damage lines', ...
     numel(c.FitAxes.Children) == nFit);
 rows(end+1) = flag('fit chart legend names the region, the best fit and the limit', ...
@@ -287,7 +295,7 @@ end
 
 reportComparisons('BridgeConditionApp driven through its inputs vs direct engine calls', rows);
 if nargout == 0
-    clear rows   % no 'ans = 1x47 struct array' echo when called as a command
+    clear rows   % no 'ans = 1x48 struct array' echo when called as a command
 end
 end
 

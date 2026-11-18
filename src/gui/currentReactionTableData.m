@@ -14,9 +14,9 @@ for s = 1:ns
     n = model.supports.node(s);
     couple = '-';
     if model.supports.restraint(s, 2)
-        couple = sprintf('%.3f', res.R(2*n) / 1e3);
+        couple = formatNumber(res.R(2*n) / 1e3, 3);
     end
     data(s, :) = {sprintf('%d', n), sprintf('%.3f', model.nodes.x(n)), model.supports.type{s}, ...
-        sprintf('%.3f', res.R(2*n - 1) / 1e3), couple};
+        formatNumber(res.R(2*n - 1) / 1e3, 3), couple};   % no -0.000
 end
 end

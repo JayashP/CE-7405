@@ -2,6 +2,15 @@
 
 This file records every notable change to the source, tests and project records. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Dates are ISO 8601.
 
+## [0.9.1-M8b] — 2026-11-18 (branch `claude/m8b-polish`)
+
+Cosmetic follow-ups after the M8 MATLAB run (V-022).
+
+### Fixed
+- Envelopes critical and reaction tables and the current-reaction table no longer print `-0.000` (`formatNumber`).
+- Readings table wide enough for five truck positions.
+- `checkBridgeConditionApp` does not print the expected RCC caveat once per run; a row checks it instead (49 rows with the in-app test run).
+
 ## [0.9.0-M8] — 2026-11-12 (branch `claude/m8-identification-tab`)
 
 Identification (Stage 3) tab in the app (D-030), plus display fixes from the S3b MATLAB screenshots.
