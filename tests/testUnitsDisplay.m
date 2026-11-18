@@ -81,8 +81,13 @@ for k = 1:numel(ml.critical)
     assert(strcmp(d{k, 1}, label.(cr.quantity)) && strcmp(d{k, 2}, cr.extreme), 'row %d: quantity in US units', k);
     assert(showsFixed(d{k, 3}, cr.value / f, 3) && showsFixed(d{k, 7}, cr.coarseValue / f, 3), 'row %d: values', k);
     assert(showsFixed(d{k, 4}, cr.x / ft, 3) && showsFixed(d{k, 5}, cr.xv / ft, 3), 'row %d: x and x_v in ft', k);
-    axles = str2double(regexp(d{k, 6}, ', ', 'split'));
-    assert(numel(axles) == numel(cr.axleX) && all(abs(axles(:) - cr.axleX(:) / ft) <= 0.005 + 1e-9), 'row %d: axles in ft', k);
+    if isempty(cr.axleX)
+        assert(strcmp(d{k, 6}, '(none)'), 'row %d: no axle on the bridge', k);
+    else
+        axles = str2double(regexp(d{k, 6}, ', ', 'split'));
+        assert(numel(axles) == numel(cr.axleX) && all(abs(axles(:) - cr.axleX(:) / ft) <= 0.005 + 1e-9), ...
+            'row %d: axles in ft', k);
+    end
 end
 fprintf('  US row 1: %s %s = %s at x = %s ft (SI: %s)\n', d{1, 1}, d{1, 2}, d{1, 3}, d{1, 4}, d0{1, 3});
 fprintf('  PASS SI table unchanged; %d US rows = SI quantities / factor, within the 3 decimals shown\n', size(d, 1));
@@ -231,16 +236,21 @@ ax = RecordingAxes();
 plotSensitivity(ax0, s, propped, color);
 plotSensitivity(axSI, s, propped, color, SI);
 plotSensitivity(ax, s, propped, color, US);
-assert(isequal(recorded(axSI), recorded(ax0)), 'chart: SI = call without U');
-assert(strcmp(ax0.XLabel, 'location of the loss, x [m]') && strcmp(ax0.YLabel, 'change of vmin [mm]'), 'SI labels');
-assert(strcmp(ax.XLabel, 'location of the loss, x [ft]') && strcmp(ax.YLabel, 'change of vmin [in]') ...
-    && strcmp(ax.Title, ax0.Title), 'US labels');
-assert(numel(ax.Objects) == numel(ax0.Objects) && numel(ax.Objects) == numel(s.groups) + 1, 'one bar per group + axis line');
+chart0 = recorded(ax0);
+chart = recorded(ax);
+assert(isequal(recorded(axSI), chart0), 'chart: SI = call without U');
+assert(strcmp(chart0.XLabel, 'location of the loss, x [m]') && strcmp(chart0.YLabel, 'change of vmin [mm]'), 'SI labels');
+assert(strcmp(chart.XLabel, 'location of the loss, x [ft]') && strcmp(chart.YLabel, 'change of vmin [in]') ...
+    && strcmp(chart.Title, chart0.Title), 'US labels');
+assert(numel(chart.Objects) == numel(chart0.Objects) && numel(chart.Objects) == numel(s.groups) + 1, ...
+    'one bar per group + axis line');
 for k = 1:numel(s.groups)
-    assert(strcmp(ax.Objects(k).kind, 'patch') && max(abs(ax.Objects(k).x * ft - ax0.Objects(k).x)) < 1e-12 ...
-        && max(abs(ax.Objects(k).y * inch - ax0.Objects(k).y * 1e-3)) < 1e-15, 'bar %d in ft and in', k);
+    patchK = chart.Objects(k);
+    assert(strcmp(patchK.kind, 'patch') && max(abs(patchK.x * ft - chart0.Objects(k).x)) < 1e-12 ...
+        && max(abs(patchK.y * inch - chart0.Objects(k).y * 1e-3)) < 1e-15, 'bar %d in ft and in', k);
+    assert(max(abs(patchK.y * inch - [0 0 1 1] * s.change(k))) < 1e-15, 'bar %d: height = change of vmin', k);
 end
-assert(max(abs(ax.XLim * ft - [0 20])) < 1e-12, 'x axis: the beam in ft');
+assert(max(abs(chart.XLim * ft - [0 20])) < 1e-12, 'x axis: the beam in ft');
 fprintf('  PASS table and chart: SI unchanged; US x in ft, vmin and changes in in\n');
 
 %% Candidate table and summary of the Stage 3 search: regions in ft, RMSE and absolute noise in in
@@ -295,9 +305,9 @@ if ~isempty(minimum)
     assert(numel(tok) == 1 && showsFixed(tok{1}, r.minRMSE.J / inch, 4), 'minimum-RMSE candidate: RMSE in in');
 end
 text = strjoin(lines', ' ');
-assert(isempty(regexp(text, '\d m[^a-z]', 'once')) && isempty(strfind(text, 'mm')), 'no SI unit left in the US summary');
+assert(isempty(regexp(text, '\d mm?[^a-z]', 'once')), 'no SI unit left in the US summary');
 for k = 1:numel(lines0)
-    if isempty(regexp(lines0{k}, '\d m[^a-z]|\d mm', 'once'))
+    if isempty(regexp(lines0{k}, '\d mm?[^a-z]', 'once'))
         assert(strcmp(lines{k}, lines0{k}), 'line %d has no units and does not change', k);
     end
 end
@@ -344,13 +354,18 @@ ax = RecordingAxes();
 plotFitProfile(ax0, p0, x, th);
 plotFitProfile(axSI, p0, x, th, SI);
 plotFitProfile(ax, p, x / ft, th, US);
-assert(isequal(recorded(axSI), recorded(ax0)), 'fit chart: SI = call without U');
-assert(strcmp(ax0.XLabel, 'candidate region x [m]') && strcmp(ax.XLabel, 'candidate region x [ft]') ...
-    && strcmp(ax.YLabel, ax0.YLabel) && isequal(ax.Legend, ax0.Legend) && isequal(ax.YLim, ax0.YLim), 'fit chart labels');
-assert(numel(ax.Objects) == numel(ax0.Objects) && max(abs(ax.XLim * ft - ax0.XLim)) < 1e-12, 'same objects; x axis in ft');
-for k = 1:numel(ax.Objects)
-    assert(strcmp(ax.Objects(k).kind, ax0.Objects(k).kind) && max(abs(ax.Objects(k).x * ft - ax0.Objects(k).x)) < 1e-12 ...
-        && isequal(ax.Objects(k).y, ax0.Objects(k).y), 'fit chart object %d: x in ft, fit measure unchanged', k);
+chart0 = recorded(ax0);
+chart = recorded(ax);
+assert(isequal(recorded(axSI), chart0), 'fit chart: SI = call without U');
+assert(strcmp(chart0.XLabel, 'candidate region x [m]') && strcmp(chart.XLabel, 'candidate region x [ft]') ...
+    && strcmp(chart.YLabel, chart0.YLabel) && isequal(chart.Legend, chart0.Legend) && isequal(chart.YLim, chart0.YLim), ...
+    'fit chart labels');
+assert(numel(chart.Objects) == numel(chart0.Objects) && max(abs(chart.XLim * ft - chart0.XLim)) < 1e-12, ...
+    'same objects; x axis in ft');
+for k = 1:numel(chart.Objects)
+    assert(strcmp(chart.Objects(k).kind, chart0.Objects(k).kind) ...
+        && max(abs(chart.Objects(k).x * ft - chart0.Objects(k).x)) < 1e-12 ...
+        && isequal(chart.Objects(k).y, chart0.Objects(k).y), 'fit chart object %d: x in ft, fit measure unchanged', k);
 end
 for withBest = [false true]
     best = [];
@@ -363,27 +378,29 @@ for withBest = [false true]
     plotReadings(ax0, positions, sensors, u, r.uHealthy, best, th);
     plotReadings(axSI, positions, sensors, u, r.uHealthy, best, th, SI);
     plotReadings(ax, positions, sensors, u, r.uHealthy, best, th, US);
-    assert(isequal(recorded(axSI), recorded(ax0)), 'readings chart: SI = call without U');
-    assert(strcmp(ax0.XLabel, 'truck front-axle position x_v [m]') && strcmp(ax0.YLabel, 'deflection [mm]') ...
-        && isequal(ax0.Legend, {'S1 (x = 5 m)', 'S2 (x = 10 m)', 'S3 (x = 15 m)'}), 'SI labels as before M9');
-    assert(strcmp(ax.XLabel, 'truck front-axle position x_v [ft]') && strcmp(ax.YLabel, 'deflection [in]') ...
-        && isequal(ax.Title, ax0.Title) && isequal(ax.LegendHandles, ax0.LegendHandles), 'US labels');
+    chart0 = recorded(ax0);
+    chart = recorded(ax);
+    assert(isequal(recorded(axSI), chart0), 'readings chart: SI = call without U');
+    assert(strcmp(chart0.XLabel, 'truck front-axle position x_v [m]') && strcmp(chart0.YLabel, 'deflection [mm]') ...
+        && isequal(chart0.Legend, {'S1 (x = 5 m)', 'S2 (x = 10 m)', 'S3 (x = 15 m)'}), 'SI labels as before M9');
+    assert(strcmp(chart.XLabel, 'truck front-axle position x_v [ft]') && strcmp(chart.YLabel, 'deflection [in]') ...
+        && isequal(chart.Title, chart0.Title) && isequal(chart.LegendHandles, chart0.LegendHandles), 'US labels');
     for i = 1:numel(sensors)
-        tok = regexp(ax.Legend{i}, sprintf('^S%d \\(x = (\\S+) ft\\)$', i), 'tokens', 'once');
+        tok = regexp(chart.Legend{i}, sprintf('^S%d \\(x = (\\S+) ft\\)$', i), 'tokens', 'once');
         assert(numel(tok) == 1 && showsG(tok{1}, sensors(i) / ft), 'legend: sensor %d in ft', i);
     end
     perSensor = 2 + withBest;
-    assert(numel(ax.Objects) == perSensor * numel(sensors), 'healthy, (best fit) and readings per sensor');
+    assert(numel(chart.Objects) == perSensor * numel(sensors), 'healthy, (best fit) and readings per sensor');
     for i = 1:numel(sensors)
         drawn = {r.uHealthy, best, u};
         drawn = drawn(~cellfun(@isempty, drawn));
         for j = 1:perSensor
-            o = ax.Objects((i - 1) * perSensor + j);
+            o = chart.Objects((i - 1) * perSensor + j);
             assert(max(abs(o.x * ft - positions)) < 1e-12 && max(abs(o.y * inch - drawn{j}(i, :))) < 1e-15, ...
                 'sensor %d, line %d: positions in ft, deflections in in', i, j);
         end
     end
-    assert(max(abs(ax.XLim * ft - ax0.XLim)) < 1e-12, 'x axis in ft');
+    assert(max(abs(chart.XLim * ft - chart0.XLim)) < 1e-12, 'x axis in ft');
 end
 fprintf('  PASS fit profile (x1, x2 in ft), fit chart and readings chart (x in ft, deflections in in); SI unchanged\n');
 

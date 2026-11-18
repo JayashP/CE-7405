@@ -5,35 +5,33 @@ classdef RecordingAxes < handle
     %   Their calls cla(AX), plot(AX, ...), patch(AX, ...), xlabel(AX, ...),
     %   legend(AX, ...), ... dispatch to the methods of this class (MATLAB and
     %   GNU Octave), which store what would be drawn instead of rendering it.
-    %   A test can then compare the drawn numbers and texts without a display
-    %   or a graphics toolkit. Properties:
-    %     Objects        struct array, one element per plot or patch call:
+    %   GNU Octave cannot create real axes without a display, so this lets
+    %   the test suite compare the drawn numbers and texts on any machine.
+    %   S = RECORDED(AX) returns the record as a struct (two drawings can be
+    %   compared with ISEQUAL):
+    %     Objects        struct array, one element per PLOT or PATCH call:
     %                    kind ('line' or 'patch'), x, y (as passed) and
     %                    options (name-value cell; a patch colour is stored
     %                    as 'FaceColor')
-    %     XLabel, YLabel, Title, XLim, YLim
+    %     XLabel, YLabel, Title, XLim, YLim   as passed
     %     Legend         cell of legend labels; LegendHandles the handles
     %                    passed with them (indices into Objects)
     %   CLA empties Objects, like CLA on real axes; HOLD and GRID are
-    %   accepted and ignored. S = RECORDED(AX) returns all of it as one
-    %   struct, so two drawings can be compared with ISEQUAL.
-    %   It checks only what the plot function passes, not how MATLAB or
-    %   Octave would render it.
+    %   accepted and ignored. It checks only what the plot function passes,
+    %   not how MATLAB or Octave would render it.
     %
     %   See also PLOTSENSITIVITY, PLOTFITPROFILE, PLOTREADINGS.
 
     properties
-        Objects = struct('kind', {}, 'x', {}, 'y', {}, 'options', {})
-        XLabel = ''
-        YLabel = ''
-        Title = ''
-        XLim = []
-        YLim = []
-        Legend = {}
-        LegendHandles = []
+        Record = struct('Objects', {struct('kind', {}, 'x', {}, 'y', {}, 'options', {})}, 'XLabel', '', ...
+            'YLabel', '', 'Title', '', 'XLim', [], 'YLim', [], 'Legend', {{}}, 'LegendHandles', [])
     end
 
     methods
+        function s = recorded(ax)
+            s = ax.Record;
+        end
+
         function h = plot(ax, x, y, varargin)
             h = addObject(ax, 'line', x, y, varargin);
         end
@@ -43,7 +41,9 @@ classdef RecordingAxes < handle
         end
 
         function cla(ax)
-            ax.Objects = struct('kind', {}, 'x', {}, 'y', {}, 'options', {});
+            r = ax.Record;
+            r.Objects = r.Objects([]);
+            ax.Record = r;
         end
 
         function hold(ax, state) %#ok<INUSD>
@@ -52,39 +52,42 @@ classdef RecordingAxes < handle
         function grid(ax, state) %#ok<INUSD>
         end
 
-        function xlabel(ax, text)
-            ax.XLabel = text;
+        function xlabel(ax, label)
+            setField(ax, 'XLabel', label);
         end
 
-        function ylabel(ax, text)
-            ax.YLabel = text;
+        function ylabel(ax, label)
+            setField(ax, 'YLabel', label);
         end
 
-        function title(ax, text)
-            ax.Title = text;
+        function title(ax, label)
+            setField(ax, 'Title', label);
         end
 
         function xlim(ax, limits)
-            ax.XLim = limits;
+            setField(ax, 'XLim', limits);
         end
 
         function ylim(ax, limits)
-            ax.YLim = limits;
+            setField(ax, 'YLim', limits);
         end
 
         function legend(ax, handles, labels, varargin)
-            ax.LegendHandles = handles;
-            ax.Legend = labels;
+            setField(ax, 'LegendHandles', handles);
+            setField(ax, 'Legend', labels);
         end
 
-        function s = recorded(ax)
-            s = struct('Objects', ax.Objects, 'XLabel', ax.XLabel, 'YLabel', ax.YLabel, 'Title', {ax.Title}, ...
-                'XLim', ax.XLim, 'YLim', ax.YLim, 'Legend', {ax.Legend}, 'LegendHandles', ax.LegendHandles);
+        function setField(ax, name, value)
+            r = ax.Record;
+            r.(name) = value;
+            ax.Record = r;
         end
 
         function h = addObject(ax, kind, x, y, options)
-            ax.Objects(end+1) = struct('kind', kind, 'x', x, 'y', y, 'options', {options});
-            h = numel(ax.Objects);
+            r = ax.Record;
+            r.Objects(end+1) = struct('kind', kind, 'x', x, 'y', y, 'options', {options});
+            ax.Record = r;
+            h = numel(r.Objects);
         end
     end
 end
