@@ -77,7 +77,9 @@ rows(end+1) = flag('spans 12 m + 15 m: supports A, B, C at 0, 12, 27 m', ...
     isequal(c.SupportsTable.Data, {'A', 0, 'Pin'; 'B', 12, 'Roller'; 'C', 27, 'Roller'}));
 rows(end+1) = flag('Apply model with 2 spans, RCC, 10 kN/m succeeds', ok && isempty(app.LastError));
 rows(end+1) = flag('app model = buildModelFromInputs(the same inputs)', isequal(app.Model, refModel));
-rows(end+1) = flag('model summary text is shown', numel(c.SummaryArea.Value) >= 5);
+rows(end+1) = flag('model summary text is shown, with the modelling notes (not a load rating)', ...
+    numel(c.SummaryArea.Value) >= 5 && strcmp(c.SummaryArea.Value{end}, ...
+    'Linear, quasi-static analysis. Not a load rating or design check.'));
 prep = prepareMovingLoad(refModel, defaultEnvelopeStations(refModel.nodes.x, 4));
 
 % 3. A vehicle position equals the engine's result
@@ -135,7 +137,13 @@ c.SpansTable.Data{2, 1} = -15;
 ok = app.applyModelInputs();
 rows(end+1) = flag('span 2 length -15: rejected with a message naming ''Span 2'', model kept', ~ok ...
     && ~isempty(strfind(app.LastError, 'Span 2')) && isequal(app.Model, before));
+c.SpansTable.Data{2, 1} = '15';            % text in a numeric cell: not a number, as for buildModelFromTables
+app.onSpansEdited();
+ok = app.applyModelInputs();
+rows(end+1) = flag('span 2 typed as text ''15'': supports table shows no x for C and Apply names ''Span 2''', ~ok ...
+    && isnan(c.SupportsTable.Data{3, 2}) && ~isempty(strfind(app.LastError, 'Span 2')) && isequal(app.Model, before));
 c.SpansTable.Data{2, 1} = 15;
+app.onSpansEdited();
 c.SupportsTable.Data{3, 3} = 'Hinge';
 ok = app.applyModelInputs();
 rows(end+1) = flag('support C type ''Hinge'': rejected with a message naming ''Support C'', model kept', ~ok ...
@@ -214,6 +222,8 @@ rows(end+1) = flag('Stage 3 defaults: sensors L/4, L/2, 3L/4; positions L/4..L (
     strcmp(c.SensorField.Value, numberListText(sRef)) && strcmp(c.IdentPositionsField.Value, numberListText(pRef)));
 c.HiddenFromDropDown.Value = nodeLabel(nodeLabels, nodeX, 9);
 c.HiddenToDropDown.Value = nodeLabel(nodeLabels, nodeX, 10.5);
+c.DamageFromDropDown.Value = nodeLabel(nodeLabels, nodeX, 1.5);   % Stage 2 drop-downs differ from the hidden case
+c.DamageToDropDown.Value = nodeLabel(nodeLabels, nodeX, 3);
 c.HiddenLossField.Value = 30;
 c.SyntheticNoiseField.Value = 1;
 c.SeedField.Value = 3;
@@ -322,13 +332,38 @@ rows(end+1) = flag('back to the first preset: vehicle = vehicleFromInputs(''80 1
 % 12. US customary units: every input converted, the same SI model, results and labels in US units
 kip = US.force.toSI;
 ft = US.length.toSI;
+inch = US.deflection.toSI;
+sensorsSI = c.SensorField.Value;
+c.SpansTable.Data{1, 1} = 0;               % an invalid input (shown as a preview only)
+app.onSpansEdited();
+app.setUnitSystem('US');
+rows(end+1) = flag('switch to US with span 1 = 0: refused (units, labels and inputs stay SI), the error names ''Span 1''', ...
+    strcmp(app.Units.name, 'SI') && strcmp(c.UnitsDropDown.Value, SI.label) && ~isempty(strfind(app.LastError, 'Span 1')) ...
+    && ~isempty(strfind(app.LastError, 'units stay SI')) && strcmp(c.SensorLabel.Text, 'Sensor x [m]') ...
+    && strcmp(c.SensorField.Value, sensorsSI) && isequal(c.SpansTable.Data, {0, 8; 15, 8}) && isequal(app.Model, refModel));
+c.SpansTable.Data{1, 1} = 12;
+app.onSpansEdited();
+c.SearchNoiseAbsField.Value = 0.05;        % mm; converted to in by the switch
+c.SensitivityStepField.Value = 0.5;
 app.setUnitSystem('US');
 spansUS = [c.SpansTable.Data{:, 1}];
 loadsUS = [c.AxlesTable.Data{:, 1}];
-rows(end+1) = compareToReference('US: max relative error of the converted inputs (spans, E, I, load, axles, step) [-]', ...
+rows(end+1) = compareToReference(['US: max relative error of the converted inputs (spans, E, I, load, axles, ' ...
+    'position and sweep steps, reading noise) [-]'], ...
     max(abs([spansUS * ft, c.EField.Value * US.modulus.toSI, c.IField.Value * US.inertia.toSI, ...
-    c.UDLField.Value * US.distributed.toSI, loadsUS * kip, c.StepField.Value * ft] ...
-    ./ [12 15 32e9 0.0625 10e3 80e3 120e3 120e3 0.1] - 1)), 0, [], 1e-11);
+    c.UDLField.Value * US.distributed.toSI, loadsUS * kip, c.StepField.Value * ft, c.SensitivityStepField.Value * ft, ...
+    c.SearchNoiseAbsField.Value * inch] ./ [12 15 32e9 0.0625 10e3 80e3 120e3 120e3 0.1 0.5 0.05e-3] - 1)), 0, [], 1e-11);
+rows(end+1) = flag('US: supports table x = 0, 12, 27 m in ft', ...
+    max(abs([c.SupportsTable.Data{:, 2}] - [0 12 27] / ft)) < 1e-9);
+[sDef, pDef] = identificationDefaults(refModel, refVehicle, 1);
+rows(end+1) = flag('US: default sensors and truck positions written in ft (L/4, L/2, 3L/4 of the 27 m beam)', ...
+    max(abs(parseNumberList(c.SensorField.Value, 'sensors') * ft - sDef)) < 1e-4 ...
+    && max(abs(parseNumberList(c.IdentPositionsField.Value, 'positions') * ft - pDef)) < 1e-4);
+rows(end+1) = flag(['US: emptied result tables keep no header in SI units; readings tab ''Readings [in]''; ' ...
+    'noise tooltip in in; numeric fields shown with 6 digits'], noSIHeaders(c.CriticalTable) ...
+    && noSIHeaders(c.EnvReactionsTable) && noSIHeaders(c.SensitivityTable) && noSIHeaders(c.CandidateTable) ...
+    && strcmp(c.IdentReadingsTab.Title, 'Readings [in]') && ~isempty(strfind(c.SearchNoiseField.Tooltip, '0 in')) ...
+    && strcmp(c.EField.ValueDisplayFormat, '%.6g') && strcmp(c.IField.ValueDisplayFormat, '%.6g'));
 stApp = solveStaticModel(app.Model);
 stRef = solveStaticModel(refModel);
 rows(end+1) = compareToReference('US: model = SI model: max|U_app - U_SI| / max|U| under the permanent load [-]', ...
@@ -353,15 +388,32 @@ app.setVehiclePosition(16.4);
 rows(end+1) = compareToReference('US: R_B at x_v = 16.4 m in the reaction table [kip] (shown to 3 decimals)', ...
     str2double(c.ReactionsTable.Data{2, 4}), refRB / kip, 6e-4);
 rows(end+1) = flag('US: reaction table header and position text in kip and ft', ...
-    strcmp(c.ReactionsTable.ColumnName{4}, 'Force [kip] (+ up)') && ~isempty(strfind(c.PositionLabel.Text, ' ft ')));
+    strcmp(c.ReactionsTable.ColumnName{4}, 'Force [kip] (+ up)') ...
+    && ~isempty(strfind(c.PositionLabel.Text, sprintf('x_v = %.3f ft (front axle)', 16.4 / ft))));
+rows(end+1) = flag('US: M, V and v diagrams drawn over x = 0 to 27 m in ft', ...
+    max(abs([c.MomentAxes.XLim, c.ShearAxes.XLim, c.DeflectionAxes.XLim] - repmat([0 27] / ft, 1, 3))) < 1e-9);
+slider = c.PositionSlider;
+xvUS = generateVehiclePositions(app.Model, app.Vehicle, app.Step, 1);   % the crossing [m]
+slider.Value = 10 / ft;
+feval(slider.ValueChangedFcn, slider, struct('Value', slider.Value, 'PreviousValue', 0));
+xReleased = app.Position;
+feval(slider.ValueChangingFcn, slider, struct('Value', 5 / ft));
+rows(end+1) = flag('US: slider moved to 32.8 ft and dragged through 16.4 ft puts the front axle at 10 m and 5 m', ...
+    abs(xReleased - 10) < 1e-9 && abs(app.Position - 5) < 1e-9 && max(abs(slider.Limits - [min(xvUS), max(xvUS)] / ft)) < 1e-9);
+app.setVehiclePosition(16.4);
 ok = app.runEnvelopes();
 rows(end+1) = compareToReference('US: critical values = runMovingLoad of the SI model: max relative difference [-]', ...
     max(abs([app.MovingLoad.critical.value] - [refML.critical.value]) ./ abs([refML.critical.value])), 0, [], 1e-9);
 rows(end+1) = flag('US: critical table = criticalTableData(result, US) (kip*ft, kip, in, ft)', ok ...
     && isequal(c.CriticalTable.Data, criticalTableData(app.MovingLoad, US)) ...
     && strcmp(c.CriticalTable.ColumnName{4}, 'x [ft]'));
+[envData, envColumns] = reactionEnvelopeTableData(app.MovingLoad, app.Model.nodes.x, US);
+rows(end+1) = flag('US: reaction envelope table = reactionEnvelopeTableData(result, x, US); envelopes drawn in ft', ...
+    isequal(c.EnvReactionsTable.Data, envData) && isequal(c.EnvReactionsTable.ColumnName, envColumns) ...
+    && max(abs(c.EnvMomentAxes.XLim - [0 27] / ft)) < 1e-9);
 c.HiddenFromDropDown.Value = nodeLabel(nodeLabelsUS, nodeXUS, 9);
 c.HiddenToDropDown.Value = nodeLabel(nodeLabelsUS, nodeXUS, 10.5);
+c.DamageFromDropDown.Value = nodeLabel(nodeLabelsUS, nodeXUS, 1.5);
 c.HiddenLossField.Value = 30;
 c.SyntheticNoiseField.Value = 1;
 c.SeedField.Value = 3;
@@ -375,27 +427,86 @@ rows(end+1) = compareToReference('US: readings table [in] = syntheticObservation
 c.SearchNoiseField.Value = 1;
 c.RegionSizeDropDown.Value = '6 ft regions';
 okRun = app.runIdentification();
-optsUS = identificationOptions(app.Model, candidateRegionLength('6 ft regions', US), 1, 0, 1, US);
+noiseUS = c.SearchNoiseAbsField.Value;    % 0.05 mm converted to in
+optsUS = identificationOptions(app.Model, candidateRegionLength('6 ft regions', US), 1, noiseUS, 1, US);
 refUS = identifySingleDamage(app.Model, app.Vehicle, pUS, sUS, readingsFromTable(c.ReadingsTable.Data, numel(sUS), ...
     numel(pUS), US), optsUS{:});
-rows(end+1) = flag('US: identification (6 ft regions) = identifySingleDamage(...); table and summary in ft and in', ...
-    okGen && okRun && isequal([app.IdentResult.competing.group], [refUS.competing.group]) ...
+rows(end+1) = flag(['US: identification (6 ft regions, noise 1 % + 0.05 mm in in) = identifySingleDamage(...); ' ...
+    'table and summary in ft and in'], okGen && okRun && abs(noiseUS * inch - 0.05e-3) < 1e-15 && isequal([app.IdentResult.competing.group], [refUS.competing.group]) ...
     && app.IdentResult.best.d == refUS.best.d && isequal(c.CandidateTable.Data, identificationTableData(refUS, US)) ...
     && isequal(c.IdentResultText.Value, identificationSummary(refUS, app.IdentTruth, US)) ...
     && strcmp(c.ReadingsTable.RowName{1}, sprintf('S1 (x = %g ft)', sUS(1) / ft)));
 app.setUnitSystem('SI');
 rows(end+1) = flag('back to SI: unedited inputs restored exactly; model and vehicle isequal to the SI ones', ...
     isequal(c.SpansTable.Data, {12, 8; 15, 8}) && c.EField.Value == 32 && c.StepField.Value == 0.1 ...
-    && isequal(app.Model, refModel) && isequal(app.Vehicle, refVehicle) && strcmp(c.ELabel.Text, 'E [GPa]'));
+    && c.SensitivityStepField.Value == 0.5 && c.SearchNoiseAbsField.Value == 0.05 ...
+    && isequal(app.Model, refModel) && isequal(app.Vehicle, refVehicle) && strcmp(c.ELabel.Text, 'E [GPa]') ...
+    && strcmp(c.IdentReadingsTab.Title, 'Readings [mm]'));
+c.EField.Value = 200;                     % RCC with the steel default E typed: a switch must not change it
+unusual = warning('off', 'BridgeFE:unusualModulus');
 app.setUnitSystem('US');
+eUS = c.EField.Value;
+EIUS = app.Model.elements.EI(1);
+app.setUnitSystem('SI');
+warning(unusual);
+rows(end+1) = flag('RCC with E = 200 GPa typed: the switch keeps E (200 GPa in ksi, model EI = 200 GPa x Ieff) and back', ...
+    abs(eUS * US.modulus.toSI / 200e9 - 1) < 1e-11 && abs(EIUS / (200e9 * 0.0625) - 1) < 1e-11 ...
+    && c.EField.Value == 200 && strcmp(c.MaterialDropDown.Value, 'RCC'));
+c.EField.Value = 32;
+app.applyModelInputs();
+app.setUnitSystem('US');
+app.addAxle();                            % an axle added in US units
+nUS = size(c.AxlesTable.Data, 1);
+addedUS = c.AxlesTable.Data{3, 2};
+okAdd = app.applyVehicleInputs();
+rows(end+1) = flag('US: + Add axle puts the new axle 1.2 m (3.937 ft) behind the last one', okAdd && nUS == 4 ...
+    && abs(addedUS - 1.2 / ft) < 1e-9 && abs(app.Vehicle.axleSpacings(3) - 1.2) < 1e-12);
 c.SpansTable.Data{2, 1} = 50;             % edited in ft: converted on the switch back, not restored
 app.setUnitSystem('SI');
 rows(end+1) = flag('span 2 edited to 50 ft: 15.24 m after the switch back; the unedited span 1 is 12 m again', ...
     c.SpansTable.Data{2, 1} == 15.24 && c.SpansTable.Data{1, 1} == 12 && abs(app.Model.nodes.x(end) - 27.24) < 1e-12);
+loadsBack = [c.AxlesTable.Data{:, 1}];
+gapsBack = [c.AxlesTable.Data{1:end-1, 2}];
+rows(end+1) = flag('axle added in US: back in SI the first 3 axles are exactly 80, 120, 120 kN at 4.2, 1.4 m again', ...
+    isequal(loadsBack(1:3), [80 120 120]) && isequal(gapsBack(1:2), [4.2 1.4]) && abs(loadsBack(4) - 120) < 1e-9 ...
+    && abs(gapsBack(3) - 1.2) < 1e-9);
 c.SpansTable.Data{2, 1} = 15;
 app.applyModelInputs();
-app.applyDamageInputs();                  % a valid damage and readings again for the callback sweep
-app.generateSyntheticReadings();
+
+% 12b. A preset and a sensor at the beam end typed in US units
+app.setUnitSystem('US');
+app.choosePreset(hl.name);
+okHL = app.applyVehicleInputs();
+rows(end+1) = flag('US: preset HL-93 fills 8, 32, 32 kip at 14, 14 ft; applied = vehicleFromTable(..., US)', okHL ...
+    && isequal([c.AxlesTable.Data{:, 1}], [8 32 32]) && isequal([c.AxlesTable.Data{1:2, 2}], [14 14]) ...
+    && max(abs([app.Vehicle.axleLoads(:) ./ refHL.axleLoads(:); app.Vehicle.axleSpacings(:) ./ refHL.axleSpacings(:)] - 1)) < 1e-12);
+c.SensorField.Value = sprintf('%g %g', 13.5 / ft, 27 / ft);   % the beam end as the labels show it (6 digits)
+okEnd = app.newEmptyReadings();
+rows(end+1) = flag('US: a sensor typed at the beam end as shown (88.5827 ft) is accepted (readings row S2 at the end)', ...
+    okEnd && strcmp(c.ReadingsTable.RowName{2}, sprintf('S2 (x = %g ft)', 27 / ft)));
+app.setUnitSystem('SI');
+app.choosePreset(truckName);
+app.applyVehicleInputs();
+
+% 12c. A free end: the Rmax support drop-down lists only the supported ends, each at its own node
+c.SupportsTable.Data{1, 3} = 'Free';      % 12 m overhang at A, supports at B (pin) and C (roller)
+c.SupportsTable.Data{2, 3} = 'Pin';
+okFree = app.applyModelInputs();
+freeModel = app.Model;
+c.SensitivityDropDown.Value = items{strcmp(codes, 'Rmax')};
+c.SupportDropDown.Value = 'C (x = 27 m)';
+okSens = app.runDamageSensitivity();
+refSensC = damageSensitivity(freeModel, refVehicle, c.LossField.Value / 100, 'Rmax', 'Step', max(app.Step, 0.5), ...
+    'Direction', 1, 'Refine', false, 'Node', findNodeAtX(freeModel, 27));
+rows(end+1) = flag('A Free: support drop-down B, C only; Rmax at C = damageSensitivity(..., ''Node'', node at 27 m)', ...
+    okFree && okSens && isequal(c.SupportDropDown.Items, {'B (x = 12 m)', 'C (x = 27 m)'}) ...
+    && isequal(app.DamageSensitivity.change, refSensC.change));
+c.SensitivityDropDown.Value = items{1};
+c.SupportsTable.Data{1, 3} = 'Pin';
+c.SupportsTable.Data{2, 3} = 'Roller';
+okSweep = app.applyModelInputs() && isequal(app.Model, refModel);
+okSweep = app.applyDamageInputs() && okSweep;    % a valid damage and readings again for the callback sweep
+okSweep = app.generateSyntheticReadings() && okSweep;
 
 % 13. Every button, value and cell-edit callback runs without error
 comps = collectComponents(app.UIFigure);
@@ -436,14 +547,18 @@ for k = 1:numel(comps)
         catch err
             failures{end+1} = err.message; %#ok<AGROW>
         end
+        if ~isempty(app.LastError)               % an error the app reported (alert) rather than threw
+            failures{end+1} = sprintf('reported by the app: %s', app.LastError); %#ok<AGROW>
+            app.LastError = '';
+        end
     end
 end
 if ~isempty(failures)
     fprintf('  callback errors:\n');
     fprintf('    %s\n', failures{:});
 end
-rows(end+1) = flag(sprintf('%d callbacks invoked (buttons, fields, tables, slider, tabs) without error', nCalls), ...
-    isempty(failures) && nCalls >= 20 && isempty(app.LastError));
+rows(end+1) = flag(sprintf(['%d callbacks invoked (buttons, fields, tables, slider, tabs) without an error ' ...
+    'thrown or reported, after a valid set-up'], nCalls), okSweep && isempty(failures) && nCalls >= 20);
 
 % 14. Verification tab (optional, runs the whole suite)
 if includeVerification
@@ -466,6 +581,15 @@ if isempty(lg)
 else
     s = lg.String;
 end
+end
+
+function ok = noSIHeaders(tbl)
+% True when no column header of TBL names an SI unit (m, mm, kN, kN*m).
+names = tbl.ColumnName;
+if ischar(names)
+    names = {names};
+end
+ok = all(cellfun(@isempty, regexp(names, '\[(m|mm|kN|kN\*m)\]', 'once')));
 end
 
 function label = nodeLabel(labels, x, value)
