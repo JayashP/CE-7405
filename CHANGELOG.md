@@ -2,6 +2,16 @@
 
 This file records every notable change to the source, tests and project records. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Dates are ISO 8601.
 
+## [0.10.1-M9c] — 2026-11-19 (branch `claude/m9c-polish`)
+
+Cosmetic follow-ups from the user's MATLAB screenshots of M9 (VERIFICATION_LOG V-026 part 2a). No change to `src/` or to any result.
+
+### Changed
+- Position slider: round tick values (1, 2 or 5 x 10^k, about 15 intervals). MATLAB's automatic ticks also labelled the non-round end of the crossing, next to the last round tick ("120126.4" in US units).
+- Left input panels 400 -> 460 px on every tab, so the current-reaction table fits without a horizontal scroll bar and the vehicle name and five truck positions fit their fields.
+- Choosing a vehicle preset or editing the axle table sets the status "Vehicle edited: press "Apply vehicle" to use it (the drawing shows the applied vehicle)."; **Apply vehicle** reports "Vehicle applied: <name>, <n> axle(s), total <load>".
+- App check: 91 rows (round slider ticks in US units; status after a preset, an axle edit and Apply vehicle). `tools/app_mutation_check.py`: 5 M9c faults.
+
 ## [0.10.0-M9] — 2026-11-19 (branch `claude/m9-input-redesign`)
 
 Input redesign requested by the user (DECISIONS.md D-031): tables and drop-downs instead of typed lists, one SI / US unit switch, vehicle presets, MATLAB-style colours.
