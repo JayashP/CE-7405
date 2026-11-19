@@ -1250,6 +1250,27 @@ New app-check rows (two-span 12 + 15 m RCC model unless stated):
 | Code version | Branch `claude/m9-input-redesign` at `79bef9d` (pulled after V-025) |
 | Main suite | `runAllTests`: **Total: 157 passed, 0 failed, 157 tests**, the same count as Octave (V-025). Screenshot: `results/verification/2026-11-19_M9_matlab_runAllTests_summary.png` |
 | App check | `checkBridgeConditionApp(true)`: **every row PASS** and no error at the end (the check throws if any row fails). This includes the refused switch, every US-unit row, the round trips back to SI, the Free-support Rmax row, "38 callbacks invoked ... without an error thrown or reported, after a valid set-up" (38 = the 37 of the Octave run plus the in-app "Run all tests" button; the sweep ran in MATLAB's child order) and "Verification tab: test suite reports 0 failed". The only warning is the deliberate unit-slip warning (RCC E = 3.2e+19 Pa). Screenshots: `..._M9_matlab_checkBridgeConditionApp_part1.png` to `..._part4.png` |
-| Not yet seen | Screenshots of the app in SI and US (layout of the left panels, summary notes, preset names, readings tab title) and the table-editing behaviours (text and cleared cells, Type drop-down, blank last spacing, refused switch alert): part 2 |
 
-**Status of M9:** verified in Octave (V-025); MATLAB suite and app check pass (V-026 part 1). App screenshots and table-editing checks pending (V-026 part 2).
+### V-026 part 2a (2026-11-19): the app in SI and US (screenshots by the user)
+
+Model: spans 20 m (16 elements) + 10 m (10 elements), A Pin, B and C Roller, steel E = 200 GPa, Is = 0.01 m^4; AASHTO HL-93 preset chosen in SI, then the switch to US.
+
+| Screen | Seen in MATLAB | Result |
+|---|---|---|
+| Bridge model, SI (`..._M9_matlab_app_bridge_model_SI.png`) | Maximised window: the whole left panel fits, **Apply model** visible with room below; spans and supports tables; the summary box shows the model summary and the modelling notes (pin = roller, steel/RCC EI, not a load rating) | as designed |
+| Vehicle, SI (`..._vehicle_HL93_SI.png`) | Preset drop-down across the panel shows "AASHTO HL-93 design truck (axles only)" in full; axle table 35.5858, 142.3431, 142.3431 kN at 4.2672 m (8, 32, 32 kip at 14 ft); total 320.272 kN, 8.5344 m | as designed; see notes 3–4 |
+| Bridge model, US (`..._bridge_model_US.png`) | 65.6168 + 32.8084 ft; supports at 0, 65.6168, 98.4252 ft; E 29007.5 ksi and Is 24025.1 in^4 (6 digits); summary EI = 4.83965e+06 kip*ft^2 (= 2e6 kN*m^2) | as designed |
+| Vehicle, US (`..._vehicle_HL93_US.png`) | 8, 32, 32 kip at 14, 14 ft; total 72 kip, 28 ft; step 0.328084 ft (0.1 m); reactions 8.000 kip at A, 0 at B and C with the front axle on A; drawings and diagrams in ft | as designed; see notes 1–2 |
+| Identification, US (`..._identification_US.png`) | Tab title **"Readings [in]"**; sensors 24.6063, 49.2126, 73.8189 ft; hidden region node 9–10 (32.8084–36.9094 ft); candidate table in ft and in (RMSE 5 decimals); 534 structures, 2 candidate regions; best fit element 9, d = 30.8 % (hidden 30 %), range 26.0–35.0 % | as designed |
+
+**Same numbers in Octave:** the same steps replayed in GNU Octave 8.4.0 with the stand-ins (`tools/crosscheck/replayV026.m`) give the identical status line, both candidate-table rows digit for digit (30.8 | 26.0–35.0 | 0.692 | 0.00155 and 32.7 | 31.0–34.0 | 0.673 | 0.00326 | 5.32), J_N 0.75 %, the same EI line and reactions. The synthetic noise is deterministic (`deterministicNormal`), so both platforms see the same readings.
+
+Cosmetic notes from these screenshots (not errors):
+1. The position slider labels its upper limit next to the last round tick, so in US they overlap ("120126.4").
+2. The current-reaction table is wider than the panel: the last header ("Couple [kN*m] (+ ...") needs the horizontal scroll bar.
+3. Choosing a preset fills the axle table, but the drawing keeps the applied truck until **Apply vehicle**, and the status line does not say so (the model tab does: "Model edited: press Apply model").
+4. The vehicle name and truck-position fields are narrower than their text (the fifth position, 123.031 ft, is out of view; the Octave replay confirms it is there and was used).
+
+**Still to see (part 2b):** table-editing behaviours (text and cleared cells, the Type drop-down, the blank last spacing) and the refused-switch alert.
+
+**Status of M9:** verified in Octave (V-025); in MATLAB the suite, the app check and the app in SI and US agree (V-026 parts 1 and 2a). Table-editing checks pending (part 2b).
