@@ -1,26 +1,34 @@
-function [data, columns] = criticalTableData(ml)
+function [data, columns] = criticalTableData(ml, U)
 %CRITICALTABLEDATA Critical vehicle positions of a moving-load run, as table text.
 %   [DATA, COLUMNS] = CRITICALTABLEDATA(ML) returns one row per entry of
 %   ML.critical (RUNMOVINGLOAD): quantity and unit, extreme, value, the
 %   coordinate x where it occurs, the front-axle position x_v that causes
 %   it, the axle coordinates on the bridge at that position, and the value
 %   on the coarse grid before refinement. Units: M in kN*m (+ sagging),
-%   V in kN, v in mm (+ up).
+%   V in kN, v in mm (+ up), x in m.
+%   [DATA, COLUMNS] = CRITICALTABLEDATA(ML, U) shows the values in the
+%   display units U of UNITSYSTEM (QUANTITYDISPLAY) and x, x_v and the axle
+%   positions in U.length; the column headers name the units.
 %
-%   See also RUNMOVINGLOAD, REACTIONENVELOPETABLEDATA.
+%   See also RUNMOVINGLOAD, REACTIONENVELOPETABLEDATA, UNITSYSTEM.
 
-columns = {'Quantity', 'Extreme', 'Value', 'x [m]', 'x_v [m]', 'Axles on bridge [m]', 'Coarse value'};
-labels = struct('M', 'Moment M [kN*m]', 'V', 'Shear V [kN]', 'v', 'Deflection v [mm]');
-scales = struct('M', 1e-3, 'V', 1e-3, 'v', 1e3);
+if nargin < 2 || isempty(U)
+    U = unitSystem('SI');
+end
+len = U.length;
+columns = {'Quantity', 'Extreme', 'Value', sprintf('x [%s]', len.unit), sprintf('x_v [%s]', len.unit), ...
+    sprintf('Axles on bridge [%s]', len.unit), 'Coarse value'};
 c = ml.critical;
 data = cell(numel(c), numel(columns));
 for k = 1:numel(c)
-    s = scales.(c(k).quantity);
-    axles = strjoin(arrayfun(@(v) sprintf('%.2f', v), c(k).axleX, 'UniformOutput', false), ', ');
+    q = quantityDisplay(c(k).quantity, U);
+    s = q.scale;
+    axles = strjoin(arrayfun(@(v) sprintf('%.2f', v / len.toSI), c(k).axleX, 'UniformOutput', false), ', ');
     if isempty(axles)
         axles = '(none)';
     end
-    data(k, :) = {labels.(c(k).quantity), c(k).extreme, formatNumber(c(k).value * s, 3), ...
-        formatNumber(c(k).x, 3), formatNumber(c(k).xv, 3), axles, formatNumber(c(k).coarseValue * s, 3)};   % no -0.000
+    data(k, :) = {sprintf('%s [%s]', q.label, q.unit), c(k).extreme, formatNumber(c(k).value * s, 3), ...
+        formatNumber(c(k).x / len.toSI, 3), formatNumber(c(k).xv / len.toSI, 3), axles, ...
+        formatNumber(c(k).coarseValue * s, 3)};   % no -0.000
 end
 end

@@ -1,25 +1,36 @@
-function [data, columns] = reactionEnvelopeTableData(ml, x)
+function [data, columns] = reactionEnvelopeTableData(ml, x, U)
 %REACTIONENVELOPETABLEDATA Maximum and minimum reactions over all vehicle positions, as table text.
 %   [DATA, COLUMNS] = REACTIONENVELOPETABLEDATA(ML, X) returns one row per
 %   restrained DOF of the moving-load result ML (RUNMOVINGLOAD): node,
-%   coordinate (from node coordinates X), component, maximum and minimum
+%   coordinate (from node coordinates X [m]), component, maximum and minimum
 %   value and the front-axle position x_v that causes each. Forces are in
-%   kN (+ up) and couples in kN*m (+ counterclockwise).
+%   kN (+ up), couples in kN*m (+ counterclockwise), x and x_v in m.
+%   [DATA, COLUMNS] = REACTIONENVELOPETABLEDATA(ML, X, U) shows forces in
+%   U.force, couples in U.moment and x, x_v in U.length (display units U of
+%   UNITSYSTEM; X stays in m); the column headers and components name the
+%   units.
 %
-%   See also RUNMOVINGLOAD, CRITICALTABLEDATA.
+%   See also RUNMOVINGLOAD, CRITICALTABLEDATA, UNITSYSTEM.
 
-columns = {'Node', 'x [m]', 'Component', 'Max', 'at x_v [m]', 'Min', 'at x_v [m]'};
+if nargin < 3 || isempty(U)
+    U = unitSystem('SI');
+end
+len = U.length;
+columns = {'Node', sprintf('x [%s]', len.unit), 'Component', 'Max', sprintf('at x_v [%s]', len.unit), 'Min', ...
+    sprintf('at x_v [%s]', len.unit)};
 r = ml.reactions;
 n = numel(r.dof);
 data = cell(n, numel(columns));
 for k = 1:n
     if strcmp(r.component{k}, 'Fv')
-        label = 'force [kN]';
+        u = U.force;
+        label = sprintf('force [%s]', u.unit);
     else
-        label = 'couple [kN*m]';
+        u = U.moment;
+        label = sprintf('couple [%s]', u.unit);
     end
-    data(k, :) = {sprintf('%d', r.node(k)), sprintf('%.3f', x(r.node(k))), label, ...
-        formatNumber(r.Rmax(k) / 1e3, 3), formatNumber(r.RmaxXv(k), 3), ...
-        formatNumber(r.Rmin(k) / 1e3, 3), formatNumber(r.RminXv(k), 3)};   % no -0.000
+    data(k, :) = {sprintf('%d', r.node(k)), sprintf('%.3f', x(r.node(k)) / len.toSI), label, ...
+        formatNumber(r.Rmax(k) / u.toSI, 3), formatNumber(r.RmaxXv(k) / len.toSI, 3), ...
+        formatNumber(r.Rmin(k) / u.toSI, 3), formatNumber(r.RminXv(k) / len.toSI, 3)};   % no -0.000
 end
 end

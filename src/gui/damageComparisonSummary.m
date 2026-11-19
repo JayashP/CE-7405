@@ -1,4 +1,4 @@
-function lines = damageComparisonSummary(cmp, model)
+function lines = damageComparisonSummary(cmp, model, U)
 %DAMAGECOMPARISONSUMMARY Plain-language findings of a healthy vs damaged comparison.
 %   LINES = DAMAGECOMPARISONSUMMARY(CMP, MODEL) returns a cell column of
 %   text lines for the app's Damage tab, from the COMPAREHEALTHYDAMAGED
@@ -11,9 +11,16 @@ function lines = damageComparisonSummary(cmp, model)
 %        its magnitude grew or shrank;
 %     3. the largest change of a vertical reaction (or that none changed to
 %        the 0.001 kN shown).
+%   LINES = DAMAGECOMPARISONSUMMARY(CMP, MODEL, U) states the values in the
+%   display units U of UNITSYSTEM (QUANTITYDISPLAY; reactions in U.force,
+%   unchanged meaning less than the 0.001 U.force shown).
 %
-%   See also COMPAREHEALTHYDAMAGED, DAMAGECOMPARISONTABLEDATA.
+%   See also COMPAREHEALTHYDAMAGED, DAMAGECOMPARISONTABLEDATA, UNITSYSTEM.
 
+if nargin < 3 || isempty(U)
+    U = unitSystem('SI');
+end
+force = U.force;
 [~, restrained] = partitionDofs(model);
 degree = numel(restrained) - 2;
 if degree == 0
@@ -32,7 +39,7 @@ if isempty(i) || ~isfinite(largest) || round(100 * largest) == 0
     lines{end+1, 1} = 'Largest change of an extreme: none (to the decimals shown).';
 else
     c = cmp.critical(i);
-    q = quantityDisplay(c.quantity);
+    q = quantityDisplay(c.quantity, U);
     trend = 'smaller magnitude';
     if abs(c.damaged) > abs(c.healthy)
         trend = 'larger magnitude';
@@ -43,7 +50,8 @@ else
 end
 
 best = 0;
-text = 'Vertical reactions: unchanged (to 0.001 kN).';
+text = sprintf('Vertical reactions: unchanged (to 0.001 %s).', force.unit);
+shown = 1e-3 * force.toSI;                  % the last decimal shown, 0.001 of the display unit, in N (1 for kN)
 for k = 1:numel(cmp.reactions)
     r = cmp.reactions(k);
     if ~strcmp(r.component, 'Fv')
@@ -53,10 +61,11 @@ for k = 1:numel(cmp.reactions)
         'min', r.healthyMin, r.damagedMin, r.changeMin, r.pctChangeMin};
     for j = 1:2
         change = abs(pairs{j, 4});
-        if round(change) > 0 && change > best      % at least 0.5 N, i.e. 0.001 kN when shown
+        if round(change / shown) > 0 && change > best    % shown as at least 0.001 (0.5 N or more for kN)
             best = change;
-            text = sprintf('Largest reaction change: node %d %s, %s -> %s kN (%s %%).', r.node, pairs{j, 1}, ...
-                formatNumber(pairs{j, 2} / 1e3, 3), formatNumber(pairs{j, 3} / 1e3, 3), formatNumber(pairs{j, 5}, 2, true));
+            text = sprintf('Largest reaction change: node %d %s, %s -> %s %s (%s %%).', r.node, pairs{j, 1}, ...
+                formatNumber(pairs{j, 2} / force.toSI, 3), formatNumber(pairs{j, 3} / force.toSI, 3), force.unit, ...
+                formatNumber(pairs{j, 5}, 2, true));
         end
     end
 end

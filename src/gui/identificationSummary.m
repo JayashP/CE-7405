@@ -1,4 +1,4 @@
-function [lines, flags] = identificationSummary(result, truth)
+function [lines, flags] = identificationSummary(result, truth, U)
 %IDENTIFICATIONSUMMARY Plain-language result of the Stage 3 search, for the app.
 %   LINES = IDENTIFICATIONSUMMARY(RESULT) returns a cell column of text
 %   lines describing an IDENTIFYSINGLEDAMAGE RESULT: the method, the best
@@ -11,12 +11,22 @@ function [lines, flags] = identificationSummary(result, truth)
 %   limit how far the result can be trusted (ratio method, damage not ruled
 %   out, healthy model in the region, failed fit check, search limit, RCC),
 %   so the app can show them next to the best fit.
+%   [...] = IDENTIFICATIONSUMMARY(RESULT, TRUTH, U) states coordinates in
+%   U.length and the RMSE and absolute noise in U.deflection (display units
+%   U of UNITSYSTEM; TRUTH may be [] when there is no synthetic case).
 %
-%   See also IDENTIFYSINGLEDAMAGE, SYNTHETICOBSERVATIONS.
+%   See also IDENTIFYSINGLEDAMAGE, SYNTHETICOBSERVATIONS, UNITSYSTEM.
 
 if nargin < 2
     truth = [];
 end
+if nargin < 3 || isempty(U)
+    U = unitSystem('SI');
+end
+L = U.length.toSI;
+lu = U.length.unit;
+perM = 1 / U.deflection.toSI;                % deflection display units per m (1000 for mm, exactly)
+du = U.deflection.unit;
 likelihood = strcmp(result.method, 'likelihood');
 lines = {};
 flags = cell(0, 1);
@@ -26,7 +36,7 @@ if likelihood
         parts{end+1} = sprintf('%g %% of each reading', 100 * result.noiseLevel);
     end
     if ~isempty(result.noiseAbsolute) && result.noiseAbsolute > 0
-        parts{end+1} = sprintf('%g mm', 1e3 * result.noiseAbsolute);
+        parts{end+1} = sprintf('%g %s', perM * result.noiseAbsolute, du);
     end
     lines{end+1, 1} = sprintf('Method: noise-based region (%g %% likelihood ratio), stated noise %s; %d readings, %d structures analysed.', ...
         100 * result.confidence, strjoin(parts, ' + '), result.m, result.nStructures);
@@ -41,12 +51,12 @@ ranking = 'smallest RMSE';
 if likelihood
     ranking = 'smallest noise-weighted misfit S';
 end
-regions = strjoin(arrayfun(@(k) sprintf('%g-%g m', result.uncertaintyRegions(k, 1), result.uncertaintyRegions(k, 2)), ...
-    1:size(result.uncertaintyRegions, 1), 'UniformOutput', false), ', ');
+regions = strjoin(arrayfun(@(k) sprintf('%g-%g %s', result.uncertaintyRegions(k, 1) / L, ...
+    result.uncertaintyRegions(k, 2) / L, lu), 1:size(result.uncertaintyRegions, 1), 'UniformOutput', false), ', ');
 if result.damageDetected
-    lines{end+1, 1} = sprintf('Best fit (%s): %s (x = %g-%g m), loss d = %s %% (remaining EI x %s), RMSE %s mm, J_N %s %%.', ...
-        ranking, elementText(b.elements), b.x(1), b.x(2), formatNumber(100 * b.d, 1), formatNumber(1 - b.d, 3), ...
-        formatNumber(1e3 * b.J, 4), formatNumber(100 * b.JN, 2));
+    lines{end+1, 1} = sprintf('Best fit (%s): %s (x = %g-%g %s), loss d = %s %% (remaining EI x %s), RMSE %s %s, J_N %s %%.', ...
+        ranking, elementText(b.elements), b.x(1) / L, b.x(2) / L, lu, formatNumber(100 * b.d, 1), formatNumber(1 - b.d, 3), ...
+        formatNumber(perM * b.J, 4), du, formatNumber(100 * b.JN, 2));
     lines{end+1, 1} = sprintf('Region of uncertainty: %s (%d candidate region(s)); loss in the best region %s-%s %%.', ...
         regions, numel(result.competing), formatNumber(100 * result.dRange(1), 1), formatNumber(100 * result.dRange(2), 1));
     mr = result.minRMSE;
@@ -54,13 +64,14 @@ if result.damageDetected
         if mr.group == 0
             what = 'no damage';
         else
-            what = sprintf('%s (x = %g-%g m), d = %s %%', elementText(mr.elements), mr.x(1), mr.x(2), formatNumber(100 * mr.d, 1));
+            what = sprintf('%s (x = %g-%g %s), d = %s %%', elementText(mr.elements), mr.x(1) / L, mr.x(2) / L, lu, ...
+                formatNumber(100 * mr.d, 1));
         end
-        lines{end+1, 1} = sprintf(['Minimum-RMSE candidate (spec section 7 ranking): %s, RMSE %s mm. It differs because ' ...
-            'the noise-weighted fit gives small readings their due weight.'], what, formatNumber(1e3 * mr.J, 4));
+        lines{end+1, 1} = sprintf(['Minimum-RMSE candidate (spec section 7 ranking): %s, RMSE %s %s. It differs because ' ...
+            'the noise-weighted fit gives small readings their due weight.'], what, formatNumber(perM * mr.J, 4), du);
     end
 else
-    lines{end+1, 1} = sprintf('Best fit: NO DAMAGE (the healthy model fits best), RMSE %s mm.', formatNumber(1e3 * b.J, 4));
+    lines{end+1, 1} = sprintf('Best fit: NO DAMAGE (the healthy model fits best), RMSE %s %s.', formatNumber(perM * b.J, 4), du);
     if ~isempty(result.competing)
         dMax = max(arrayfun(@(c) c.dRange(2), result.competing));
         lines{end+1, 1} = sprintf('Damage cannot be ruled out in: %s (%d candidate region(s), loss up to %s %%).', ...
@@ -101,9 +112,9 @@ if ~isempty(truth)
     if truth.d > 0
         inside = any(result.uncertaintyRegions(:, 1) <= truth.x(1) + 1e-9 & result.uncertaintyRegions(:, 2) >= truth.x(2) - 1e-9);
         covers = result.damageDetected && b.x(1) <= truth.x(1) + 1e-9 && b.x(2) >= truth.x(2) - 1e-9;
-        lines{end+1, 1} = sprintf(['Synthetic test case (hidden from the search): %s (x = %g-%g m), d = %g %%, noise %g %%, ' ...
+        lines{end+1, 1} = sprintf(['Synthetic test case (hidden from the search): %s (x = %g-%g %s), d = %g %%, noise %g %%, ' ...
             'seed %d. True region inside the reported region: %s. Best-fit region contains the true region: %s.'], ...
-            elementText(truth.elements), truth.x(1), truth.x(2), 100 * truth.d, 100 * truth.noise, truth.seed, ...
+            elementText(truth.elements), truth.x(1) / L, truth.x(2) / L, lu, 100 * truth.d, 100 * truth.noise, truth.seed, ...
             yesNo(inside), yesNo(covers));
         if result.damageDetected && numel(b.elements) > numel(truth.elements)
             lines{end+1, 1} = ['The candidate regions are longer than the hidden region: the best-fit loss is spread ' ...

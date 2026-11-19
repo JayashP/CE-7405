@@ -1,4 +1,4 @@
-function p = fitProfileData(result, model)
+function p = fitProfileData(result, model, U)
 %FITPROFILEDATA How well each candidate region fits, for the Stage 3 bar chart.
 %   P = FITPROFILEDATA(RESULT, MODEL) turns an IDENTIFYSINGLEDAMAGE RESULT
 %   into one value per candidate group (fields are column vectors):
@@ -12,10 +12,15 @@ function p = fitProfileData(result, model)
 %   label, TeX), ratio (true for the ratio method) and bestGroup (the
 %   best-fit group, 0 when the healthy model fits best).
 %   A group is in the region when value <= threshold.
+%   P = FITPROFILEDATA(RESULT, MODEL, U) gives x1 and x2 in U.length (display
+%   units U of UNITSYSTEM); the other fields do not depend on U.
 %
-%   See also IDENTIFYSINGLEDAMAGE, PLOTFITPROFILE.
+%   See also IDENTIFYSINGLEDAMAGE, PLOTFITPROFILE, UNITSYSTEM.
 
-x = model.nodes.x;
+if nargin < 3 || isempty(U)
+    U = unitSystem('SI');
+end
+x = model.nodes.x / U.length.toSI;
 ev = result.evaluated;
 nG = numel(result.groups);
 p.x1 = zeros(nG, 1);

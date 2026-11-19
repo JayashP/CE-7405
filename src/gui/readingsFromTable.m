@@ -1,4 +1,4 @@
-function uObs = readingsFromTable(data, nSensors, nPositions)
+function uObs = readingsFromTable(data, nSensors, nPositions, U)
 %READINGSFROMTABLE Observed deflections [m] from the Stage 3 readings table [mm].
 %   UOBS = READINGSFROMTABLE(DATA, NSENSORS, NPOSITIONS) checks that DATA
 %   (numeric, one row per sensor, one column per truck position, in mm,
@@ -6,9 +6,15 @@ function uObs = readingsFromTable(data, nSensors, nPositions)
 %   returns the readings in m. A table of the wrong size (sensors or
 %   positions changed after the readings were entered) or with Inf throws
 %   'BridgeFE:invalidInput'.
+%   UOBS = READINGSFROMTABLE(DATA, NSENSORS, NPOSITIONS, U) reads DATA in
+%   U.deflection (display units U of UNITSYSTEM, e.g. in for 'US'); UOBS is
+%   still in m.
 %
-%   See also IDENTIFYSINGLEDAMAGE.
+%   See also IDENTIFYSINGLEDAMAGE, UNITSYSTEM.
 
+if nargin < 4 || isempty(U)
+    U = unitSystem('SI');
+end
 if iscell(data)
     data = cellfun(@cellToNumber, data);
 end
@@ -17,9 +23,11 @@ if ~(isnumeric(data) && isreal(data) && isequal(size(data), [nSensors nPositions
         'positions); press "Generate synthetic readings" or "New empty table" after changing them.'], nSensors, nPositions);
 end
 if any(isinf(data(:)))
-    error('BridgeFE:invalidInput', 'Readings must be finite numbers in mm (leave a cell empty if it is missing).');
+    error('BridgeFE:invalidInput', 'Readings must be finite numbers in %s (leave a cell empty if it is missing).', ...
+        U.deflection.unit);
 end
-uObs = double(data) / 1000;
+perM = 1 / U.deflection.toSI;                % deflection display units per m (1000 for mm, exactly)
+uObs = double(data) / perM;
 end
 
 function v = cellToNumber(c)

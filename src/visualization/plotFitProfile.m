@@ -1,4 +1,4 @@
-function plotFitProfile(ax, p, x, th)
+function plotFitProfile(ax, p, x, th, U)
 %PLOTFITPROFILE Bar chart of how well each candidate region fits (Stage 3).
 %   PLOTFITPROFILE(AX, P, X, TH) clears AX and draws one bar per candidate
 %   region of FITPROFILEDATA result P over its x-range (beam nodes X [m],
@@ -11,9 +11,15 @@ function plotFitProfile(ax, p, x, th)
 %   the regions near the limit stay readable. For the ratio method the bars
 %   start at 1 (RMSE / best RMSE). No object has hidden handles, so the
 %   next CLA removes everything.
+%   PLOTFITPROFILE(AX, P, X, TH, U) labels the x axis in U.length (display
+%   units U of UNITSYSTEM). P and X must already be in that unit:
+%   FITPROFILEDATA(RESULT, MODEL, U) and MODEL.nodes.x / U.length.toSI.
 %
-%   See also FITPROFILEDATA, IDENTIFYSINGLEDAMAGE.
+%   See also FITPROFILEDATA, IDENTIFYSINGLEDAMAGE, UNITSYSTEM.
 
+if nargin < 5 || isempty(U)
+    U = unitSystem('SI');
+end
 base = 0;
 if p.ratio
     base = 1;
@@ -63,6 +69,6 @@ grid(ax, 'on');
 xlim(ax, [x(1), x(end)]);
 top = cap * 1.05 + (cap == base);
 ylim(ax, [base - 0.05 * (top - base), top]);   % room for the star of the best fit on the axis
-xlabel(ax, 'candidate region x [m]');
+xlabel(ax, sprintf('candidate region x [%s]', U.length.unit));
 ylabel(ax, p.label);
 end
