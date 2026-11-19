@@ -6,7 +6,10 @@
 %   U = SI every output is ISEQUAL to the call without U (the output before
 %   M9); with U = US every number shown equals the SI quantity converted
 %   (read back with str2double, within the rounding of the shown decimals)
-%   and every header, label and summary line names US units. The plot
+%   and every header, label and summary line names US units. Minimum
+%   reactions are also checked on a two-span beam whose end supports lift
+%   off, since on the propped cantilever they are all 0 and 0 reads the same
+%   in every unit. The plot
 %   functions draw into RecordingAxes (tests/helpers), which records the
 %   drawn data and texts without a window.
 SI = unitSystem('SI');
@@ -18,6 +21,13 @@ truck = createVehicle([80e3 120e3 120e3], [4.2 1.4]);         % spec 3-axle exam
 propped = createBeamModel(generateUniformMesh(20, 8), 2e9);   % 2.5 m elements, fixed at x = 0
 propped = addSupport(propped, 1, 'fixed');
 propped = addSupport(propped, 9, 'roller');
+% two spans 12 m + 15 m, pin / roller / roller: the end supports lift off (minimum reactions < 0), which the
+% propped cantilever never does (all its minimum reactions are 0, and 0 reads the same in any unit)
+[xTwo, xsTwo] = meshSpans([12 15], [8 10]);
+twoSpan = createBeamModel(xTwo, 2e9);
+twoSpan = addSupport(twoSpan, findNodeAtX(twoSpan, xsTwo(1)), 'pin');
+twoSpan = addSupport(twoSpan, findNodeAtX(twoSpan, xsTwo(2)), 'roller');
+twoSpan = addSupport(twoSpan, findNodeAtX(twoSpan, xsTwo(3)), 'roller');
 % text shown with DECIMALS fixed decimals (FORMATNUMBER) or with %g (6 significant digits) reads VALUE
 showsFixed = @(text, value, decimals) abs(str2double(text) - value) <= 0.5 * 10^(-decimals) + 1e-9 * max(1, abs(value));
 showsG = @(text, value) abs(str2double(text) - value) <= 5e-6 * abs(value) + 1e-12;
@@ -128,6 +138,31 @@ assert(isequal(t(:, [1 3]), t0(:, [1 3])) && showsFixed(t{1, 2}, 0, 3) && showsF
 reportComparisons('US reaction table at x_v = 12 m: forces add up to the truck', ...
     compareToReference('sum of shown forces [kip] = 320 kN / kip', str2double(t{1, 4}) + str2double(t{2, 4}), ...
     320e3 / kip, 0.01));
+% Two-span beam: the end supports lift off, so the Min column and its x_v are not all zero
+ml = runMovingLoad(twoSpan, truck, 'Step', 0.5);
+R = ml.reactions;
+assert(isequal(R.component(:)', {'Fv', 'Fv', 'Fv'}) && sum(R.Rmin < -kip) == 2 && sum(R.RminXv > 1) == 2, ...
+    'two-span beam: both end supports lift off by more than 1 kip (so the Min factor matters)');
+[r0, rc0] = reactionEnvelopeTableData(ml, xTwo);
+[rSI, rcSI] = reactionEnvelopeTableData(ml, xTwo, SI);
+assert(isequal(rSI, r0) && isequal(rcSI, rc0), 'two-span envelope table: SI = call without U');
+[r, rc] = reactionEnvelopeTableData(ml, xTwo, US);
+assert(isequal(rc, {'Node', 'x [ft]', 'Component', 'Max', 'at x_v [ft]', 'Min', 'at x_v [ft]'}), 'US headers');
+for k = 1:numel(R.dof)
+    assert(strcmp(r{k, 1}, r0{k, 1}) && strcmp(r{k, 3}, 'force [kip]'), 'two-span row %d: node and component', k);
+    assert(showsFixed(r{k, 2}, xTwo(R.node(k)) / ft, 3) && showsFixed(r{k, 5}, R.RmaxXv(k) / ft, 3) ...
+        && showsFixed(r{k, 7}, R.RminXv(k) / ft, 3), 'two-span row %d: x and x_v in ft', k);
+    assert(showsFixed(r{k, 4}, R.Rmax(k) / kip, 3) && showsFixed(r{k, 6}, R.Rmin(k) / kip, 3), ...
+        'two-span row %d: max and min in kip', k);
+    % the SI table converted by hand: 0.001 kN rounding (0.0005 kN) plus 0.001 kip rounding (0.0005 kip)
+    assert(abs(str2double(r{k, 6}) - str2double(r0{k, 6}) * 1e3 / kip) <= 0.0005 * (1e3 / kip + 1) + 1e-9 ...
+        && abs(str2double(r{k, 4}) - str2double(r0{k, 4}) * 1e3 / kip) <= 0.0005 * (1e3 / kip + 1) + 1e-9, ...
+        'two-span row %d: US = SI table / (kip / kN)', k);
+end
+fprintf('  two-span Min [kN]: %s; [kip]: %s\n', strjoin(r0(:, 6)', ' / '), strjoin(r(:, 6)', ' / '));
+reportComparisons('US reaction envelope, two-span beam: minimum (lift-off) at the end supports', [ ...
+    compareToReference('node 1 Min [kip] = Rmin / kip', str2double(r{1, 6}), R.Rmin(1) / kip, 0.01), ...
+    compareToReference('node 19 Min [kip] = Rmin / kip', str2double(r{3, 6}), R.Rmin(3) / kip, 0.02)]);
 
 %% Damage comparison table and findings: extremes and reactions in US units, percentages unchanged
 damaged = applyStiffnessDamage(propped, 1:2, 0.5);
@@ -188,6 +223,62 @@ if strcmp(tok{2}, 'min')
 end
 assert(showsFixed(tok{3}, before / kip, 3) && showsFixed(tok{4}, after / kip, 3), 'largest reaction change in kip');
 fprintf('  PASS SI unchanged; %d US rows and the findings = SI quantities / factor; percentages unchanged\n', size(d, 1));
+% Two-span beam, EI loss next to the middle support: the minimum (lift-off) reactions at the end supports are
+% not zero and change, so the min rows and the findings test the force factor (on the propped cantilever all are 0)
+damaged = applyStiffnessDamage(twoSpan, 13:14, 0.5);
+cmp = compareHealthyDamaged(twoSpan, damaged, truck, 'Step', 0.5);
+assert(isequal({cmp.reactions.component}, {'Fv', 'Fv', 'Fv'}), 'two-span beam: three vertical reactions');
+assert(sum(abs([cmp.reactions.healthyMin]) > kip & abs([cmp.reactions.damagedMin]) > kip ...
+    & abs([cmp.reactions.changeMin]) > 0.1 * kip) == 2, ...
+    'two-span beam: both end supports lift off by more than 1 kip and their minimum changes by more than 0.1 kip');
+[d0, c0] = damageComparisonTableData(cmp);
+[dSI, cSI] = damageComparisonTableData(cmp, SI);
+assert(isequal(dSI, d0) && isequal(cSI, c0), 'two-span: SI = call without U');
+[d, c] = damageComparisonTableData(cmp, US);
+assert(isequal(c, c0) && isequal(size(d), size(d0)) && isequal(d(:, 5), d0(:, 5)) ...
+    && size(d, 1) == numel(cmp.critical) + 6, 'two-span: headers, percentages and rows do not depend on the units');
+for k = 1:numel(cmp.critical)
+    cr = cmp.critical(k);
+    f = factor.(cr.quantity);
+    assert(showsFixed(d{k, 2}, cr.healthy / f, 3) && showsFixed(d{k, 3}, cr.damaged / f, 3) ...
+        && showsFixed(d{k, 4}, cr.change / f, 3), 'two-span extreme row %d in US units', k);
+end
+row = numel(cmp.critical);
+tolSum = 0.0005 * (1e3 / kip + 1) + 1e-9;    % 0.001 kN rounding (0.0005 kN) plus 0.001 kip rounding (0.0005 kip)
+for k = 1:numel(cmp.reactions)
+    rr = cmp.reactions(k);
+    assert(strcmp(d{row + 1, 1}, sprintf('Reaction at node %d max [kip]', rr.node)) ...
+        && showsFixed(d{row + 1, 2}, rr.healthyMax / kip, 3) && showsFixed(d{row + 1, 3}, rr.damagedMax / kip, 3) ...
+        && showsFixed(d{row + 1, 4}, rr.changeMax / kip, 3), 'two-span node %d max reaction in kip', rr.node);
+    assert(strcmp(d{row + 2, 1}, sprintf('Reaction at node %d min [kip]', rr.node)) ...
+        && showsFixed(d{row + 2, 2}, rr.healthyMin / kip, 3) && showsFixed(d{row + 2, 3}, rr.damagedMin / kip, 3) ...
+        && showsFixed(d{row + 2, 4}, rr.changeMin / kip, 3), 'two-span node %d min reaction in kip', rr.node);
+    for col = 2:4                                % the SI table converted by hand, max and min rows
+        assert(abs(str2double(d{row + 1, col}) - str2double(d0{row + 1, col}) * 1e3 / kip) <= tolSum ...
+            && abs(str2double(d{row + 2, col}) - str2double(d0{row + 2, col}) * 1e3 / kip) <= tolSum, ...
+            'two-span node %d, column %d: US = SI table / (kip / kN)', rr.node, col);
+    end
+    row = row + 2;
+end
+lines0 = damageComparisonSummary(cmp, twoSpan);
+assert(isequal(damageComparisonSummary(cmp, twoSpan, SI), lines0), 'two-span findings: SI = call without U');
+lines = damageComparisonSummary(cmp, twoSpan, US);
+fprintf('  %s\n', lines{:});
+tok = regexp(lines{3}, 'node (\d+) (max|min), (\S+) -> (\S+) kip \(', 'tokens', 'once');
+tok0 = regexp(lines0{3}, 'node (\d+) (max|min), (\S+) -> (\S+) kN \(', 'tokens', 'once');
+assert(numel(tok) == 4 && isequal(tok(1:2), tok0(1:2)) && strcmp(tok{2}, 'min'), ...
+    'two-span findings: the largest reaction change is a minimum (lift-off), named as in SI');
+rr = cmp.reactions([cmp.reactions.node] == str2double(tok{1}));
+assert(showsFixed(tok{3}, rr.healthyMin / kip, 3) && showsFixed(tok{4}, rr.damagedMin / kip, 3), ...
+    'two-span findings: largest (minimum) reaction change in kip');
+reportComparisons('US damage comparison, two-span beam: minimum reaction at node 1 (lift-off)', [ ...
+    compareToReference('healthy min [kip] = healthyMin / kip', str2double(d{numel(cmp.critical) + 2, 2}), ...
+    cmp.reactions(1).healthyMin / kip, 0.01), ...
+    compareToReference('damaged min [kip] = damagedMin / kip', str2double(d{numel(cmp.critical) + 2, 3}), ...
+    cmp.reactions(1).damagedMin / kip, 0.01), ...
+    compareToReference('change of min [kip] = changeMin / kip', str2double(d{numel(cmp.critical) + 2, 4}), ...
+    cmp.reactions(1).changeMin / kip, 0.05)]);
+fprintf('  PASS two-span: non-zero min rows and the findings in kip = SI quantities / factor\n');
 
 %% Findings: a reaction change below the last decimal shown in the chosen force unit counts as unchanged
 same = compareHealthyDamaged(propped, propped, truck, 'Step', 1);
