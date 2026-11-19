@@ -40,7 +40,7 @@ checkBridgeConditionApp(true)        % optional: scripted check of the app again
 
 The app has no calculations of its own: every number comes from the tested functions in `src/` (DECISIONS.md D-023).
 
-Choose the unit system first (top of the Bridge model tab): **SI** (m, kN, GPa, mm) or **US customary** (ft, kip, ksi, in). Every input and result follows it; the engine always works in SI. Enter the spans in the span table (**+ Add span** adds a row), pick a type for each support A, B, C, ... (Pin, Roller, Fixed, Free), then press **Apply model**. On the Vehicle tab, pick a preset or edit the axle table, then press **Apply vehicle**.
+Choose the unit system first (top of the Bridge model tab): **SI** (m, kN, GPa, mm) or **US customary** (ft, kip, ksi, in). Every input and result follows it; the engine always works in SI. A switch is refused while a span, support or axle entry is invalid: correct it first. Enter the spans in the span table (**+ Add span** adds a row), pick a type for each support A, B, C, ... (Pin, Roller, Fixed, Free), then press **Apply model**. The box under the drawing summarises the model and states what it is and is not (2D beam, pin = roller in bending, not a load rating). On the Vehicle tab, pick a preset or edit the axle table, then press **Apply vehicle**.
 
 Tabs: Bridge model · Vehicle & moving load · Envelopes · Damage (Stage 2) · Identification (Stage 3) · Matrices · Verification. On the Damage tab, choose a region by its first and last node and a loss d in %, press **Apply damage**, then **Compare healthy vs damaged** or **Run sensitivity** (DECISIONS.md D-026). d is a loss of model flexural rigidity, not a measure of real damage.
 

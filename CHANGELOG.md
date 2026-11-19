@@ -16,7 +16,18 @@ Input redesign requested by the user (DECISIONS.md D-031): tables and drop-downs
   - Damage and Identification tabs: regions chosen on node drop-downs; support drop-down for the reaction sensitivity.
   - Every input and result in the chosen units. A unit switch converts every input (12 significant digits) and restores inputs not edited since the last switch exactly, so SI -> US -> SI gives the same model.
   - Support letters drawn under the span ends.
-- Tests: `tests/testUnitsDisplay.m`, `tests/testInputTables.m`, `tests/helpers/RecordingAxes.m`; app check rewritten for the new controls (74 rows without the in-app test run); M9a/M9b mutants.
+- Tests: `tests/testUnitsDisplay.m`, `tests/testInputTables.m`, `tests/helpers/RecordingAxes.m`; app check rewritten for the new controls (88 rows without the in-app test run); M9a/M9b mutants; 29 app mutants against the app check.
+
+### Fixed (independent review of the integration)
+- A unit switch with an invalid model or vehicle input left the sensor text, the node drop-downs and (with both invalid) the slider in the old units under new labels. The switch is now refused until the input is corrected.
+- The Identification readings tab kept the title "Readings [mm]" in US units (the table holds inches).
+- A switch could swap E between the steel and RCC defaults when E equalled the other material's default.
+- After an added axle or span, the switch back no longer restored the unedited rows exactly (80.0000000001 kN).
+- Emptied result tables kept SI headers after a switch; the reading-noise tooltip and the empty-table hint said mm.
+- A sensor typed at the beam end as displayed (e.g. 65.6168 ft) was refused; it is now accepted and placed at the end.
+- The app's table reader took numeric text as a number while Apply rejected it; both now treat text as not a number.
+- Layout: the modelling notes had about 9 px on the user's window; they now sit under the model summary. Left panels scroll; the preset drop-down spans the panel; numeric fields show 6 digits instead of '2.901e+04'.
+- App check: 13 gaps found by app mutants (slider, presets, add axle, sensors, noise and sweep step in US units; reaction envelope and supports tables; diagram x; Free support in the Rmax drop-down; hidden region apart from the damage region; errors reported by callbacks).
 
 ### Changed
 - `appTheme`: MATLAB-style colours (light grey window, white panels, blue #0072BD buttons; lines in blue, orange, purple and dark red; yellow only as a fill). Field names unchanged. Slides keep the sage theme.
