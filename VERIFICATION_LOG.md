@@ -1314,3 +1314,15 @@ The user's MATLAB screenshot after a zoom on the beam drawing (a 5 + 5 ft model 
 | Code version | Branch `claude/m9c-polish` at `ab8ca34` (the warning points to line 169 of the check, which is line 171 from `3ac60ac` on): every M9c change except the label clipping |
 | App check | `checkBridgeConditionApp(true)`: **every row PASS** and no error at the end, including "direction or step edited: the status asks for Apply vehicle; the slider has round ticks (-x crossing, from below 0)", "preset chosen: the status asks for Apply vehicle; after it: Vehicle applied: ...", "US: slider ticks are round ...", "41 callbacks invoked (buttons, fields, tables, slider, tabs) without an error thrown or reported, after a valid set-up" (40 + the in-app "Run all tests") and "Verification tab: test suite reports 0 failed". Only the deliberate unit-slip warning. Screenshots: `results/verification/2026-11-19_M9c_matlab_checkBridgeConditionApp_part1.png` to `..._part4.png` |
 | Still to see | The label-clipping commit `3ac60ac` (one more check row; zoom on the beam drawing) and the app screenshots of the Vehicle and Identification tabs |
+
+### V-028 part 2 (2026-11-19): the M9c app in MATLAB (screenshots by the user, after pulling `3ac60ac`)
+
+Model: spans 20 m + 10 m (16 elements each), A Pin, B and C Roller, steel.
+
+| Screen | Seen in MATLAB | Result |
+|---|---|---|
+| Vehicle, US, HL-93 chosen but not applied (`..._M9c_matlab_app_vehicle_US_preset_edited.png`) | Status "Vehicle edited: press "Apply vehicle" to use it (the drawing shows the applied vehicle)."; the drawing still shows the applied spec truck; vehicle name shown in full; slider labels 0, 20, ..., 100 ft (round, no end label); reaction table with all five headers ("Force [kip]", "Couple [kip*ft]") and no scroll bar, sign rule in the label above; R_A = 17.985 kip (the 80 kN front axle on A) | as designed |
+| Vehicle, SI, HL-93 applied (`..._vehicle_HL93_SI.png`) | 35.5858, 142.3431, 142.3431 kN at 4.2672 m; slider 0, 5, ..., 35 m; reaction table fits; R_A = 35.586 kN | as designed |
+| Identification, SI (`..._identification_SI.png`) | All five truck positions visible (7.5 15 22.5 30 37.5); hidden element 11 (12.5-13.75 m, 30 %) found: best fit element 11, d = 31.0 % (25.0-35.0), region of uncertainty elements 10-11, 661 structures | as designed |
+
+**New finding:** in the first screenshot the two rear axles of the spec truck, both off the bridge, are labelled "26.9771 k26.9771 kip": the labels overlap. Only on-bridge axles closer than 6 % of the span shared a label, and kip values have more digits than kN values. Fixed in `aacbc26`: neighbouring axles share one label when their labels would overlap (estimated from the label length), on and off the bridge. In kN every case drawn before stays the same. Not yet seen in MATLAB.
