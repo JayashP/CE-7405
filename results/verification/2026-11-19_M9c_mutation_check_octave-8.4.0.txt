@@ -28,3 +28,37 @@ MUTATION 39: M9c: reaction headers keep the sign rule
   exit=1 detected=yes
   via: US: reaction table header and position text in kip and ft (1 = yes)
 SUMMARY M9c: 9 / 9 detected
+
+=== Added after the user's zoom and US screenshots (commits 3ac60ac, aacbc26)
+--- tools/mutation_check.py, prefix M9c, tests/testGuiHelpers.m (labels clipped):
+MUTATION: M9c: drawing labels not clipped to the axes
+  exit=1 summary=[('11', '1')]
+  detected by: testGuiHelpers / Drawing and diagram labels are clipped to the axes, and peak labels face the inside of the plot
+MUTATION: M9c: diagram peak labels not clipped to the axes
+  exit=1 summary=[('11', '1')]
+  detected by: testGuiHelpers / Drawing and diagram labels are clipped to the axes, and peak labels face the inside of the plot
+MUTATION: M9c: peak labels face outwards
+  exit=1 summary=[('11', '1')]
+  detected by: testGuiHelpers / Drawing and diagram labels are clipped to the axes, and peak labels face the inside of the plot
+--- tools/mutation_check.py, axle-label rule, tests/testInputTables.m:
+MUTATION: M9b: close axles never share a label
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / Drawing: close axles share one label and the uniform-load label sits at the left end of its load
+MUTATION: M9c: axle label width estimate halved
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / Drawing: close axles share one label and the uniform-load label sits at the left end of its load
+MUTATION: M9c: no margin between axle labels
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / Drawing: close axles share one label and the uniform-load label sits at the left end of its load
+MUTATION: M9b: axle groups formed in table order, not left to right
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / Drawing: close axles share one label and the uniform-load label sits at the left end of its load
+MUTATION: M9b: off-bridge axles lose their labels
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / Drawing: close axles share one label and the uniform-load label sits at the left end of its load
+MUTATION: M9b: off-bridge axle labels always in kN
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / Drawing: close axles share one label and the uniform-load label sits at the left end of its load
+--- tools/app_mutation_check.py, app check:
+{"i": 39, "name": "M9c: drawing labels not clipped (app check)", "exit": 1, "detected": true, "fails": ["labels of the model, beam and M drawings are clipped to the axes (none left outside after a zoom) (1 = yes)   "], "errors": ["error: BridgeConditionApp driven through its inputs vs direct engine calls: 1 check(s) failed: labels of the model, beam and M drawings are clipped to", "error: called f
+SUMMARY 1 / 1 detected

@@ -1307,6 +1307,8 @@ These are MATLAB uitable behaviours that the Octave stand-ins cannot show.
 
 The user's MATLAB screenshot after a zoom on the beam drawing (a 5 + 5 ft model with B Free and HL-93 at x_v = 0.983 ft) showed node, element and axle labels outside the axes: MATLAB clips lines and patches to the axes but not text, by default. The numbers in that screenshot are right (B Free makes one 10 ft simple span: R_A = 8 x 9.017 / 10 = 7.214 kip, R_C = 0.786 kip, M = 8 x 0.983 x 9.017 / 10 = 7.09 kip*ft; the app shows 7.214, 0.786 and 7.089). Fix in `3ac60ac`: `renderDrawing` and `plotDiagram` draw text with `'Clipping', 'on'`; diagram peak labels sit on the side of their point that faces the plot. `testGuiHelpers` checks all 66 labels of a two-span drawing and the peak-label sides (3 mutants, all detected); the app check gains a row (93 rows, all PASS against the stand-ins).
 
+**Final M9c state in Octave (`aacbc26`, after the axle-label rule of V-028 part 2):** main suite **158 passed, 0 failed, 158 tests** (`results/verification/2026-11-19_M9c_final_octave-8.4.0_runAllTests.log`); app check **93/93 PASS** (`..._M9c_final_octave-8.4.0_gui_mock_check.log`); mutants added to `..._M9c_mutation_check_octave-8.4.0.txt`: 3 label-clipping faults (testGuiHelpers), 6 axle-label faults (testInputTables; 2 replace the retired 6 %-threshold faults) and 1 app-level clipping fault, **10/10 detected**.
+
 ## V-028 — 2026-11-19 — M9c in MATLAB (run by the user)
 
 | Item | Value |

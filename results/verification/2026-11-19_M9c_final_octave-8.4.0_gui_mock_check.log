@@ -1,0 +1,104 @@
+warning: RCC modulus E = 3.2e+19 Pa is outside the usual 10-70 GPa. Check the units (the engine expects Pa); the material was still created.
+warning: called from
+    defineMaterial at line 68 column 5
+    buildModelFromTables at line 130 column 10
+    applyModelInputs at line 100 column 31
+    checkBridgeConditionApp at line 171 column 4
+    runGuiMockCheck at line 23 column 1
+
+
+BridgeConditionApp driven through its inputs vs direct engine calls
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  start-up model = buildModelFromInputs(20 m, 16 elements, pin roller, steel 200 GPa, 0.01 m^4) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  start-up vehicle = first preset = vehicleFromInputs('80 120 120', '4.2 1.4') (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  start-up: SI units; supports table A (0 m, Pin), B (20 m, Roller) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  start-up position is the crossing start, x_v = 0 (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  model tab drawing has > 10 graphics objects (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  + Add span: 2 spans of 20 m; supports A, B, C at 0, 20, 40 m (the new end a roller) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  + then - : back to 2 spans and 3 supports, the chosen type (C Fixed) kept; model not applied yet (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  spans 12 m + 15 m: supports A, B, C at 0, 12, 27 m (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  Apply model with 2 spans, RCC, 10 kN/m succeeds (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  app model = buildModelFromInputs(the same inputs) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  model summary text is shown, with the modelling notes (not a load rating) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  x_v = 16.4 m: max|U_app - U_engine| / max|U| [-]                      0                      0   0.000e+00          n/a abs<=1e-12    PASS
+  x_v = 16.4 m: max|R_app - R_engine| / max|R| [-]                      0                      0   0.000e+00          n/a abs<=1e-12    PASS
+  reaction table shows 3 supports and R_B of the engine (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  beam, M, V and v axes are drawn (1 = yes)                         1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  labels of the model, beam and M drawings are clipped to the axes (none left outside after a zoom) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  Forward moves x_v by one step [m]                               0.1                    0.1   1.416e-15    1.416e-12 rel<=1e-09%   PASS
+  Run moving-load analysis succeeds (1 = yes)                       1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  app envelopes = runMovingLoad envelopes (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  app critical values = runMovingLoad critical values (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  critical table 6 x 7, reaction envelope table 3 rows (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  M, V and v envelope axes show the max and min curves (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  Matrices tab fills (1 = yes)                                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  Matrices tab: max|U_app - U_static| / max|U| [-]                      0                      0   0.000e+00          n/a abs<=1e-12    PASS
+  k_e table 4 x 4, K table nDof x nDof, DOF table nDof rows (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  K(1,1) shown as the engine value (1 = yes)                        1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  direction -x: Direction = -1 and x_v starts at the right end (27 m) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  direction or step edited: the status asks for Apply vehicle; the slider has round ticks (-x crossing, from below 0) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  span 2 length -15: rejected with a message naming 'Span 2', model kept (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  span 2 typed as text '15': supports table shows no x for C and Apply names 'Span 2' (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  support C type 'Hinge': rejected with a message naming 'Support C', model kept (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  axle 2 load 'abc': rejected with a message naming 'Axle 2', vehicle kept (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  E = 32e9 "GPa": model built and a unit warning reported (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  region drop-downs list every node (nodeChoices); support drop-down A, B, C with x (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  Apply damage 9-13.875 m, d = 40 %: app model = applyStiffnessDamage(...) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  damage text names the elements and the chosen nodes (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  damage drawing has the highlight (more objects than the healthy drawing) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  Compare: app result = compareHealthyDamaged(...) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  comparison table 6 + 2 x 3 reaction rows; M, V and v axes show 4 curves (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  findings = damageComparisonSummary (indeterminate, degree 1); results sub-tab shown (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  Sensitivity (vmin): app result = damageSensitivity(...) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  Sensitivity (Rmax at support B): app result = damageSensitivity(..., 'Node', node of B) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  Clear damage: no damaged model, tables emptied, healthy model unchanged, no legend left (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  Stage 3 defaults: sensors L/4, L/2, 3L/4; positions L/4..L (5L/4 has no axle on the 27 m beam) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  Generate: readings table = 1000 x syntheticObservations(...) [mm]; hidden case kept apart (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  Run: app result = identifySingleDamage(...) (best, region, fit check) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  candidate table and summary text show that result; fit sub-tab selected (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  left box: best fit, every limiting flag and a pointer to the Summary tab (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  RCC bridge: rccBaseline set and the spec section 7 caveat shown in the left box (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  fit chart: one bar per candidate, cut-off markers, best-fit star, limit and no-damage lines (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  fit chart legend names the region, the best fit and the limit (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  readings plot: 3 objects per sensor (healthy, best fit, readings) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  readings plot legend names each sensor by colour: S1 (x = 6.75 m), ... (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  drawing = bridgeDrawing with support letters, sensors, region, best fit and hidden case (count) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  no noise stated: ratio method, its chart (bars from 1) and the "not a confidence region" flag (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  2 m candidate regions: groups = candidateGroups(model, 2) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  sensors changed after the readings: run refused with a message (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  -x travel: mirrored positions, readings and result = direct calls with direction -1 (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  preset chosen: the status asks for Apply vehicle; after it: "Vehicle applied: HL-93 ..., 3 axle(s), total 320.272 kN." (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  preset HL-93: 3 axles in the table, its name, and the note (axle loads only, no lane load) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  preset HL-93 applied in SI: max relative difference to 8, 32, 32 kip and 14, 14 ft [-]                      0                      0   0.000e+00          n/a abs<=1e-12    PASS
+  axle total line = sum of the HL-93 loads and spacings in kN and m (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  + Add axle: 4 axles, the new one 1.2 m behind; - Remove last axle: 3; editing sets the preset to Custom (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  back to the first preset: vehicle = vehicleFromInputs('80 120 120', '4.2 1.4') again (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  switch to US with span 1 = 0: refused (units, labels and inputs stay SI), the error names 'Span 1' (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  US: max relative error of the converted inputs (spans, E, I, load, axles, position and sweep steps, reading noise) [-]    2.0961010704923e-12                      0   2.096e-12          n/a abs<=1e-11    PASS
+  US: supports table x = 0, 12, 27 m in ft (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  US: default sensors and truck positions written in ft (L/4, L/2, 3L/4 of the 27 m beam) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  US: emptied result tables keep no header in SI units; readings tab 'Readings [in]'; noise tooltip in in; numeric fields shown with 6 digits (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  US: model = SI model: max|U_app - U_SI| / max|U| under the permanent load [-]    2.2750950201159e-12                      0   2.275e-12          n/a abs<=1e-09    PASS
+  US: same nodes (within 1e-9 m), supports and elements as the SI model (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  US: vehicle = SI vehicle: max relative difference of axle loads and spacings [-]    3.2571723096453e-12                      0   3.257e-12          n/a abs<=1e-11    PASS
+  US: headers, labels and drop-downs in ft, kip, ksi, in^4, kip/ft and in (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  US: R_B at x_v = 16.4 m in the reaction table [kip] (shown to 3 decimals)                108.184        108.18428230105   2.823e-04    2.609e-04 rel<=0.0006%  PASS
+  US: reaction table header and position text in kip and ft (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  US: M, V and v diagrams drawn over x = 0 to 27 m in ft (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  US: slider ticks are round (1, 2 or 5 x 10^k ft) and the non-round crossing end has no label (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  US: slider moved to 32.8 ft and dragged through 16.4 ft puts the front axle at 10 m and 5 m (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  US: critical values = runMovingLoad of the SI model: max relative difference [-]    1.2656188225899e-12                      0   1.266e-12          n/a abs<=1e-09    PASS
+  US: critical table = criticalTableData(result, US) (kip*ft, kip, in, ft) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  US: reaction envelope table = reactionEnvelopeTableData(result, x, US); envelopes drawn in ft (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  US: readings table [in] = syntheticObservations(...) / 0.0254: max relative difference [-]                      0                      0   0.000e+00          n/a abs<=1e-12    PASS
+  US: identification (6 ft regions, noise 1 % + 0.05 mm in in) = identifySingleDamage(...); table and summary in ft and in (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  back to SI: unedited inputs restored exactly; model and vehicle isequal to the SI ones (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  RCC with E = 200 GPa typed: the switch keeps E (200 GPa in ksi, model EI = 200 GPa x Ieff) and back (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  US: + Add axle puts the new axle 1.2 m (3.937 ft) behind the last one (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  span 2 edited to 50 ft: 15.24 m after the switch back; the unedited span 1 is 12 m again (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  axle added in US: back in SI the first 3 axles are exactly 80, 120, 120 kN at 4.2, 1.4 m again (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  US: Apply model writes the default sensors and truck positions in ft (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  US: preset HL-93 fills 8, 32, 32 kip at 14, 14 ft; applied = vehicleFromTable(..., US) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  US: a sensor typed at the beam end as shown (88.5827 ft) is accepted (readings row S2 at the end) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  A Free: support drop-down B, C only; Rmax at C = damageSensitivity(..., 'Node', node at 27 m) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  40 callbacks invoked (buttons, fields, tables, slider, tabs) without an error thrown or reported, after a valid set-up (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
