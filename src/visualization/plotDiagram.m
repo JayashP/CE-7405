@@ -1,4 +1,4 @@
-function plotDiagram(ax, x, y, color, yLabelText, titleText)
+function plotDiagram(ax, x, y, color, yLabelText, titleText, xLabelText)
 %PLOTDIAGRAM Shaded response diagram (M, V or v) along the beam.
 %   PLOTDIAGRAM(AX, X, Y, COLOR, YLABELTEXT, TITLETEXT) clears AX and draws
 %   Y against X [m] as a line with a light fill to the zero axis, labels the
@@ -28,7 +28,10 @@ end
 hold(ax, 'off');
 grid(ax, 'on');
 xlim(ax, [min(x), max(x)]);
-xlabel(ax, 'x [m]');
+if nargin < 7
+    xLabelText = 'x [m]';                       % optional: the app passes its display length unit
+end
+xlabel(ax, xLabelText);
 ylabel(ax, yLabelText);
 title(ax, titleText);
 end

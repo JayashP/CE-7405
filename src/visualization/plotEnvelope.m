@@ -1,4 +1,4 @@
-function plotEnvelope(ax, x, yMax, yMin, colorMax, colorMin, yLabelText, titleText, markX, markY)
+function plotEnvelope(ax, x, yMax, yMin, colorMax, colorMin, yLabelText, titleText, markX, markY, xLabelText)
 %PLOTENVELOPE Maximum and minimum response envelope along the beam.
 %   PLOTENVELOPE(AX, X, YMAX, YMIN, COLORMAX, COLORMIN, YLABELTEXT, TITLETEXT,
 %   MARKX, MARKY) clears AX, shades the band between YMIN and YMAX at the
@@ -26,7 +26,10 @@ hold(ax, 'off');
 legend(ax, [hMax, hMin], {'max', 'min'}, 'Location', 'best');
 grid(ax, 'on');
 xlim(ax, [min(x), max(x)]);
-xlabel(ax, 'x [m]');
+if nargin < 11
+    xLabelText = 'x [m]';                       % optional: the app passes its display length unit
+end
+xlabel(ax, xLabelText);
 ylabel(ax, yLabelText);
 title(ax, titleText);
 end

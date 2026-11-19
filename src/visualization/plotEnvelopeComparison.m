@@ -1,4 +1,4 @@
-function plotEnvelopeComparison(ax, x, hMax, hMin, dMax, dMin, colorHealthy, colorDamaged, yLabelText, titleText)
+function plotEnvelopeComparison(ax, x, hMax, hMin, dMax, dMin, colorHealthy, colorDamaged, yLabelText, titleText, xLabelText)
 %PLOTENVELOPECOMPARISON Damaged (solid, thick) and healthy (dashed, on top) max/min envelopes on one axes.
 %   PLOTENVELOPECOMPARISON(AX, X, HMAX, HMIN, DMAX, DMIN, COLORHEALTHY,
 %   COLORDAMAGED, YLABELTEXT, TITLETEXT) clears AX and draws, at the
@@ -23,7 +23,10 @@ hold(ax, 'off');
 legend(ax, [h1, h2, h3, h4], {'damaged max', 'damaged min', 'healthy max', 'healthy min'}, 'Location', 'best');
 grid(ax, 'on');
 xlim(ax, [min(x), max(x)]);
-xlabel(ax, 'x [m]');
+if nargin < 11
+    xLabelText = 'x [m]';                       % optional: the app passes its display length unit
+end
+xlabel(ax, xLabelText);
 ylabel(ax, yLabelText);
 title(ax, titleText);
 end
