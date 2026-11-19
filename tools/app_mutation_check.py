@@ -3,7 +3,7 @@
 Usage: python3 -I tools/app_mutation_check.py <repo_root> <empty_scratch_dir> [i,j,...]
 Copies the repository once per fault (without .git and results), injects one fault, runs
 tools/gui_mock/runGuiMockCheck in GNU Octave (3 at a time) and prints one JSON line per fault
-with the first FAIL row or error. Never modifies <repo_root>. M9: faults 0-30, M9c: 31-35; see
+with the first FAIL row or error. Never modifies <repo_root>. M9: faults 0-30, M9c: 31-39; see
 results/verification/2026-11-19_M9_mutation_check_octave-8.4.0.txt.
 """
 import shutil, subprocess, sys, pathlib, json
@@ -45,10 +45,14 @@ M = [
  ('sweep: Apply model reports an error (span 1 = -1 before the sweep)', 'tests/gui/checkBridgeConditionApp.m', "comps = collectComponents(app.UIFigure);", "c.SpansTable.Data{1, 1} = -1;\ncomps = collectComponents(app.UIFigure);"),
  # M9c (cosmetic follow-ups from the MATLAB screenshots, V-026 part 2a)
  ('M9c: slider keeps the automatic ticks (limit labelled)', A, "            s.MajorTicks = app.sliderTicks(s.Limits);   % round values; the crossing end is not labelled\n", ""),
- ('M9c: slider ticks too coarse', A, "raw = (limits(2) - limits(1)) / 15;", "raw = (limits(2) - limits(1)) / 4;"),
+ ('M9c: slider ticks too coarse', A, "raw = (limits(2) - limits(1)) / 10;", "raw = (limits(2) - limits(1)) / 3;"),
  ('M9c: no status after a preset is chosen', A, "            c.VehicleNameField.Value = p.name;\n            app.setStatus(app.vehicleEditedText());\n", "            c.VehicleNameField.Value = p.name;\n"),
  ('M9c: no status after an axle edit', A, "            app.updateAxleTotal();\n            app.setStatus(app.vehicleEditedText());\n", "            app.updateAxleTotal();\n"),
- ('M9c: no status after Apply vehicle', A, "            if ok\n                app.setStatus(sprintf('Vehicle applied:", "            if false\n                app.setStatus(sprintf('Vehicle applied:"),
+ ('M9c: no status after Apply vehicle', A, "            if ok && isempty(app.LastError)", "            if false"),
+ ('M9c: ticks neither clamped nor -0 removed', A, "            ticks = min(max(ticks, limits(1)), limits(2)) + 0;   % no tick 1e-14 outside; -0 becomes 0\n", ""),
+ ('M9c: no status after a direction edit', A, "'Value', app.DirectionItems{1}, 'ValueChangedFcn', edited));", "'Value', app.DirectionItems{1}));"),
+ ('M9c: no status after a position-step edit', A, "'ValueDisplayFormat', '%.6g', 'ValueChangedFcn', edited));", "'ValueDisplayFormat', '%.6g'));"),
+ ('M9c: reaction headers keep the sign rule', A, "c.ReactionsTable.ColumnName = regexprep(columns, ' \\(\\+ (up|CCW)\\)$', '');", "c.ReactionsTable.ColumnName = columns;"),
 ]
 src = (repo / A).read_text()
 for name, f, old, new in M:

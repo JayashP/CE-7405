@@ -155,7 +155,7 @@ classdef BridgeConditionApp < handle
             if ~isempty(app.Model)
                 ok = app.resetMovingLoad();
             end
-            if ok
+            if ok && isempty(app.LastError)            % keep an error reported while placing the vehicle
                 app.setStatus(sprintf('Vehicle applied: %s, %d axle(s), total %g %s.', vehicle.name, ...
                     numel(vehicle.axleLoads), sum(vehicle.axleLoads) / U.force.toSI, U.force.unit));
             end
@@ -183,7 +183,7 @@ classdef BridgeConditionApp < handle
             app.drawPositionView();
             [data, columns] = currentReactionTableData(res, app.Model, U);
             c.ReactionsTable.Data = data;
-            c.ReactionsTable.ColumnName = columns;
+            c.ReactionsTable.ColumnName = regexprep(columns, ' \(\+ (up|CCW)\)$', '');   % signs in the label above
         end
 
         function stepVehicle(app, nSteps)
@@ -587,12 +587,14 @@ classdef BridgeConditionApp < handle
         end
 
         function ticks = sliderTicks(~, limits)
-            % Round slider ticks (steps of 1, 2 or 5 x 10^k, about 15 intervals) inside LIMITS. MATLAB's
-            % automatic ticks also label the limits, which collides with the last round tick (120126.4).
-            raw = (limits(2) - limits(1)) / 15;
+            % Round slider ticks inside LIMITS: steps of 1, 2 or 5 x 10^k, 4 to 10 intervals, so 3-digit
+            % labels stay apart on a restored window too. MATLAB's automatic ticks also label the limits,
+            % which collides with the last round tick ("120126.4").
+            raw = (limits(2) - limits(1)) / 10;
             steps = [1 2 5 10] * 10 ^ floor(log10(raw));
             step = steps(find(steps >= raw * (1 - 1e-12), 1));
             ticks = (ceil(limits(1) / step - 1e-9):floor(limits(2) / step + 1e-9)) * step;
+            ticks = min(max(ticks, limits(1)), limits(2)) + 0;   % no tick 1e-14 outside; -0 becomes 0
         end
 
         function ok = reportError(app, err, context)
@@ -1281,7 +1283,9 @@ classdef BridgeConditionApp < handle
             c.PresetNote = uilabel(f2, 'Text', presets(1).note, 'WordWrap', 'on', 'FontSize', 11, 'FontColor', th.text);
             c.PresetNote.Layout.Row = 3;
             c.PresetNote.Layout.Column = [1 2];
-            c.VehicleNameField = app.labeled(f2, 4, 'Vehicle name', uieditfield(f2, 'text', 'Value', presets(1).name));
+            edited = @(~, ~) app.setStatus(app.vehicleEditedText());   % name, step and direction need Apply vehicle
+            c.VehicleNameField = app.labeled(f2, 4, 'Vehicle name', uieditfield(f2, 'text', 'Value', presets(1).name, ...
+                'ValueChangedFcn', edited));
             lbl = uilabel(f2, 'Text', 'Axles, front to rear', 'FontWeight', 'bold', 'FontColor', th.sageDark);
             lbl.Layout.Row = 5;
             lbl.Layout.Column = [1 2];
@@ -1303,18 +1307,19 @@ classdef BridgeConditionApp < handle
             c.AxleTotalLabel.Layout.Column = [1 2];
             [c.StepField, c.StepLabel] = app.labeled(f2, 9, sprintf('Position step [%s]', U.length.unit), ...
                 uieditfield(f2, 'numeric', 'Value', 0.1, 'Limits', [0 Inf], 'LowerLimitInclusive', 'off', ...
-                'ValueDisplayFormat', '%.6g'));
+                'ValueDisplayFormat', '%.6g', 'ValueChangedFcn', edited));
             c.DirectionDropDown = app.labeled(f2, 10, 'Travel direction', uidropdown(f2, 'Items', app.DirectionItems, ...
-                'Value', app.DirectionItems{1}));
+                'Value', app.DirectionItems{1}, 'ValueChangedFcn', edited));
             c.MagnificationField = app.labeled(f2, 11, 'Deformation scale (0 = auto)', uieditfield(f2, 'numeric', ...
                 'Value', 0, 'Limits', [0 Inf], 'ValueChangedFcn', @(~, ~) app.redrawAll()));
             b = uibutton(f2, 'push', 'Text', 'Apply vehicle', 'BackgroundColor', th.sage, ...
                 'FontColor', th.buttonText, 'FontWeight', 'bold', 'ButtonPushedFcn', @(~, ~) app.applyVehicleInputs());
             b.Layout.Row = 12;
             b.Layout.Column = [1 2];
-            lbl = uilabel(f2, 'Text', 'Support reactions at this position', 'FontWeight', 'bold', 'FontColor', th.sageDark);
-            lbl.Layout.Row = 13;
-            lbl.Layout.Column = [1 2];
+            c.ReactionsLabel = uilabel(f2, 'Text', 'Support reactions (forces + up, couples + CCW)', 'FontWeight', 'bold', ...
+                'FontColor', th.sageDark);
+            c.ReactionsLabel.Layout.Row = 13;
+            c.ReactionsLabel.Layout.Column = [1 2];
             c.ReactionsTable = uitable(f2, 'Data', cell(0, 5), 'RowName', {}, 'ColumnWidth', 'fit');
             c.ReactionsTable.Layout.Row = 14;
             c.ReactionsTable.Layout.Column = [1 2];

@@ -21,6 +21,15 @@ classdef MockSlider < MockComponent
             obj.Limits = lim;
             obj.Value = min(max(obj.Value, lim(1)), lim(2));   % MATLAB keeps Value inside new Limits
         end
+        function set.MajorTicks(obj, t)
+            if ~(isnumeric(t) && all(isfinite(t)) && all(diff(t) > 0))
+                error('Mock:value', 'slider MajorTicks must be finite and increasing.');
+            end
+            if any(t < obj.Limits(1) | t > obj.Limits(2))   % strict: a tick outside Limits may not be shown
+                error('Mock:value', 'slider MajorTicks must lie within Limits.');
+            end
+            obj.MajorTicks = t;
+        end
         function set.Value(obj, v)
             if ~(isnumeric(v) && isscalar(v) && isfinite(v) && v >= obj.Limits(1) && v <= obj.Limits(2))
                 error('Mock:value', 'slider Value must be a finite scalar within Limits.');

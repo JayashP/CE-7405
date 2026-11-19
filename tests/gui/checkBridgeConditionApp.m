@@ -128,6 +128,14 @@ c.DirectionDropDown.Value = '-x (right to left)';
 ok = app.applyVehicleInputs();
 rows(end+1) = flag('direction -x: Direction = -1 and x_v starts at the right end (27 m)', ok && app.Direction == -1 ...
     && abs(app.Position - 27) < 1e-12);
+feval(c.DirectionDropDown.ValueChangedFcn, c.DirectionDropDown, struct('Value', c.DirectionDropDown.Value, ...
+    'PreviousValue', c.DirectionDropDown.Value));
+statusDirection = c.StatusLabel.Text;
+feval(c.StepField.ValueChangedFcn, c.StepField, struct('Value', 0.1, 'PreviousValue', 0.1));
+statusStep = c.StatusLabel.Text;
+rows(end+1) = flag(['direction or step edited: the status asks for Apply vehicle; the slider has round ticks ' ...
+    '(-x crossing, from below 0)'], strncmp(statusDirection, 'Vehicle edited', 14) ...
+    && strncmp(statusStep, 'Vehicle edited', 14) && roundSliderTicks(c.PositionSlider) && c.PositionSlider.Limits(1) < 0);
 c.DirectionDropDown.Value = '+x (left to right)';
 app.applyVehicleInputs();
 
@@ -392,7 +400,8 @@ app.setVehiclePosition(16.4);
 rows(end+1) = compareToReference('US: R_B at x_v = 16.4 m in the reaction table [kip] (shown to 3 decimals)', ...
     str2double(c.ReactionsTable.Data{2, 4}), refRB / kip, 6e-4);
 rows(end+1) = flag('US: reaction table header and position text in kip and ft', ...
-    strcmp(c.ReactionsTable.ColumnName{4}, 'Force [kip] (+ up)') ...
+    strcmp(c.ReactionsTable.ColumnName{4}, 'Force [kip]') && strcmp(c.ReactionsTable.ColumnName{5}, 'Couple [kip*ft]') ...
+    && strcmp(c.ReactionsLabel.Text, 'Support reactions (forces + up, couples + CCW)') ...
     && ~isempty(strfind(c.PositionLabel.Text, sprintf('x_v = %.3f ft (front axle)', 16.4 / ft))));
 rows(end+1) = flag('US: M, V and v diagrams drawn over x = 0 to 27 m in ft', ...
     max(abs([c.MomentAxes.XLim, c.ShearAxes.XLim, c.DeflectionAxes.XLim] - repmat([0 27] / ft, 1, 3))) < 1e-9);
@@ -602,11 +611,11 @@ end
 end
 
 function ok = roundSliderTicks(slider)
-% Ticks of 1, 2 or 5 x 10^k inside the limits (8 to 17 of them), the last one less than a step from the
-% upper limit: a non-round limit gets no label of its own (MATLAB's automatic ticks label it).
+% Ticks of 1, 2 or 5 x 10^k inside the limits (4 to 11 of them, none -0), the last one less than a step from
+% the upper limit: a non-round limit gets no label of its own (MATLAB's automatic ticks label it).
 t = slider.MajorTicks;
 lim = slider.Limits;
-ok = numel(t) >= 8 && numel(t) <= 17;
+ok = numel(t) >= 4 && numel(t) <= 11 && ~any(t == 0 & 1 ./ t < 0);
 if ok
     step = t(2) - t(1);
     m = step / 10 ^ floor(log10(step) + 1e-12);

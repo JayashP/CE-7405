@@ -52,6 +52,6 @@ ylabel(ax, sprintf('deflection [%s]', U.deflection.unit));
 if isempty(uBest)
     title(ax, {'Readings and healthy model', 'markers: readings, dotted: healthy'});
 else
-    title(ax, {'Readings and fits', 'markers: readings, solid: best fit, dotted: healthy'});
+    title(ax, {'Readings and fits', 'markers: readings, solid: fit, dotted: healthy'});   % fits a 330 px plot
 end
 end
