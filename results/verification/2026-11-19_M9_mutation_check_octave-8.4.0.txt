@@ -1,0 +1,330 @@
+M9 mutation check, GNU Octave 8.4.0 (2026-11-19). Each fault is injected into a fresh copy of the repository; a fault is detected when the named test fails.
+
+=== M9a: unit-aware result helpers (tools/mutation_check.py, prefix 'M9a', tests/testUnitsDisplay.m), 4 shards
+MUTATION: M9a: kip taken as 1000 lbf with g = 9.81 m/s^2
+  exit=1 summary=[('7', '5')]
+  detected by: testUnitsDisplay / Unit factors equal independent constants, and SI is the default; testUnitsDisplay / quantityDisplay: SI as before, US in kip*ft, kip and in; testUnitsDisplay / Critical-position table: values, x, x_v and axle positions in US units; testUnitsDisplay / Reaction tables: forces in kip, couples in kip*ft, coordinates in ft; testUnitsDisplay / Damage comparison table and findings: extremes and reactions in US units, percentages unchanged
+MUTATION: M9a: envelope reaction couple with the force factor
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Reaction tables: forces in kip, couples in kip*ft, coordinates in ft
+MUTATION: M9a: sensitivity table x in m
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Sensitivity table and bar chart: coordinates in ft, deflection in in
+MUTATION: M9a: candidate table region in m
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Candidate table and summary of the Stage 3 search: regions in ft, RMSE and absolute noise in in
+MUTATION: M9a: stated absolute noise always in mm
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Candidate table and summary of the Stage 3 search: regions in ft, RMSE and absolute noise in in
+MUTATION: M9a: sensor legend x in m
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Fit profile, fit chart and readings chart in US units
+MUTATION: M9a: node labels in m
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Node choices for the region drop-downs: labels in the display length, coordinates in m
+MUTATION: M9a: sensitivity change ignores the extra inch decimal
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Inches keep about the resolution of millimetres: deflection tables show one decimal more in US units
+MUTATION: M9a: comparison healthy minimum reaction always in kN
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Damage comparison table and findings: extremes and reactions in US units, percentages unchanged
+MUTATION: M9a: US moment shown with the force factor (kip)
+  exit=1 summary=[('9', '3')]
+  detected by: testUnitsDisplay / quantityDisplay: SI as before, US in kip*ft, kip and in; testUnitsDisplay / Critical-position table: values, x, x_v and axle positions in US units; testUnitsDisplay / Damage comparison table and findings: extremes and reactions in US units, percentages unchanged
+MUTATION: M9a: current reaction couple with the force factor
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Reaction tables: forces in kip, couples in kip*ft, coordinates in ft
+MUTATION: M9a: sensitivity chart bars at x in m
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Sensitivity table and bar chart: coordinates in ft, deflection in in
+MUTATION: M9a: candidate table RMSE always in mm
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Candidate table and summary of the Stage 3 search: regions in ft, RMSE and absolute noise in in
+MUTATION: M9a: hidden case x in m
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Candidate table and summary of the Stage 3 search: regions in ft, RMSE and absolute noise in in
+MUTATION: M9a: readings table read as mm whatever the units
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Stage 3 inputs: readings and absolute noise typed in in, region sizes in ft, both returned in m
+MUTATION: M9a: node choices return display coordinates
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Node choices for the region drop-downs: labels in the display length, coordinates in m
+MUTATION: M9a: summary RMSE ignores the extra inch decimal
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Inches keep about the resolution of millimetres: deflection tables show one decimal more in US units
+MUTATION: M9a: comparison damaged minimum reaction always in kN
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Damage comparison table and findings: extremes and reactions in US units, percentages unchanged
+MUTATION: M9a: critical table x_v not in the display length
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Critical-position table: values, x, x_v and axle positions in US units
+MUTATION: M9a: findings threshold 1 N whatever the force unit
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Findings: a reaction change below the last decimal shown in the chosen force unit counts as unchanged
+MUTATION: M9a: fit profile x1, x2 in m
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Fit profile, fit chart and readings chart in US units
+MUTATION: M9a: summary best-fit RMSE always in mm
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Candidate table and summary of the Stage 3 search: regions in ft, RMSE and absolute noise in in
+MUTATION: M9a: readings chart readings always in mm
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Fit profile, fit chart and readings chart in US units
+MUTATION: M9a: absolute noise read as mm whatever the units
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Stage 3 inputs: readings and absolute noise typed in in, region sizes in ft, both returned in m
+MUTATION: M9a: inches shown with the millimetre decimal count
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Inches keep about the resolution of millimetres: deflection tables show one decimal more in US units
+MUTATION: M9a: envelope minimum reaction always in kN
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Reaction tables: forces in kip, couples in kip*ft, coordinates in ft
+MUTATION: M9a: comparison change of minimum reaction always in kN
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Damage comparison table and findings: extremes and reactions in US units, percentages unchanged
+MUTATION: M9a: critical table axle positions not in the display length
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Critical-position table: values, x, x_v and axle positions in US units
+MUTATION: M9a: comparison reactions always in kN
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Damage comparison table and findings: extremes and reactions in US units, percentages unchanged
+MUTATION: M9a: fit chart x label always in m
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Fit profile, fit chart and readings chart in US units
+MUTATION: M9a: summary regions of uncertainty in m
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Candidate table and summary of the Stage 3 search: regions in ft, RMSE and absolute noise in in
+MUTATION: M9a: readings chart positions in m
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Fit profile, fit chart and readings chart in US units
+MUTATION: M9a: US region sizes returned in ft instead of m
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Stage 3 inputs: readings and absolute noise typed in in, region sizes in ft, both returned in m
+MUTATION: M9a: critical table ignores the extra inch decimal
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Inches keep about the resolution of millimetres: deflection tables show one decimal more in US units
+MUTATION: M9a: envelope x_v of the minimum reaction in m
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Reaction tables: forces in kip, couples in kip*ft, coordinates in ft
+
+=== Legacy M6-M8 targets moved with the Part A code (same names), tests/testUnitsDisplay.m
+MUTATION: M6: critical table shows N*m instead of kN*m
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Critical-position table: values, x, x_v and axle positions in US units
+MUTATION: M7b: deflection shown in m instead of mm
+  exit=1 summary=[('7', '5')]
+  detected by: testUnitsDisplay / quantityDisplay: SI as before, US in kip*ft, kip and in; testUnitsDisplay / Critical-position table: values, x, x_v and axle positions in US units; testUnitsDisplay / Damage comparison table and findings: extremes and reactions in US units, percentages unchanged; testUnitsDisplay / Sensitivity table and bar chart: coordinates in ft, deflection in in; testUnitsDisplay / Inches keep about the resolution of millimetres: deflection tables show one decimal more in US units
+MUTATION: M8: absolute noise mm converted with 1/100
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Stage 3 inputs: readings and absolute noise typed in in, region sizes in ft, both returned in m
+MUTATION: M8: readings mm converted with 1/100
+  exit=1 summary=[('11', '1')]
+  detected by: testUnitsDisplay / Stage 3 inputs: readings and absolute noise typed in in, region sizes in ft, both returned in m
+
+=== M9b: table inputs, presets and drawing (prefix 'M9b', tests/testInputTables.m), 3 shards
+MUTATION: M9b: support letters off by one after Z
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / Support letters run A to Z, then AA, AB, ...; support labels map to the engine types
+MUTATION: M9b: US modulus converted as GPa
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / US customary tables convert exactly to the SI engine model
+MUTATION: M9b: integer-class modulus not read as double
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / SI tables with equal element counts build exactly the model of buildModelFromInputs
+MUTATION: M9b: summary support x are the span lengths
+  exit=1 summary=[('7', '3')]
+  detected by: testInputTables / SI tables with equal element counts build exactly the model of buildModelFromInputs; testInputTables / US customary tables convert exactly to the SI engine model; testInputTables / Every invalid table entry gives an error that names its row
+MUTATION: M9b: element count upper limit not checked
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / Every invalid table entry gives an error that names its row
+MUTATION: M9b: spacing error names the wrong axle row
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / Every invalid table entry gives an error that names its row
+MUTATION: M9b: preset spacings not converted
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / Vehicle presets convert exactly between SI and US customary units
+MUTATION: M9b: couple label always in kN*m
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / Drawing: bold support letters below the span ends and load texts in the display units
+MUTATION: M9b: axle label threshold 3 % of L
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / Drawing: close axles share one label and the uniform-load label sits at the left end of its load
+MUTATION: M9b: off-bridge axles lose their labels
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / Drawing: close axles share one label and the uniform-load label sits at the left end of its load
+MUTATION: M9b: end labels drawn inside the support symbols
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / Drawing: bold support letters below the span ends and load texts in the display units
+MUTATION: M9b: Inf span length not rejected with its row
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / Every invalid table entry gives an error that names its row
+MUTATION: M9b: Free mapped to a fixed support
+  exit=1 summary=[('7', '3')]
+  detected by: testInputTables / Support letters run A to Z, then AA, AB, ...; support labels map to the engine types; testInputTables / SI tables with equal element counts build exactly the model of buildModelFromInputs; testInputTables / Every invalid table entry gives an error that names its row
+MUTATION: M9b: US inertia not converted
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / US customary tables convert exactly to the SI engine model
+MUTATION: M9b: span lengths not converted to m
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / US customary tables convert exactly to the SI engine model
+MUTATION: M9b: summary EI in kN whatever the units
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / US customary tables convert exactly to the SI engine model
+MUTATION: M9b: vehicle table loads converted as kN
+  exit=1 summary=[('8', '2')]
+  detected by: testInputTables / Vehicle tables give the engine vehicle in SI; testInputTables / Vehicle presets convert exactly between SI and US customary units
+MUTATION: M9b: HL-93 preset read as SI values
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / Vehicle presets convert exactly between SI and US customary units
+MUTATION: M9b: drawing ignores the Units option
+  exit=1 summary=[('8', '2')]
+  detected by: testInputTables / Drawing: bold support letters below the span ends and load texts in the display units; testInputTables / Drawing: close axles share one label and the uniform-load label sits at the left end of its load
+MUTATION: M9b: close axles never share a label
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / Drawing: close axles share one label and the uniform-load label sits at the left end of its load
+MUTATION: M9b: merged label always lists loads with +
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / Drawing: close axles share one label and the uniform-load label sits at the left end of its load
+MUTATION: M9b: load label back at mid-length
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / Drawing: close axles share one label and the uniform-load label sits at the left end of its load
+MUTATION: M9b: end labels not bold
+  exit=1 summary=[('8', '2')]
+  detected by: testInputTables / Drawing: bold support letters below the span ends and load texts in the display units; testInputTables / Drawing with node numbers leaves out the numbers where a support letter is drawn
+MUTATION: M9b: Inf axle load not rejected with its row
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / Every invalid table entry gives an error that names its row
+MUTATION: M9b: support labels matched case-sensitively
+  exit=1 summary=[('8', '2')]
+  detected by: testInputTables / SI tables with equal element counts build exactly the model of buildModelFromInputs; testInputTables / Every invalid table entry gives an error that names its row
+MUTATION: M9b: US distributed load converted as kN/m
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / US customary tables convert exactly to the SI engine model
+MUTATION: M9b: per-span element counts replaced by the first
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / Each span gets its own element count
+MUTATION: M9b: span-length row check skipped
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / Every invalid table entry gives an error that names its row
+MUTATION: M9b: vehicle table spacings not converted
+  exit=1 summary=[('8', '2')]
+  detected by: testInputTables / Vehicle tables give the engine vehicle in SI; testInputTables / Vehicle presets convert exactly between SI and US customary units
+MUTATION: M9b: preset conversion factor inverted
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / Vehicle presets convert exactly between SI and US customary units
+MUTATION: M9b: point-load label always in kN
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / Drawing: bold support letters below the span ends and load texts in the display units
+MUTATION: M9b: axle label threshold 8 % of L
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / Drawing: close axles share one label and the uniform-load label sits at the left end of its load
+MUTATION: M9b: axle groups formed in table order, not left to right
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / Drawing: close axles share one label and the uniform-load label sits at the left end of its load
+MUTATION: M9b: load label centred
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / Drawing: close axles share one label and the uniform-load label sits at the left end of its load
+MUTATION: M9b: node numbers drawn under the end labels
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / Drawing with node numbers leaves out the numbers where a support letter is drawn
+MUTATION: M9b: off-bridge axle labels always in kN
+  exit=1 summary=[('9', '1')]
+  detected by: testInputTables / Drawing: close axles share one label and the uniform-load label sits at the left end of its load
+
+=== App: 31 faults in app/BridgeConditionApp.m (29) and in the check's set-up (1) / a callback (1),
+    each run with runGuiMockCheck (tests/gui/checkBridgeConditionApp.m, Octave stand-ins) at e8cdd75.
+    detected = the check exits with an error; 'via' = the first FAIL row, or the error that stopped it.
+MUTATION: slider released: value not converted to m
+  exit=1 detected=yes
+  via: US: slider moved to 32.8 ft and dragged through 16.4 ft puts the front axle at 10 m and 5 m (1 = yes)
+MUTATION: slider dragged: value not converted to m
+  exit=1 detected=yes
+  via: US: slider moved to 32.8 ft and dragged through 16.4 ft puts the front axle at 10 m and 5 m (1 = yes)
+MUTATION: reaction envelope table without units
+  exit=1 detected=yes
+  via: US: reaction envelope table = reactionEnvelopeTableData(result, x, US); envelopes drawn in ft (1 = yes)
+MUTATION: Rmax support drop-down mapped by list position
+  exit=1 detected=yes
+  via: A Free: support drop-down B, C only; Rmax at C = damageSensitivity(..., 'Node', node at 27 m) (1 = yes)
+MUTATION: hidden region start read from the damage drop-down
+  exit=1 detected=yes
+  via: Generate: readings table = 1000 x syntheticObservations(...) [mm]; hidden case kept apart (1 = yes)
+MUTATION: default sensors written in m
+  exit=1 detected=yes
+  via: US: default sensors and truck positions written in ft (L/4, L/2, 3L/4 of the 27 m beam) (1 = yes)
+MUTATION: default truck positions written in m
+  exit=1 detected=yes
+  via: US: Apply model writes the default sensors and truck positions in ft (1 = yes)
+MUTATION: sweep step not converted on a switch
+  exit=1 detected=yes
+  via: US: max relative error of the converted inputs (spans, E, I, load, axles, position and sweep steps, reading no
+MUTATION: reading noise not converted on a switch
+  exit=1 detected=yes
+  via: US: max relative error of the converted inputs (spans, E, I, load, axles, position and sweep steps, reading no
+MUTATION: position text x_v in m
+  exit=1 detected=yes
+  via: US: reaction table header and position text in kip and ft (1 = yes)
+MUTATION: M, V, v diagrams drawn at x in m
+  exit=1 detected=yes
+  via: US: M, V and v diagrams drawn over x = 0 to 27 m in ft (1 = yes)
+MUTATION: envelopes drawn at x in m
+  exit=1 detected=yes
+  via: US: reaction envelope table = reactionEnvelopeTableData(result, x, US); envelopes drawn in ft (1 = yes)
+MUTATION: new axle 1.2 display units behind
+  exit=1 detected=yes
+  via: US: + Add axle puts the new axle 1.2 m (3.937 ft) behind the last one (1 = yes)
+MUTATION: identification options without the units
+  exit=1 detected=yes
+  via: US: identification (6 ft regions, noise 1 % + 0.05 mm in in) = identifySingleDamage(...); table and summary in
+MUTATION: presets always in SI
+  exit=1 detected=yes
+  via: US: preset HL-93 fills 8, 32, 32 kip at 14, 14 ft; applied = vehicleFromTable(..., US) (1 = yes)
+MUTATION: supports table x converted twice
+  exit=1 detected=yes
+  via: US: supports table x = 0, 12, 27 m in ft (1 = yes)
+MUTATION: fix: invalid input not checked before a switch
+  exit=1 detected=yes
+  via: error: drop-down Value 'node 7 (x = 29.5276 ft)' is not one of its Items.
+MUTATION: fix: refused switch leaves the new units in the drop-down
+  exit=1 detected=yes
+  via: switch to US with span 1 = 0: refused (units, labels and inputs stay SI), the error names 'Span 1' (1 = yes)
+MUTATION: fix: readings tab title not relabelled
+  exit=1 detected=yes
+  via: US: emptied result tables keep no header in SI units; readings tab 'Readings [in]'; noise tooltip in in; numer
+MUTATION: fix: a switch swaps the material default E again
+  exit=1 detected=yes
+  via: RCC with E = 200 GPa typed: the switch keeps E (200 GPa in ksi, model EI = 200 GPa x Ieff) and back (1 = yes) 
+MUTATION: fix: memory dropped when a row was added
+  exit=1 detected=yes
+  via: axle added in US: back in SI the first 3 axles are exactly 80, 120, 120 kN at 4.2, 1.4 m again (1 = yes)
+MUTATION: fix: emptied critical table keeps its old header
+  exit=1 detected=yes
+  via: US: emptied result tables keep no header in SI units; readings tab 'Readings [in]'; noise tooltip in in; numer
+MUTATION: fix: emptied candidate table keeps its old header
+  exit=1 detected=yes
+  via: US: emptied result tables keep no header in SI units; readings tab 'Readings [in]'; noise tooltip in in; numer
+MUTATION: fix: noise tooltip not relabelled
+  exit=1 detected=yes
+  via: US: emptied result tables keep no header in SI units; readings tab 'Readings [in]'; noise tooltip in in; numer
+MUTATION: fix: sensor end tolerance back to 1e-9 L
+  exit=1 detected=yes
+  via: US: a sensor typed at the beam end as shown (88.5827 ft) is accepted (readings row S2 at the end) (1 = yes)
+MUTATION: fix: sensors at the end not clamped
+  exit=1 detected=yes
+  via: error: Sensor coordinates must lie on the beam (0 to 27 m).
+MUTATION: fix: app reads numeric text in table cells
+  exit=1 detected=yes
+  via: span 2 typed as text '15': supports table shows no x for C and Apply names 'Span 2' (1 = yes)
+MUTATION: fix: modelling notes left out of the summary
+  exit=1 detected=yes
+  via: model summary text is shown, with the modelling notes (not a load rating) (1 = yes)
+MUTATION: fix: E/I fields keep the 4-digit display
+  exit=1 detected=yes
+  via: US: emptied result tables keep no header in SI units; readings tab 'Readings [in]'; noise tooltip in in; numer
+MUTATION: sweep: Back button throws
+  exit=1 detected=yes
+  via: 37 callbacks invoked (buttons, fields, tables, slider, tabs) without an error thrown or reported, after a vali
+MUTATION: sweep: Apply model reports an error (span 1 = -1 before the sweep)
+  exit=1 detected=yes
+  via: 37 callbacks invoked (buttons, fields, tables, slider, tabs) without an error thrown or reported, after a vali
+SUMMARY app: 31 / 31 detected

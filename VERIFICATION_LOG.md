@@ -1210,3 +1210,36 @@ After the fixes:
 | Main suite | Not rerun in MATLAB for M8b. The change to `src/gui` is display formatting only (`formatNumber` in three table helpers), and the Verification-tab row ran the whole suite inside the app with 0 failed |
 
 **Status of M8b:** verified in Octave (V-023) and MATLAB (V-024). Merged into `main`.
+
+## V-025 — 2026-11-19 — M9 input redesign in GNU Octave
+
+| Item | Value |
+|---|---|
+| Platform | **GNU Octave 8.4.0**, Ubuntu 24.04.5 cloud container |
+| MATLAB | **NOT RUN.** The user needs to run `runAllTests`, `checkBridgeConditionApp(true)` and use the new inputs in SI and US units; record as V-026 |
+| Code version | Branch `claude/m9-input-redesign` (suite, app check and app mutants run on `e8cdd75`; later commits change only records and logs) |
+| Main suite | **157 passed, 0 failed, 157 tests** (135 in M8b + `testUnitsDisplay` and `testInputTables`). Raw log: `results/verification/2026-11-19_M9_octave-8.4.0_runAllTests.log` |
+| App check (stand-ins) | **89/89 PASS** (90 with the in-app test run in MATLAB); only the deliberate unit-slip warning printed. The stand-ins now list container children newest first and store uitable `ColumnName`/`RowName` as columns, as MATLAB does, so the callback sweep runs in MATLAB's order. Raw log: `..._M9_octave-8.4.0_gui_mock_check.log` |
+| Mutation check | **M9a:** 35 faults in the unit-aware result helpers + 4 moved legacy targets, **39/39 detected** by `testUnitsDisplay`. **M9b:** 36 faults in the table inputs, presets and drawing, **36/36 detected** by `testInputTables`. **App:** 31 faults (29 in `app/BridgeConditionApp.m`: the 16 unit-display bugs the review showed the check missed and one per fix; 2 that break the callback sweep, by a throw and by an error the app only reports), run with `tools/app_mutation_check.py` against the app check, **31/31 detected**: 29 by a FAIL row, 2 by an error that stops the check (an invalid drop-down value after a half-done switch; the engine refusing an unclamped end sensor). Raw output: `..._M9_mutation_check_octave-8.4.0.txt` |
+| Independent review 1 | 21 agents (units, MATLAB UI, check coverage; adversarial verify). **3 app defects** fixed: (1) a unit switch with an invalid input left sensors, drop-downs and slider in the old units under new labels — the switch is now refused until the input is corrected; (2) the readings tab said "Readings [mm]" in US units; (3) a switch could swap E between the steel and RCC defaults. **13 app-check gaps** (each shown by a surviving app mutant) closed with new rows. Low: exact restore after an added row, SI headers on emptied tables, noise tooltip, end-of-beam sensor tolerance, text in numeric cells, 4-digit field display, and the Bridge model left panel (the notes had about 9 px on the user's 1917 x 1008, 125 % window) — all fixed |
+| Independent review 2 | 4 agents on the fixes. No app defect. Check defects fixed: the sweep wrote the private `LastError` (crash on a reported error); in MATLAB's child order "Run identification" would be pressed before readings existed; `isequal` on a uitable `ColumnName` fails in MATLAB (n-by-1). Layout computed for a 651 px panel: all four left panels fit (Bridge model 626 px) |
+
+New app-check rows (two-span 12 + 15 m RCC model unless stated):
+
+| Row | Reference | Result |
+|---|---|---|
+| Span and support tables, + / − buttons | supports A, B, C follow the span ends; chosen types kept; model = `buildModelFromInputs` | PASS |
+| Text '15' in a span cell | supports table shows no x; Apply names "Span 2" (as `buildModelFromTables`) | PASS |
+| Node and support drop-downs | `nodeChoices`; Rmax at B = `damageSensitivity(..., 'Node', B)` | PASS |
+| A Free | drop-down lists B, C only; Rmax at C = `damageSensitivity(..., 'Node', node at 27 m)` | PASS |
+| Presets | HL-93 in SI and in US = `vehicleFromTable([8 32 32], [14 14], ..., US)` (rel 1e-12); + Add axle 1.2 m in SI and in US | PASS |
+| Refused switch (span 1 = 0) | units, labels, inputs and model stay SI; message names "Span 1" | PASS |
+| US conversion | spans, E, I, load, axles, position and sweep steps, reading noise: rel ≤ 1e-11; same model (U rel ≤ 1e-9) and vehicle | PASS |
+| US display | supports x, default sensors and positions (after a switch and after Apply model), headers and labels, readings tab "[in]", diagrams and envelopes over 0–27 m in ft, slider in ft, position text, R_B, critical and reaction-envelope tables = helpers with `US` | PASS |
+| US identification | noise 1 % + 0.05 mm (converted to in) = `identifySingleDamage` with `identificationOptions(..., US)`; table and summary | PASS |
+| Back to SI | unedited inputs restored exactly (`isequal` model and vehicle); an axle added in US keeps the first three axles exact; E = 200 GPa typed for RCC kept through a switch | PASS |
+| Callback sweep | 37 callbacks in MATLAB's child order; none throws or reports an error | PASS |
+
+**Limits:** layout, rendering, table editing and drop-down cells are **NOT VERIFIED IN MATLAB**; the stand-ins check property names, values, child order and object counts only. US customary results are the SI engine results converted for display (exact factors); they are not an independent analysis.
+
+**Status of M9:** verified in Octave (V-025). **MATLAB not run yet** (V-026 pending).
