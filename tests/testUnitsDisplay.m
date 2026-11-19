@@ -417,6 +417,47 @@ d3 = identificationTableData(r3, US);
 assert(strcmp(d3{1, 1}, 'no damage (healthy)') && showsFixed(d3{1, 6}, r3.Jhealthy / inch, 4), 'healthy row first, RMSE in in');
 fprintf('  PASS table and summary: SI unchanged; US regions in ft, RMSE and absolute noise in in\n');
 
+%% Inches keep about the resolution of millimetres: deflection tables show one decimal more in US units
+assert(US.deflection.extraDecimals == 1 && SI.deflection.extraDecimals == 0 && US.force.extraDecimals == 0 ...
+    && US.moment.extraDecimals == 0 && US.length.extraDecimals == 0, 'extra decimals: 1 for inches only');
+[q, extra] = quantityDisplay('v', US);
+[~, extraM] = quantityDisplay('M', US);
+[~, extraSI] = quantityDisplay('v', SI);
+assert(isequal(q, struct('label', 'Deflection v', 'unit', 'in', 'scale', 1 / inch)) && extra == 1 && extraM == 0 ...
+    && extraSI == 0, 'quantityDisplay: first output unchanged, extra decimals as second output');
+decimals = @(text) numel(text) - find(text == '.', 1, 'last');
+ml = runMovingLoad(propped, truck, 'Step', 0.5);
+dSI = criticalTableData(ml);
+dUS = criticalTableData(ml, US);
+isV = strncmp(dUS(:, 1), 'Deflection', 10);
+assert(nnz(isV) == 2 && all(cellfun(decimals, dSI(:, 3)) == 3) && all(cellfun(decimals, dUS(isV, 3)) == 4) ...
+    && all(cellfun(decimals, dUS(isV, 7)) == 4) && all(cellfun(decimals, dUS(~isV, 3)) == 3), ...
+    'critical table: v to 3 decimals in mm and 4 in in; M and V to 3 in both');
+s = damageSensitivity(propped, truck, 0.30, 'vmin', 'Step', 1, 'Refine', false);
+dSI = sensitivityTableData(s, propped);
+dUS = sensitivityTableData(s, propped, US);
+assert(all(cellfun(decimals, dSI(:, 4)) == 4) && all(cellfun(decimals, dSI(:, 5)) == 4) ...
+    && all(cellfun(decimals, dUS(:, 4)) == 5) && all(cellfun(decimals, dUS(:, 5)) == 5), ...
+    'sensitivity table: vmin and change to 4 decimals in mm and 5 in in');
+assert(strcmp(formatNumber(3e-7 / inch, 5, true), '+0.00001') && strcmp(formatNumber(3e-7 / inch, 4, true), '0.0000'), ...
+    'a 0.3 um change shows in inches to 5 decimals, but would read 0.0000 to 4');
+model = createBeamModel(generateUniformMesh(20, 20), 2e9);
+model = addSupport(model, 1, 'pin');
+model = addSupport(model, 21, 'roller');
+positions = [5 10 15 20 25];
+sensors = [5 10 15];
+u = syntheticObservations(model, truck, positions, sensors, 1, 6, 7, 30, 1, 7);
+r = identifySingleDamage(model, truck, positions, sensors, u, 'NoiseLevel', 0.01, 'Groups', {2; 5; 7; 10; 15});
+dSI = identificationTableData(r);
+dUS = identificationTableData(r, US);
+assert(all(cellfun(decimals, dSI(:, 6)) == 4) && all(cellfun(decimals, dUS(:, 6)) == 5), ...
+    'candidate table: RMSE to 4 decimals in mm and 5 in in');
+lines = identificationSummary(r, [], US);
+best = lines{strncmp(lines, 'Best fit', 8)};
+token = regexp(best, 'RMSE ([0-9.]+) in', 'tokens', 'once');
+assert(~isempty(token) && decimals(token{1}) == 5, 'summary: best-fit RMSE to 5 decimals in inches');
+fprintf('  PASS inches: critical v to 4, sensitivity and RMSE to 5 decimals (mm: 3 and 4); M, V, R unchanged\n');
+
 %% Fit profile, fit chart and readings chart in US units
 model = createBeamModel(generateUniformMesh(20, 20), 2e9);
 model = addSupport(model, 1, 'pin');
