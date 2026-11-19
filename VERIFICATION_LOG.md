@@ -1301,4 +1301,16 @@ These are MATLAB uitable behaviours that the Octave stand-ins cannot show.
 
 **Limits:** the layout numbers are estimates from the user's screenshots; the MATLAB look (slider labels, reaction table without scroll bar, readings-plot title) is **NOT VERIFIED IN MATLAB** yet.
 
-**Status of M9c:** verified in Octave (V-027). MATLAB not run yet (V-028 pending).
+**Status of M9c:** verified in Octave (V-027). MATLAB: see V-028.
+
+### V-027 addendum (2026-11-19): labels clipped to the axes
+
+The user's MATLAB screenshot after a zoom on the beam drawing (a 5 + 5 ft model with B Free and HL-93 at x_v = 0.983 ft) showed node, element and axle labels outside the axes: MATLAB clips lines and patches to the axes but not text, by default. The numbers in that screenshot are right (B Free makes one 10 ft simple span: R_A = 8 x 9.017 / 10 = 7.214 kip, R_C = 0.786 kip, M = 8 x 0.983 x 9.017 / 10 = 7.09 kip*ft; the app shows 7.214, 0.786 and 7.089). Fix in `3ac60ac`: `renderDrawing` and `plotDiagram` draw text with `'Clipping', 'on'`; diagram peak labels sit on the side of their point that faces the plot. `testGuiHelpers` checks all 66 labels of a two-span drawing and the peak-label sides (3 mutants, all detected); the app check gains a row (93 rows, all PASS against the stand-ins).
+
+## V-028 — 2026-11-19 — M9c in MATLAB (run by the user)
+
+| Item | Value |
+|---|---|
+| Code version | Branch `claude/m9c-polish` at `ab8ca34` (the warning points to line 169 of the check, which is line 171 from `3ac60ac` on): every M9c change except the label clipping |
+| App check | `checkBridgeConditionApp(true)`: **every row PASS** and no error at the end, including "direction or step edited: the status asks for Apply vehicle; the slider has round ticks (-x crossing, from below 0)", "preset chosen: the status asks for Apply vehicle; after it: Vehicle applied: ...", "US: slider ticks are round ...", "41 callbacks invoked (buttons, fields, tables, slider, tabs) without an error thrown or reported, after a valid set-up" (40 + the in-app "Run all tests") and "Verification tab: test suite reports 0 failed". Only the deliberate unit-slip warning. Screenshots: `results/verification/2026-11-19_M9c_matlab_checkBridgeConditionApp_part1.png` to `..._part4.png` |
+| Still to see | The label-clipping commit `3ac60ac` (one more check row; zoom on the beam drawing) and the app screenshots of the Vehicle and Identification tabs |
