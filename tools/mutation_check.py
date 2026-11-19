@@ -165,12 +165,13 @@ mutations = [
   ('M9b: drawing ignores the Units option', 'src/visualization/bridgeDrawing.m', "U = optionOr(opts, 'Units', unitSystem('SI'));", "U = unitSystem('SI');"),
   ('M9b: point-load label always in kN', 'src/visualization/bridgeDrawing.m', "label = sprintf('%g %s', abs(P) / force.toSI, force.unit);", "label = sprintf('%g kN', abs(P) / 1e3);"),
   ('M9b: couple label always in kN*m', 'src/visualization/bridgeDrawing.m', "sprintf('%g %s (%s)', abs(Mz) / moment.toSI, moment.unit, sense)", "sprintf('%g kN*m (%s)', abs(Mz) / 1e3, sense)"),
-  ('M9b: close axles never share a label', 'src/visualization/bridgeDrawing.m', '>= 0.06 * L', '>= 0'),
-  ('M9b: axle label threshold 8 % of L', 'src/visualization/bridgeDrawing.m', '>= 0.06 * L', '>= 0.08 * L'),
-  ('M9b: axle label threshold 3 % of L', 'src/visualization/bridgeDrawing.m', '>= 0.06 * L', '>= 0.03 * L'),
+  ('M9b: close axles never share a label', 'src/visualization/bridgeDrawing.m', 'last = ax.x(idx(k + 1)) - ax.x(idx(k)) >= apart;', 'last = ax.x(idx(k + 1)) - ax.x(idx(k)) >= 0;'),
+  # M9c: the 6 %-of-L threshold (two M9b faults) became a label-width rule after the user's US screenshot
+  ('M9c: axle label width estimate halved', 'src/visualization/bridgeDrawing.m', 'width = @(k) 0.006 * ext', 'width = @(k) 0.003 * ext'),
+  ('M9c: no margin between axle labels', 'src/visualization/bridgeDrawing.m', '/ 2 + 0.02 * ext;', '/ 2;'),
   ('M9b: merged label always lists loads with +', 'src/visualization/bridgeDrawing.m', 'elseif all(strcmp(values, values{1}))', 'elseif false'),
-  ('M9b: axle groups formed in table order, not left to right', 'src/visualization/bridgeDrawing.m', '[~, order] = sort(ax.x(on));', 'order = 1:numel(on);'),
-  ('M9b: off-bridge axles lose their labels', 'src/visualization/bridgeDrawing.m', 'if ~ax.onBridge(k)', 'if false'),
+  ('M9b: axle groups formed in table order, not left to right', 'src/visualization/bridgeDrawing.m', '[~, order] = sort(ax.x(idx));', 'order = 1:numel(idx);'),
+  ('M9b: off-bridge axles lose their labels', 'src/visualization/bridgeDrawing.m', "    prims = [prims, axleLabels(ax, find(~on), body(2) + 0.12*h, th.vehicleOff, ext, U.force)];\n", ''),
   ('M9b: load label back at mid-length', 'src/visualization/bridgeDrawing.m', "    prims(end+1) = drawingPrimitive('text', xa, level + sgn*0.15*h, th.load, ...", "    prims(end+1) = drawingPrimitive('text', (xa + xb)/2, level + sgn*0.15*h, th.load, ..."),
   ('M9b: load label centred', 'src/visualization/bridgeDrawing.m', "'hAlign', 'left', 'vAlign', vertical(sgn), 'fontSize', 9);", "'vAlign', vertical(sgn), 'fontSize', 9);"),
   ('M9b: end labels drawn inside the support symbols', 'src/visualization/bridgeDrawing.m', "prims(end+1) = drawingPrimitive('text', ends.x(k), -1.55*h,", "prims(end+1) = drawingPrimitive('text', ends.x(k), -0.55*h,"),
@@ -178,7 +179,7 @@ mutations = [
   ('M9b: node numbers drawn under the end labels', 'src/visualization/bridgeDrawing.m', "for n = find(~labelled).'", 'for n = 1:nn'),
   ('M9b: Inf span length not rejected with its row', 'src/gui/buildModelFromTables.m', '    v(~isfinite(v)) = NaN;\n', ''),
   ('M9b: Inf axle load not rejected with its row', 'src/gui/vehicleFromTable.m', '    v(~isfinite(v)) = NaN;\n', ''),
-  ('M9b: off-bridge axle labels always in kN', 'src/visualization/bridgeDrawing.m', 'axleLabel(ax.P(k), U.force)', "axleLabel(ax.P(k), unitSystem('SI').force)"),
+  ('M9b: off-bridge axle labels always in kN', 'src/visualization/bridgeDrawing.m', 'th.vehicleOff, ext, U.force)', "th.vehicleOff, ext, unitSystem('SI').force)"),
 ]
 only = sys.argv[3] if len(sys.argv) > 3 else ''   # optional name prefix, e.g. 'M7b:'
 mutations = [m for m in mutations if m[0].startswith(only)]

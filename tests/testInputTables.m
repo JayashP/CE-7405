@@ -268,7 +268,7 @@ fprintf('  PASS bold A, B, C below the symbols; load texts in kN, kN/m, kN*m or 
 
 %% Drawing: close axles share one label and the uniform-load label sits at the left end of its load
 th = appTheme();
-model = createBeamModel(generateUniformMesh(40, 16), 2e9);       % 6 % of 40 m = 2.4 m
+model = createBeamModel(generateUniformMesh(40, 16), 2e9);       % '120 kN' labels need 1.44 m + 0.8 m apart
 model = addSupport(model, 1, 'pin');
 model = addSupport(model, 17, 'roller');
 truck = createVehicle([80e3 120e3 120e3], [4.2 1.4]);
@@ -293,19 +293,26 @@ res = analyzeVehiclePosition(prep, truck, 1, 1);                 % entering: axl
 prims = bridgeDrawing(model, struct('Axles', res.axles));
 offLab = prims(arrayfun(@(p) isLabel(p, th.vehicleOff), prims));
 onLab = prims(arrayfun(@(p) isLabel(p, th.vehicle), prims));
-assert(isequal({offLab.text}, {'120 kN', '120 kN'}) && isequal({onLab.text}, {'80 kN'}), 'axles off the bridge keep their own labels');
+% Off-bridge axles follow the same rule since M9c: in US units their separate labels ran into each other
+% (user's MATLAB screenshot, 2026-11-19: '26.9771 k26.9771 kip'). This is a display choice, not a result.
+assert(isequal({offLab.text}, {'2 x 120 kN'}) && abs(offLab.x + 3.9) < 1e-9 && isequal({onLab.text}, {'80 kN'}), ...
+    'close axles off the bridge share one grey label too');
 prims = bridgeDrawing(model, struct('Axles', res.axles, 'Units', US));
 offLab = prims(arrayfun(@(p) isLabel(p, th.vehicleOff), prims));
 onLab = prims(arrayfun(@(p) isLabel(p, th.vehicle), prims));
-assert(isequal({offLab.text}, repmat({sprintf('%g kip', 120e3 / kip)}, 1, 2)) ...
+assert(isequal({offLab.text}, {sprintf('2 x %g kip', 120e3 / kip)}) ...
     && isequal({onLab.text}, {sprintf('%g kip', 80e3 / kip)}), 'labels of axles off the bridge in kip too');
-short = createBeamModel(generateUniformMesh(20, 8), 2e9);         % 6 % of 20 m = 1.2 m < 1.4 m
+short = createBeamModel(generateUniformMesh(20, 8), 2e9);         % '120 kN': 0.72 + 0.4 = 1.12 m < 1.4 m
 short = addSupport(short, 1, 'pin');
 short = addSupport(short, 9, 'roller');
 res = analyzeVehiclePosition(prepareMovingLoad(short, defaultEnvelopeStations(short.nodes.x, 4)), truck, 18, 1);
 prims = bridgeDrawing(short, struct('Axles', res.axles));
 lab = prims(arrayfun(@(p) isLabel(p, th.vehicle), prims));
 assert(isequal({lab.text}, {'120 kN', '120 kN', '80 kN'}), 'axles 1.4 m apart on a 20 m beam keep their own labels');
+prims = bridgeDrawing(short, struct('Axles', res.axles, 'Units', US));    % '26.9771 kip': 1.32 + 0.4 = 1.72 m
+lab = prims(arrayfun(@(p) isLabel(p, th.vehicle), prims));
+assert(isequal({lab.text}, {sprintf('2 x %g kip', 120e3 / kip), sprintf('%g kip', 80e3 / kip)}), ...
+    'in kip the longer labels of the same axles would overlap, so they share one');
 [x, xs] = meshSpans([20 20], [8 8]);
 twoSpan = createBeamModel(x, 2e9);
 twoSpan = addSupport(twoSpan, 1, 'pin');
@@ -320,7 +327,7 @@ q = bridgeDrawing(loaded);
 q = q(strncmp({q.text}, 'q = ', 4));
 assert(isequal({q.text}, {'q = 10 kN/m', 'q = 20 kN/m'}) && isequal([q.x], [0 20]) && all(strcmp({q.hAlign}, 'left')), ...
     'two load runs: each label at the left end of its run');
-fprintf('  PASS ''2 x 120 kN'' and ''80 + 120 kN'' merged labels, separate labels off the bridge and on a short beam; q labels left-aligned\n');
+fprintf('  PASS ''2 x 120 kN'' and ''80 + 120 kN'' merged labels (on and off the bridge; wider labels in kip merge sooner), separate labels on a short beam in kN; q labels left-aligned\n');
 
 %% Drawing with node numbers leaves out the numbers where a support letter is drawn
 [x, xs] = meshSpans([20 20], [8 8]);

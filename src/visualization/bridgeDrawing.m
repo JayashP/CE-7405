@@ -38,9 +38,11 @@ function prims = bridgeDrawing(model, opts)
 %   'q = .. kN/m'); permanent point loads and nodal forces (arrows with
 %   kN values); nodal couples (arc with kN*m value); vehicle axles (arrows
 %   with kN values) under a truck schematic; and the deformed shape.
-%   Labels are kept apart: on-bridge axles closer together than 6 % of the
-%   beam length share one label ('2 x 120 kN', or '80 + 120 kN' when the
-%   loads differ, listed from left to right); a uniform-load label sits at
+%   Labels are kept apart: neighbouring axles (on the bridge, or off it)
+%   whose labels would overlap share one label ('2 x 120 kN', or
+%   '80 + 120 kN' when the loads differ, listed from left to right); the
+%   overlap uses the label's length, so it depends on the units; a
+%   uniform-load label sits at
 %   the left end of its load, left-aligned; with ShowNumbers, no node
 %   number is drawn where an end label is drawn.
 %
@@ -161,24 +163,13 @@ if isfield(opts, 'Axles') && ~isempty(opts.Axles)
             style = ':';
         end
         prims = [prims, arrow(ax.x(k), gap, gap + 1.75*h, h, c, 1.4, style)]; %#ok<AGROW>
-        if ~ax.onBridge(k)
-            prims(end+1) = drawingPrimitive('text', ax.x(k), body(2) + 0.12*h, c, ...
-                'text', axleLabel(ax.P(k), U.force), 'vAlign', 'bottom', 'fontSize', 8); %#ok<AGROW>
-        end
     end
-    % On-bridge axles closer than 6 % of the beam length share one label (left to right)
-    on = find(ax.onBridge(:));
-    [~, order] = sort(ax.x(on));
-    on = on(order);
-    first = 1;
-    for k = 1:numel(on)
-        if k == numel(on) || ax.x(on(k + 1)) - ax.x(on(k)) >= 0.06 * L
-            group = on(first:k);
-            prims(end+1) = drawingPrimitive('text', (ax.x(group(1)) + ax.x(group(end)))/2, body(2) + 0.12*h, ...
-                th.vehicle, 'text', axleLabel(ax.P(group), U.force), 'vAlign', 'bottom', 'fontSize', 8); %#ok<AGROW>
-            first = k + 1;
-        end
-    end
+    % Axle labels, left to right, off and on the bridge in their own colours; neighbours whose labels
+    % would overlap share one label
+    ext = max([x(end); ax.x(:) + 0.4*h]) - min([x(1); ax.x(:) - 0.4*h]);    % width of the drawing [m]
+    on = logical(ax.onBridge(:));
+    prims = [prims, axleLabels(ax, find(~on), body(2) + 0.12*h, th.vehicleOff, ext, U.force)];
+    prims = [prims, axleLabels(ax, find(on), body(2) + 0.12*h, th.vehicle, ext, U.force)];
 end
 
 % Elements with a prescribed stiffness loss (Stage 2)
@@ -287,6 +278,32 @@ else
     prims = arrow(xp, -gap, -gap - len, h, color, 1.4, style);
     prims(end+1) = drawingPrimitive('text', xp, -gap - len - 0.1*h, color, ...
         'text', label, 'vAlign', 'top', 'fontSize', 8);
+end
+end
+
+function prims = axleLabels(ax, idx, y, color, ext, force)
+% Labels of the axles IDX, left to right. Neighbours share one label when their labels would overlap:
+% centres closer than half their widths plus a 2 % margin, with 8-point text estimated at 0.6 % of the
+% drawing width EXT per character (the app's axes are about 800-1300 px wide). The width depends on the
+% unit: '120 kN' is short, '26.9771 kip' is not (user's MATLAB screenshot, 2026-11-19).
+prims = drawingPrimitive('text', 0, 0, color);
+prims = prims([]);
+[~, order] = sort(ax.x(idx));
+idx = idx(order);
+width = @(k) 0.006 * ext * numel(axleLabel(ax.P(k), force));
+first = 1;
+for k = 1:numel(idx)
+    last = k == numel(idx);
+    if ~last
+        apart = (width(idx(k)) + width(idx(k + 1))) / 2 + 0.02 * ext;
+        last = ax.x(idx(k + 1)) - ax.x(idx(k)) >= apart;
+    end
+    if last
+        group = idx(first:k);
+        prims(end+1) = drawingPrimitive('text', (ax.x(group(1)) + ax.x(group(end)))/2, y, color, ...
+            'text', axleLabel(ax.P(group), force), 'vAlign', 'bottom', 'fontSize', 8); %#ok<AGROW>
+        first = k + 1;
+    end
 end
 end
 
