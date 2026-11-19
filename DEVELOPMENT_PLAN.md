@@ -28,7 +28,7 @@ Order is fixed by the spec:
 | S3 | Stage 3 inverse search (stretch) | Nov 10 – 14 | Engine done in Octave (V-018); revised with the user's options 3 + 2 and an independent review (D-029, V-019). MATLAB 129/129 (V-020). Merged to `main`. Next: app tab (M8) |
 | M8 | Identification (Stage 3) tab in the app (D-030) + display fixes | Nov 12 – 18 | **Done.** Octave (V-021); MATLAB 135/135, app check all PASS, tab used (V-022). Merged to `main` |
 | M8b | Cosmetic follow-ups (−0.000 in Envelopes tables, readings table width, quieter app check) | Nov 18 | **Done.** Octave 135/135, app check 48/48 (V-023); MATLAB app check all PASS (V-024). Merged to `main` |
-| M9 | Input redesign (D-031): span/support/axle tables, support letters, presets, node drop-downs, SI / US unit switch, MATLAB-style colours | Nov 19 – 20 | Octave done (V-025); MATLAB **not run yet** |
+| M9 | Input redesign (D-031): span/support/axle tables, support letters, presets, node drop-downs, SI / US unit switch, MATLAB-style colours | Nov 19 – 20 | Octave done (V-025); MATLAB suite and app check pass (V-026 part 1); app screenshots pending |
 | S4 | Stage 4: hypothetical repaired state (user's request, 2026-11-18); steel repair categories only from sourced rules | After M9 | Next |
 | — | Stabilize, demo recording, final documentation | Nov 21 – 23 | — |
 | — | **Submission** | **Nov 24** | — |

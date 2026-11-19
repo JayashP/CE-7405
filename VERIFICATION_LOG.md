@@ -1242,4 +1242,14 @@ New app-check rows (two-span 12 + 15 m RCC model unless stated):
 
 **Limits:** layout, rendering, table editing and drop-down cells are **NOT VERIFIED IN MATLAB**; the stand-ins check property names, values, child order and object counts only. US customary results are the SI engine results converted for display (exact factors); they are not an independent analysis.
 
-**Status of M9:** verified in Octave (V-025). **MATLAB not run yet** (V-026 pending).
+## V-026 — 2026-11-19 — M9 in MATLAB, part 1: test suite and app check (run by the user)
+
+| Item | Value |
+|---|---|
+| Platform | MATLAB R2026b on the user's computer (as V-002) |
+| Code version | Branch `claude/m9-input-redesign` at `79bef9d` (pulled after V-025) |
+| Main suite | `runAllTests`: **Total: 157 passed, 0 failed, 157 tests**, the same count as Octave (V-025). Screenshot: `results/verification/2026-11-19_M9_matlab_runAllTests_summary.png` |
+| App check | `checkBridgeConditionApp(true)`: **every row PASS** and no error at the end (the check throws if any row fails). This includes the refused switch, every US-unit row, the round trips back to SI, the Free-support Rmax row, "38 callbacks invoked ... without an error thrown or reported, after a valid set-up" (38 = the 37 of the Octave run plus the in-app "Run all tests" button; the sweep ran in MATLAB's child order) and "Verification tab: test suite reports 0 failed". The only warning is the deliberate unit-slip warning (RCC E = 3.2e+19 Pa). Screenshots: `..._M9_matlab_checkBridgeConditionApp_part1.png` to `..._part4.png` |
+| Not yet seen | Screenshots of the app in SI and US (layout of the left panels, summary notes, preset names, readings tab title) and the table-editing behaviours (text and cleared cells, Type drop-down, blank last spacing, refused switch alert): part 2 |
+
+**Status of M9:** verified in Octave (V-025); MATLAB suite and app check pass (V-026 part 1). App screenshots and table-editing checks pending (V-026 part 2).
