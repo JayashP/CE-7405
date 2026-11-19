@@ -29,7 +29,7 @@ Order is fixed by the spec:
 | M8 | Identification (Stage 3) tab in the app (D-030) + display fixes | Nov 12 – 18 | **Done.** Octave (V-021); MATLAB 135/135, app check all PASS, tab used (V-022). Merged to `main` |
 | M8b | Cosmetic follow-ups (−0.000 in Envelopes tables, readings table width, quieter app check) | Nov 18 | **Done.** Octave 135/135, app check 48/48 (V-023); MATLAB app check all PASS (V-024). Merged to `main` |
 | M9 | Input redesign (D-031): span/support/axle tables, support letters, presets, node drop-downs, SI / US unit switch, MATLAB-style colours | Nov 19 – 20 | **Done** (Octave V-025, MATLAB V-026); merged |
-| M9c | Cosmetic follow-ups from the M9 MATLAB screenshots: round slider ticks, wider left panels, vehicle status messages | Nov 19 | Octave done (V-027); MATLAB **not run yet** |
+| M9c | Cosmetic follow-ups from the M9 MATLAB screenshots: round slider ticks, wider left panels, vehicle status messages | Nov 19 | Octave 157/157, app check 92/92, 9/9 mutants (V-027); MATLAB **not run yet** |
 | S4 | Stage 4: hypothetical repaired state (user's request, 2026-11-18); steel repair categories only from sourced rules | After M9 | Next |
 | — | Stabilize, demo recording, final documentation | Nov 21 – 23 | — |
 | — | **Submission** | **Nov 24** | — |

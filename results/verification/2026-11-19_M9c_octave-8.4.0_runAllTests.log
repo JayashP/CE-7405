@@ -1,0 +1,1761 @@
+
+=== testAssembly / Element DOF map is [v_i theta_i v_j theta_j] with node n owning DOFs 2n-1 and 2n ===
+   1   2   3   4
+   3   4   5   6
+   5   6   7   8
+  PASS elementDofs matches the hand-written DOF map
+--- PASS
+
+=== testAssembly / Two equal unit elements assemble to the hand-computed 6x6 matrix ===
+   12    6  -12    6    0    0
+    6    4   -6    2    0    0
+  -12   -6   24    0  -12    6
+    6    2    0    8   -6    2
+    0    0  -12   -6   12   -6
+    0    0    6    2   -6    4
+  PASS two-element K equals the hand-computed matrix exactly
+--- PASS
+
+=== testAssembly / Unequal lengths and EI match K = sum(A_e'*k_e*A_e) with explicit Boolean A_e ===
+
+Nonuniform 3-element beam: triplet assembly vs explicit A_e assembly
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  max|K - Kref| / max|Kref| [-]                                     0                      0   0.000e+00          n/a abs<=1e-14    PASS
+--- PASS
+
+=== testAssembly / Assembled K is symmetric with exactly two rigid-body modes ===
+
+Global K, 30 m beam, 20 elements, 21 nodes, no supports
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  number of DOFs [-]                                               42                     42   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  max|K - K'| / max|K| [-]                                          0                      0   0.000e+00          n/a abs<=1e-15    PASS
+  rank(K) [-] (DOFs - 2 rigid modes)                               40                     40   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  max|K*translation| / max|K| [-]                                   0                      0   0.000e+00          n/a abs<=1e-12    PASS
+  max|K*rotation| / (max|K|*L) [-]                9.6112489700317e-17                      0   9.611e-17          n/a abs<=1e-12    PASS
+--- PASS
+
+=== testAssembly / Nodal load vector puts forces at v DOFs and couples at theta DOFs and sums repeats ===
+  F = [0 0 -1500 0 0 0 0 250 300 -40]
+  PASS nodal load vector equals the hand-written vector
+--- PASS
+
+=== testAssembly / Invalid model data are rejected ===
+  PASS expected error BridgeFE:invalidInput: x must be strictly increasing (zero-length or reversed elements are not allowed).
+  PASS expected error BridgeFE:invalidInput: x must be strictly increasing (zero-length or reversed elements are not allowed).
+  PASS expected error BridgeFE:invalidInput: x must be a real, finite vector of at least 2 node coordinates [m].
+  PASS expected error BridgeFE:invalidInput: EI must be a real, finite, positive scalar or a vector with one value per element (2) [N*m^2].
+  PASS expected error BridgeFE:invalidInput: EI must be a real, finite, positive scalar or a vector with one value per element (2) [N*m^2].
+  PASS expected error BridgeFE:invalidInput: ne must be an integer scalar >= 1.
+  PASS expected error BridgeFE:invalidInput: L must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidModel: model.elements.EI must be a real, finite, positive 2-by-1 vector [N*m^2].
+  PASS expected error BridgeFE:invalidModel: model.elements.conn must be [(1:ne)' (2:ne+1)']: one continuous beam whose elements join consecutive nodes.
+  PASS expected error BridgeFE:invalidInput: node must be an integer scalar between 1 and 3.
+  PASS expected error BridgeFE:invalidInput: Fv must be a real, finite numeric scalar.
+--- PASS
+
+=== testBeamStiffness / Exact matrix for EI = 2e9 N*m^2 and Le = 2 m (hand-computed literals) ===
+  ke(EI = 2e9 N*m^2, Le = 2 m), DOFs [v1 theta1 v2 theta2]:
+   3.0000e+09   3.0000e+09  -3.0000e+09   3.0000e+09
+   3.0000e+09   4.0000e+09  -3.0000e+09   2.0000e+09
+  -3.0000e+09  -3.0000e+09   3.0000e+09  -3.0000e+09
+   3.0000e+09   2.0000e+09  -3.0000e+09   4.0000e+09
+
+Element stiffness, EI = 2e9 N*m^2, Le = 2 m
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  k11 = 12EI/Le^3 [N/m]                                    3000000000             3000000000   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  k12 = 6EI/Le^2 [N/rad]                                   3000000000             3000000000   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  k13 = -12EI/Le^3 [N/m]                                  -3000000000            -3000000000   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  k22 = 4EI/Le [N*m/rad]                                   4000000000             4000000000   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  k24 = 2EI/Le [N*m/rad]                                   2000000000             2000000000   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  k34 = -6EI/Le^2 [N/rad]                                 -3000000000            -3000000000   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  max|ke - expected| / max|expected| [-]                            0                      0   0.000e+00          n/a abs<=1e-14    PASS
+--- PASS
+
+=== testBeamStiffness / Unit EI and unit length give the integer coefficient matrix exactly ===
+   12    6  -12    6
+    6    4   -6    2
+  -12   -6   12   -6
+    6    2   -6    4
+  PASS beamElementStiffness(1, 1) equals the integer coefficient matrix exactly
+--- PASS
+
+=== testBeamStiffness / Spec mesh example Le = 1.5 m with steel E = 200 GPa and I = 0.01 m^4 ===
+   7.1111e+09   5.3333e+09  -7.1111e+09   5.3333e+09
+   5.3333e+09   5.3333e+09  -5.3333e+09   2.6667e+09
+  -7.1111e+09  -5.3333e+09   7.1111e+09  -5.3333e+09
+   5.3333e+09   2.6667e+09  -5.3333e+09   5.3333e+09
+
+Element stiffness, EI = 2e9 N*m^2, Le = 1.5 m
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  k11 = 12EI/Le^3 [N/m]                               7111111111.1111        7111111111.1111   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  k22 = 4EI/Le [N*m/rad]                              5333333333.3333        5333333333.3333   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  k24 = 2EI/Le [N*m/rad]                              2666666666.6667        2666666666.6667   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  max|ke - expected| / max|expected| [-]                            0                      0   0.000e+00          n/a abs<=1e-14    PASS
+--- PASS
+
+=== testBeamStiffness / Element matrix is exactly symmetric for arbitrary EI and Le ===
+  EI = 2e+09      Le = 1.5      max|ke - ke'| = 0
+  EI = 3.7e+08    Le = 0.37     max|ke - ke'| = 0
+  EI = 1          Le = 1        max|ke - ke'| = 0
+  EI = 5.123e+10  Le = 12.75    max|ke - ke'| = 0
+  EI = 0.001      Le = 1000     max|ke - ke'| = 0
+--- PASS
+
+=== testBeamStiffness / Rigid-body modes lie in the null space and ke is positive semi-definite of rank 2 ===
+  eigenvalues of ke: [-3.99155e-06 -3.67035e-07 2.66667e+09 2.22222e+10]
+
+Element rigid-body modes and definiteness, EI = 2e9 N*m^2, Le = 1.5 m
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  max|ke*translation| / max|ke| [-]                                 0                      0   0.000e+00          n/a abs<=1e-12    PASS
+  max|ke*rotation| / max|ke| [-]                  1.3411045074463e-16                      0   1.341e-16          n/a abs<=1e-12    PASS
+  rank(ke) [-]                                                      2                      2   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  min eigenvalue / max eigenvalue [-]            -1.7961996854061e-16                      0   1.796e-16          n/a abs<=1e-12    PASS
+--- PASS
+
+=== testBeamStiffness / Stiffness scales linearly with EI, as later EI-reduction studies assume ===
+
+Linearity in EI
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  max|k(0.7EI) - 0.7k(EI)| / max|k(EI)| [-]       1.3411045074463e-16                      0   1.341e-16          n/a abs<=1e-14    PASS
+--- PASS
+
+=== testBeamStiffness / Invalid EI or Le inputs are rejected with BridgeFE:invalidInput ===
+  PASS expected error BridgeFE:invalidInput: EI must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: Le must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: EI must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: Le must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: EI must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: Le must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: EI must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: Le must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: EI must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: Le must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: EI must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: Le must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: EI must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: Le must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: EI must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: Le must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: EI must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: Le must be a real, finite, positive numeric scalar.
+--- PASS
+
+=== testCantileverTipLoad / Cantilever with a tip load and 10 elements ===
+
+Cantilever: L = 10 m, P = 50 kN down at tip, EI = 2e+09 N*m^2, 10 elements
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  R_A [kN] (+ up)                                     49.999999999973                     50   2.701e-11    5.402e-11 rel<=0.1%     PASS
+  reaction couple at A [kN*m] (+ CCW)                 499.99999999984                    500   1.593e-10    3.186e-11 rel<=0.1%     PASS
+  M(x = 0) [kN*m] (+ sagging)                        -499.99999999984                   -500   1.593e-10    3.186e-11 rel<=0.1%     PASS
+  M(x = L) [kN*m]                                 -1.862645149231e-12                      0   1.863e-12          n/a abs<=0.0005   PASS
+  max|M - M_ref| over element ends [kN*m]         1.5925616025925e-10                      0   1.593e-10          n/a abs<=0.0005   PASS
+  min V over element ends [kN]                        49.999999999953                     50   4.657e-11    9.314e-11 rel<=0.1%     PASS
+  max V over element ends [kN]                                     50                     50   0.000e+00    0.000e+00 rel<=0.1%     PASS
+  v_tip [mm] (+ up)                                  -8.3333333333312       -8.3333333333333   2.137e-12    2.564e-11 rel<=0.1%     PASS
+  theta_tip [rad] (+ CCW)                         -0.0012499999999997               -0.00125   3.016e-16    2.413e-11 rel<=0.1%     PASS
+  sum Fv, loads + reactions [kN]                 -2.7008354663849e-11                      0   2.701e-11          n/a abs<=5e-05    PASS
+  sum M about x = 0 [kN*m]                       -1.5925616025925e-10                      0   1.593e-10          n/a abs<=0.0005   PASS
+  PASS v_A = theta_A = 0 exactly at the fixed end
+--- PASS
+
+=== testContinuousBeam / Two equal spans with a point load at each midspan ===
+
+Two spans of 10 m, P = 100 kN at each midspan, 16 elements per span
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  R_A [kN]                                                      31.25                  31.25   0.000e+00    0.000e+00 rel<=0.1%     PASS
+  R_B [kN]                                            137.50000000001                  137.5   5.826e-12    4.237e-12 rel<=0.1%     PASS
+  R_C [kN]                                            31.250000000009                  31.25   9.312e-12    2.980e-11 rel<=0.1%     PASS
+  M_B from span 1 [kN*m]                             -187.50000000001                 -187.5   1.180e-11    6.291e-12 rel<=0.1%     PASS
+  M_B from span 2 [kN*m]                             -187.50000000001                 -187.5   1.182e-11    6.306e-12 rel<=0.1%     PASS
+  M under load in span 1 [kN*m]                       156.24999999998                 156.25   1.711e-11    1.095e-11 rel<=0.1%     PASS
+  v(L/2) [mm]                                       -0.45572916666658      -0.45572916666667   8.454e-14    1.855e-11 rel<=0.1%     PASS
+  theta_B [rad]                                  -3.2179274151007e-17                      0   3.218e-17          n/a abs<=3.125e-10 PASS
+  sum Fv, loads + reactions [kN]                  1.5133991837502e-11                      0   1.513e-11          n/a abs<=0.0001   PASS
+  sum M about x = 0 [kN*m]                        2.4447217583656e-10                      0   2.445e-10          n/a abs<=0.001    PASS
+--- PASS
+
+=== testContinuousBeam / Benchmark D two equal spans with uniform load on both spans ===
+  rcond(Kff) = 1.581e-05, max|Kff*Uf - Ff| = 2.189e-08
+
+Benchmark D: two 10 m spans, q = 20 kN/m on both, 16 elements per span
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  R_A [kN]                                                         75                     75   0.000e+00    0.000e+00 rel<=0.5%     PASS
+  R_B [kN]                                            250.00000000001                    250   6.054e-12    2.422e-12 rel<=0.5%     PASS
+  R_C [kN]                                            75.000000000014                     75   1.397e-11    1.863e-11 rel<=0.5%     PASS
+  M_B from span 1 [kN*m]                             -250.00000000001                   -250   1.344e-11    5.377e-12 rel<=0.5%     PASS
+  M_B from span 2 [kN*m]                             -250.00000000001                   -250   1.347e-11    5.389e-12 rel<=0.5%     PASS
+  max sagging M, span 1 [kN*m]                        140.62499999998                140.625   1.654e-11    1.176e-11 rel<=0.5%     PASS
+  x of max sagging M, span 1 [m]                                 3.75                   3.75   0.000e+00    0.000e+00 rel<=0.5%     PASS
+  max sagging M, span 2 [kN*m]                        140.62500000003                140.625   3.163e-11    2.249e-11 rel<=0.5%     PASS
+  x of max sagging M, span 2 [m]                                16.25                  16.25   0.000e+00    0.000e+00 rel<=0.5%     PASS
+  theta_A [rad] (+ CCW)                          -0.00020833333333331   -0.00020833333333333   2.778e-17    1.334e-11 rel<=0.5%     PASS
+  theta_B [rad]                                   -3.656805450732e-17                      0   3.657e-17          n/a abs<=2.08333e-10 PASS
+  max|v - v_exact| / (qL^4/192EI) [-] (33 nodes)    3.2328306698304e-13                      0   3.233e-13          n/a abs<=0.005    PASS
+  max|M - M_exact| / (qL^2/8) [-] (288 samples)    1.6560079529881e-13                      0   1.656e-13          n/a abs<=0.005    PASS
+  max|V - V_exact| / (5qL/8) [-] (288 samples)    1.6763806343079e-13                      0   1.676e-13          n/a abs<=0.005    PASS
+  sum Fv, loads + reactions [kN]                  2.0023435354233e-11                      0   2.002e-11          n/a abs<=0.0002   PASS
+  sum M about x = 0 [kN*m]                        3.3993273973465e-10                      0   3.399e-10          n/a abs<=0.002    PASS
+--- PASS
+
+=== testContinuousBeam / Uniform load on one span only gives uplift at the far support ===
+
+Two equal spans, q on span AB only (pattern load)
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  R_A [kN]                                            87.500000000002                   87.5   1.862e-12    2.128e-12 rel<=0.1%     PASS
+  R_B [kN]                                                        125                    125   1.862e-12    1.489e-12 rel<=0.1%     PASS
+  R_C [kN] (negative = uplift)                       -12.500000000006                  -12.5   5.588e-12    4.471e-11 rel<=0.1%     PASS
+  M_B [kN*m]                                         -124.99999999999                   -125   1.164e-11    9.311e-12 rel<=0.1%     PASS
+  max|M - M_exact| / (qL^2/16) [-] (288 samples)    1.8940772861242e-13                      0   1.894e-13          n/a abs<=0.001    PASS
+  sum Fv, loads + reactions [kN]                  -1.862645149231e-12                      0   1.863e-12          n/a abs<=0.0002   PASS
+--- PASS
+
+=== testContinuousBeam / Unequal spans of 10 m and 15 m under uniform load (three-moment equation) ===
+
+Unequal spans 10 m + 15 m, q = 20 kN/m, 8 + 12 elements
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  R_A [kN]                                            56.249999999997                  56.25   3.055e-12    5.432e-12 rel<=0.1%     PASS
+  R_B [kN]                                            322.91666666668        322.91666666667   1.705e-11    5.281e-12 rel<=0.1%     PASS
+  R_C [kN]                                            120.83333333334        120.83333333333   4.349e-12    3.599e-12 rel<=0.1%     PASS
+  M_B [kN*m]                                         -437.50000000003                 -437.5   2.836e-11    6.483e-12 rel<=0.1%     PASS
+  M_B from span 1 [kN*m]                             -437.50000000003                 -437.5   2.763e-11    6.314e-12 rel<=0.1%     PASS
+  sum M about x = 0 [kN*m]                        2.7939677238464e-10                      0   2.794e-10          n/a abs<=0.0045   PASS
+--- PASS
+
+=== testDrawingGeometry / Pin, roller and fixed symbols have the conventional geometry ===
+  PASS expected error BridgeFE:invalidSupportType: Unknown support type 'hinge'.
+  PASS pin (triangle + ground + 6 hatch strokes), roller (triangle on 2 wheels on ground), fixed (wall, hatch outside), none
+--- PASS
+
+=== testDrawingGeometry / Beam drawing contains every support, load and label ===
+  PASS beam, 3 supports, 12 uniform-load arrowheads, point load at 7.3 m, couple, 9 node + 8 element labels
+--- PASS
+
+=== testDrawingGeometry / Vehicle axles on and off the bridge and the deformed shape are drawn distinctly ===
+  PASS 1 axle on the bridge (solid), 2 off (dotted grey), dashed deformed shape magnified x50
+--- PASS
+
+=== testDrawingGeometry / Damaged elements are overdrawn in the damage colour with their EI factor ===
+  PASS 2 adjacent damaged runs (5-10 m x0.70, 10-12.5 m x0.50) highlighted; none for a healthy model
+--- PASS
+
+=== testDrawingGeometry / Axis limits contain every primitive and leave room for labels ===
+  limits x [-1.574 21.49] m, y [-1.374 2.079] m; label anchor y = 1.104 m
+  PASS expected error BridgeFE:invalidInput: Unknown drawing property 'colour'.
+  PASS limits contain every primitive with label room above
+--- PASS
+
+=== testGuiHelpers / Numbers typed in text fields are parsed without evaluating code ===
+  PASS parsed '20 20', '80, 120,120', ' 4.2;1.4 ', [12 15], '1e3 2.5E-1'
+  PASS expected error BridgeFE:invalidInput: spans is empty.
+  PASS expected error BridgeFE:invalidInput: "abc" in spans is not a real, finite number.
+  PASS expected error BridgeFE:invalidInput: "Inf" in spans is not a real, finite number.
+  PASS expected error BridgeFE:invalidInput: "2i" in spans is not a real, finite number.
+  PASS expected error BridgeFE:invalidInput: "exit" in spans is not a real, finite number.
+--- PASS
+
+=== testGuiHelpers / App model inputs build exactly the model built directly with the engine (Benchmark D) ===
+  Spans: 20 + 20 m (total 40 m)
+  Mesh: 32 elements (16 per span), 33 nodes, 66 DOFs (v and theta at each node)
+  Material: Steel (steel): E = 200 GPa, Is = 0.01 m^4, EI = 2e+09 N*m^2
+  Basis: EI = Es*Is (steel section)
+  Supports: pin at 0 m, roller at 20 m, roller at 40 m
+  Permanent uniform load: 20 kN/m downward
+
+Model from app inputs (two 20 m spans, q = 20 kN/m down): Benchmark D
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  M_B [kN*m] = -qL^2/8                               -999.99999999998                  -1000   2.433e-11    2.433e-12 rel<=0.5%     PASS
+  R_B [kN] = 5qL/4                                    499.99999999999                    500   7.446e-12    1.489e-12 rel<=0.5%     PASS
+--- PASS
+
+=== testGuiHelpers / Support entries, RCC material and unit warnings are converted correctly ===
+warning: Steel modulus E = 2e+20 Pa is outside the usual 150-250 GPa. Check the units (the engine expects Pa); the material was still created.
+warning: called from
+    defineMaterial at line 68 column 5
+    buildModelFromInputs at line 70 column 10
+    runScriptTestsPortable>runSection at line 53 column 5
+    runScriptTestsPortable at line 37 column 27
+    runAllTests at line 25 column 13
+
+  unit-slip warning reported to the app: Steel modulus E = 2e+20 Pa is outside the usual 150-250 GPa. Check the units (the engine expects Pa); the material was still created.
+  PASS 'free FIXED' -> cantilever fixed at the right end; RCC EI = 2e9; unit slip reported
+--- PASS
+
+=== testGuiHelpers / Invalid model inputs give clear errors instead of a model ===
+  PASS expected error BridgeFE:invalidInput: Give one support entry for each of the 3 span ends (pin, roller, fixed or none); 2 given.
+  PASS expected error BridgeFE:invalidSupportType: Unknown support 'hinge'. Use pin, roller, fixed or none.
+  PASS expected error BridgeFE:underRestrained: Under-restrained model: no vertical displacement is restrained, so rigid-body vertical translation is free. Add two pin/roller supports or one fixed support.
+  PASS expected error BridgeFE:underRestrained: Under-restrained model: only node 1 (x = 0 m) restrains v and no rotation is restrained, so rigid-body rotation about that node is free. Add a second pin/roller support or make a support fixed.
+  PASS expected error BridgeFE:invalidInput: Enter the uniform load as a downward magnitude (>= 0) in kN/m.
+  PASS expected error BridgeFE:invalidInput: E [GPa] must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: Elements per span must be an integer scalar between 1 and 2000.
+--- PASS
+
+=== testGuiHelpers / Vehicle inputs in kN and m build the engine vehicle ===
+  PASS '80 120 120' kN / '4.2 1.4' m -> createVehicle([80e3 120e3 120e3], [4.2 1.4]); single axle accepted
+  PASS expected error BridgeFE:invalidVehicle: axleSpacings must hold 1 real, finite, positive spacing(s) [m] for 2 axle(s).
+  PASS expected error BridgeFE:invalidVehicle: axleLoads must be a vector of real, finite, positive magnitudes [N] (positive = downward).
+--- PASS
+
+=== testGuiHelpers / The static path used by the Matrices tab reproduces the moving-load position ===
+
+modelWithVehicle + solveStaticModel vs analyzeVehiclePosition (6 positions)
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  max normalized difference in U and R [-]        1.4321355667764e-13                      0   1.432e-13          n/a abs<=1e-09    PASS
+--- PASS
+
+=== testGuiHelpers / Diagram data list both limits at every point, sorted along the beam ===
+  rows at the axle x = 12.2 m: V = [187.314 67.3141] kN
+
+Shear jump under the 120 kN axle at x = 12.2 m in the diagram data
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  V(x+) - V(x-) [kN]                                             -120                   -120   0.000e+00    0.000e+00 rel<=0.1%     PASS
+--- PASS
+
+=== testGuiHelpers / Table data match the moving-load results they display ===
+  PASS critical (6x7), reaction envelope (3x7) and current reaction tables; DOF labels; matrix cells
+--- PASS
+
+=== testGuiHelpers / Damage-tab inputs and tables match the Stage 2 engine ===
+  PASS expected error BridgeFE:invalidInput: Stiffness loss must be at least 0 % and below 100 %.
+  PASS expected error BridgeFE:invalidInput: Stiffness loss must be at least 0 % and below 100 %.
+  PASS expected error BridgeFE:notOnNode: No node at x = 11 m (nearest node 5 at x = 10 m). Align the mesh with this coordinate.
+  PASS expected error BridgeFE:invalidInput: Unknown sensitivity quantity 'deflection'.
+  PASS damage inputs (elements 3-4, factor 0.70), comparison table (10 rows), sensitivity ranking (8 rows)
+--- PASS
+
+=== testGuiHelpers / Table numbers never show a negative zero, and the findings name the determinacy ===
+  PASS formatNumber (no -0.000, also in the Envelopes tables); findings: simple span determinate, propped degree 1, fixed-fixed degree 2
+--- PASS
+
+=== testGuiHelpers / Theme colours are valid RGB triplets ===
+  PASS 23 theme colours are RGB triplets in [0, 1]
+--- PASS
+
+=== testIdentificationHelpers / Default sensors and truck positions follow the spec and drop positions with no axle on the beam ===
+  PASS spec layout; -x travel; positions without axles and a sensor on a support dropped
+--- PASS
+
+=== testIdentificationHelpers / Synthetic readings are the forward model of the hidden case plus reproducible noise ===
+  PASS expected error BridgeFE:invalidInput: Hidden loss must be at least 0 % and below 100 %.
+  PASS expected error BridgeFE:invalidInput: Noise must be 0 % or more.
+  PASS expected error BridgeFE:invalidInput: Seed must be a whole number of 0 or more.
+  PASS expected error BridgeFE:notOnNode: No node at x = 7.5 m (nearest node 8 at x = 7 m). Align the mesh with this coordinate.
+  PASS synthetic readings = forward model + noise; undamaged case; invalid inputs rejected
+--- PASS
+
+=== testIdentificationHelpers / Tab inputs become the documented search options, and readings come back in metres ===
+  PASS expected error BridgeFE:invalidInput: Noise [%] must be 0 or more.
+  PASS expected error BridgeFE:invalidInput: Unknown candidate region size '3 m'.
+  PASS expected error BridgeFE:invalidInput: The readings table must have 3 rows (sensors) and 2 columns (truck positions); press "Generate synthetic readings" or "New empty table" after changing them.
+  PASS expected error BridgeFE:invalidInput: Readings must be finite numbers in mm (leave a cell empty if it is missing).
+  PASS options, region sizes and readings conversion
+--- PASS
+
+=== testIdentificationHelpers / Fit profile, candidate table and summary describe the search result ===
+  PASS profile (1 of 5 candidates in region), table (1 rows), summary (8 lines)
+--- PASS
+
+=== testIdentificationHelpers / The summary states every limiting flag in plain words ===
+  PASS ratio warning, failed fit check, search limits, RCC, healthy best and longer candidates are stated (and flagged)
+--- PASS
+
+=== testIdentificationHelpers / The drawing shows sensors, the region of uncertainty, the best fit and the hidden case ===
+  PASS bands behind the beam, best-fit line, dashed hidden box, sensors S1-S3
+--- PASS
+
+=== testInputTables / Support letters run A to Z, then AA, AB, ...; support labels map to the engine types ===
+  PASS expected error BridgeFE:invalidInput: Number of support letters must be an integer scalar >= 0.
+  PASS expected error BridgeFE:invalidInput: Number of support letters must be an integer scalar >= 0.
+  PASS A..Z, AA, AB, AZ, BA, ZZ, AAA; Pin/Roller/Fixed/Free -> pin/roller/fixed/none
+--- PASS
+
+=== testInputTables / SI tables with equal element counts build exactly the model of buildModelFromInputs ===
+  Spans: 20 + 20 m (total 40 m)
+  Mesh: 16 + 16 elements per span (32 elements, 33 nodes, 66 DOFs: v and theta at each node)
+  Supports: A Pin (x = 0 m), B Roller (x = 20 m), C Roller (x = 40 m)
+  Material: Steel (steel): E = 200 GPa, Is = 0.01 m^4, EI = 2e+06 kN*m^2
+  Basis: EI = Es*Is (steel section)
+  Permanent uniform load: 20 kN/m downward
+warning: Steel modulus E = 2e+20 Pa is outside the usual 150-250 GPa. Check the units (the engine expects Pa); the material was still created.
+warning: called from
+    defineMaterial at line 68 column 5
+    buildModelFromTables at line 130 column 10
+    runScriptTestsPortable>runSection at line 53 column 5
+    runScriptTestsPortable at line 37 column 27
+    runAllTests at line 25 column 13
+
+
+Model from SI tables (two 20 m spans, q = 20 kN/m down): Benchmark D
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  M_B [kN*m] = -qL^2/8                               -999.99999999998                  -1000   2.433e-11    2.433e-12 rel<=0.5%     PASS
+  R_B [kN] = 5qL/4                                    499.99999999999                    500   7.446e-12    1.489e-12 rel<=0.5%     PASS
+--- PASS
+
+=== testInputTables / Each span gets its own element count ===
+  PASS spans 12 + 15 m with 8 + 10 elements: 19 nodes, supports at nodes 1, 9, 19
+--- PASS
+
+=== testInputTables / US customary tables convert exactly to the SI engine model ===
+  Spans: 66 + 66 ft (total 132 ft)
+  Mesh: 16 + 16 elements per span (32 elements, 33 nodes, 66 DOFs: v and theta at each node)
+  Supports: A Pin (x = 0 ft), B Roller (x = 66 ft), C Roller (x = 132 ft)
+  Material: Steel (steel): E = 29000 ksi, Is = 24000 in^4, EI = 4.83333e+06 kip*ft^2
+  Basis: EI = Es*Is (steel section)
+  Permanent uniform load: 1.2 kip/ft downward
+
+US tables (two 66 ft spans, E = 29000 ksi, I = 24000 in^4, q = 1.2 kip/ft) -> SI engine
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  E [Pa] = 29000 ksi x (kip/in^2)                     199947961501.88        199947961501.88   0.000e+00    0.000e+00 rel<=1e-12%   PASS
+  I [m^4] = 24000 in^4 x 0.0254^4                     0.0099895542144        0.0099895542144   0.000e+00    0.000e+00 rel<=1e-12%   PASS
+  EI [N*m^2] = E*I                                    1997391001.4818        1997391001.4818   0.000e+00    0.000e+00 rel<=1e-12%   PASS
+  w [N/m] = -1.2 kip/ft                              -17512.683524648       -17512.683524648   0.000e+00    0.000e+00 rel<=1e-12%   PASS
+  w [N/m] (smallest element value)                   -17512.683524648       -17512.683524648   0.000e+00    0.000e+00 rel<=1e-12%   PASS
+  beam length [m] = 132 ft                                    40.2336                40.2336   0.000e+00    0.000e+00 rel<=1e-12%   PASS
+  M_B [kip*ft] = -qL^2/8 = -653.4                    -653.40000000002                 -653.4   2.058e-11    3.149e-12 rel<=0.5%     PASS
+  R_B [kip] = 5qL/4 = 99                              99.000000000002                     99   2.288e-12    2.311e-12 rel<=0.5%     PASS
+--- PASS
+
+=== testInputTables / Every invalid table entry gives an error that names its row ===
+  PASS [BridgeFE:invalidInput] Span 2: length must be a positive number (m).
+  PASS [BridgeFE:invalidInput] Span 2: length must be a positive number (m).
+  PASS [BridgeFE:invalidInput] Span 1: length must be a positive number (m).
+  PASS [BridgeFE:invalidInput] Span 2: length must be a positive number (m).
+  PASS [BridgeFE:invalidInput] Span 2: length must be a positive number (m).
+  PASS [BridgeFE:invalidInput] Span 2: length must be a positive number (ft).
+  PASS [BridgeFE:invalidInput] Add at least one span to the span table.
+  PASS [BridgeFE:invalidInput] Span 2: elements must be a whole number from 1 to 2000.
+  PASS [BridgeFE:invalidInput] Span 1: elements must be a whole number from 1 to 2000.
+  PASS [BridgeFE:invalidInput] Span 2: elements must be a whole number from 1 to 2000.
+  PASS [BridgeFE:invalidInput] Give the number of elements for each of the 2 span(s); 1 given.
+  PASS [BridgeFE:invalidSupportType] Support C: unknown type 'Hinge'. Use Pin, Roller, Fixed or Free.
+  PASS [BridgeFE:invalidSupportType] Support B: unknown type 'Guided'. Use Pin, Roller, Fixed or Free.
+  PASS [BridgeFE:invalidSupportType] Support B: unknown type. Use Pin, Roller, Fixed or Free.
+  PASS [BridgeFE:invalidInput] Give one support type for each of the 3 span ends (A to C); 2 given.
+  PASS [BridgeFE:underRestrained] Under-restrained model: no vertical displacement is restrained, so rigid-body vertical translation is free. Add two pin/roller supports or one fixed support.
+  PASS [BridgeFE:invalidInput] E [GPa] must be a real, finite, positive numeric scalar.
+  PASS [BridgeFE:invalidInput] I [in^4] must be a real, finite, positive numeric scalar.
+  PASS [BridgeFE:invalidInput] Enter the uniform load as a downward magnitude (>= 0) in kN/m.
+  PASS [BridgeFE:invalidMaterial] Material type must be 'steel' or 'rcc'.
+  PASS [BridgeFE:invalidVehicle] Axle 2: load must be a positive number (kN).
+  PASS [BridgeFE:invalidVehicle] Axle 3: load must be a positive number (kN).
+  PASS [BridgeFE:invalidVehicle] Axle 2: load must be a positive number (kN).
+  PASS [BridgeFE:invalidVehicle] Axle 3: spacing from axle 2 must be a positive number (m).
+  PASS [BridgeFE:invalidVehicle] Axle 3: spacing from axle 2 must be a positive number (m).
+  PASS [BridgeFE:invalidVehicle] Axle 2: spacing from axle 1 must be a positive number (ft).
+  PASS [BridgeFE:invalidVehicle] Give 2 spacing(s) for 3 axle(s) (from each axle to the next, front to rear); 1 given.
+  PASS [BridgeFE:invalidVehicle] Add at least one axle to the axle table.
+  PASS 28 span ends: the last is support AB (x = 27 m)
+--- PASS
+
+=== testInputTables / Vehicle tables give the engine vehicle in SI ===
+
+US axle table (8, 32, 32 kip; 14, 14 ft) -> SI engine vehicle
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  front axle [N] = 8 kip                              35585.772922084        35585.772922084   0.000e+00    0.000e+00 rel<=1e-12%   PASS
+  middle axle [N] = 32 kip                            142343.09168834        142343.09168834   0.000e+00    0.000e+00 rel<=1e-12%   PASS
+  rear axle [N] = 32 kip                              142343.09168834        142343.09168834   0.000e+00    0.000e+00 rel<=1e-12%   PASS
+  spacing 1-2 [m] = 14 ft                                      4.2672                 4.2672   0.000e+00    0.000e+00 rel<=1e-12%   PASS
+  spacing 2-3 [m] = 14 ft                                      4.2672                 4.2672   0.000e+00    0.000e+00 rel<=1e-12%   PASS
+--- PASS
+
+=== testInputTables / Vehicle presets convert exactly between SI and US customary units ===
+  AASHTO HL-93 design truck (axles only): Axle loads only: no design lane load, no dynamic load allowance. The rear spacing is variable 14-30 ft in AASHTO LRFD 3.6.1.2.2; 14 ft is used.
+  HL-93 axles from the SI preset: [35585.77292 142343.0917 142343.0917] N, spacings [4.2672 4.2672] m
+
+vehicleFromTable of the HL-93 preset (SI and US presets)
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  SI preset: front axle [N] = 35585.77                35585.772922084               35585.77   2.922e-03    8.211e-06 rel<=1e-05%   PASS
+  SI preset: rear axles [N] = 142343.09               142343.09168834              142343.09   1.688e-03    1.186e-06 rel<=1e-05%   PASS
+  SI preset: spacing [m] = 4.2672                              4.2672                 4.2672   0.000e+00    0.000e+00 rel<=1e-12%   PASS
+  US preset: front axle [N] = 35585.77                35585.772922084               35585.77   2.922e-03    8.211e-06 rel<=1e-05%   PASS
+  US preset: middle axle [N] = 142343.09              142343.09168834              142343.09   1.688e-03    1.186e-06 rel<=1e-05%   PASS
+  US preset: spacing [m] = 4.2672                              4.2672                 4.2672   0.000e+00    0.000e+00 rel<=1e-12%   PASS
+
+vehicleFromTable of the spec-truck preset in US units
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  front axle [N] = 80 kN                                        80000                  80000   0.000e+00    0.000e+00 rel<=1e-12%   PASS
+  rear axle [N] = 120 kN                                       120000                 120000   0.000e+00    0.000e+00 rel<=1e-12%   PASS
+  spacing 1-2 [m] = 4.2                                           4.2                    4.2   0.000e+00    0.000e+00 rel<=1e-12%   PASS
+  spacing 2-3 [m] = 1.4                                           1.4                    1.4   0.000e+00    0.000e+00 rel<=1e-12%   PASS
+--- PASS
+
+=== testInputTables / Drawing: bold support letters below the span ends and load texts in the display units ===
+  PASS expected error BridgeFE:invalidInput: EndLabels needs a field x [m] and a field text with one text per x.
+  US load texts: q = 1.37044 kip/ft | 22.4809 kip | 22.1269 kip*ft (CCW)
+  PASS bold A, B, C below the symbols; load texts in kN, kN/m, kN*m or kip, kip/ft, kip*ft
+--- PASS
+
+=== testInputTables / Drawing: close axles share one label and the uniform-load label sits at the left end of its load ===
+  PASS '2 x 120 kN' and '80 + 120 kN' merged labels, separate labels off the bridge and on a short beam; q labels left-aligned
+--- PASS
+
+=== testInputTables / Drawing with node numbers leaves out the numbers where a support letter is drawn ===
+  PASS 14 node numbers + letters A, B, C (numbers 1, 9, 17 left out)
+--- PASS
+
+=== testInverseDamage / Sensor deflections equal the static engine and the closed form, vehicle only ===
+
+Sensor deflections: closed form (single 100 kN load) and the static engine
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  v(2.5 m), P at midspan [mm]                        -3.0598958333342       -3.0598958333333   8.331e-13    2.723e-11 rel<=1e-08%   PASS
+  v(5 m) [mm]                                        -5.7291666666682       -5.7291666666667   1.555e-12    2.715e-11 rel<=1e-08%   PASS
+  v(7.3 m), between nodes [mm]                       -7.5040958333353       -7.5040958333333   2.016e-12    2.687e-11 rel<=1e-08%   PASS
+  v(10 m) = PL^3/48EI [mm]                           -8.3333333333355       -8.3333333333333   2.149e-12    2.579e-11 rel<=1e-08%   PASS
+  vehicle-only v: max|fast path - static (total - permanent)| / max|v| [-]    7.8193272842087e-13                      0   7.819e-13          n/a abs<=1e-09    PASS
+  PASS expected error BridgeFE:offBeam: Sensor coordinates must lie on the beam (0 to 20 m).
+  PASS closed form to 1e-8 %; damaged model with a permanent load, travel toward -x, sensors between nodes = static engine
+--- PASS
+
+=== testInverseDamage / Noise generator is reproducible on every platform and has the intended size ===
+  mean 0.0113, standard deviation 1.0089 of 20000 numbers
+  first number over seeds 1..2000: mean 0.014, std 0.999, correlation of neighbouring seeds -0.007
+  PASS hash = Python reference; reproducible, independent across seeds; proportional and rms noise; NaN kept
+--- PASS
+
+=== testInverseDamage / Blind noise-free cases are recovered exactly, including losses between the 5 % steps ===
+  case 1: best element 7, d = 0.30, J = 0.00e+00 m, healthy J = 0.412 mm, 265 structures
+  case 2: best element 3, d = 0.45, J = 0.00e+00 m, healthy J = 0.176 mm, 265 structures
+  case 3: best element 15, d = 0.20, J = 0.00e+00 m, healthy J = 0.214 mm, 265 structures
+  case 4: best element 12, d = 0.27, J = 0.00e+00 m, healthy J = 0.446 mm, 265 structures
+  case 5: best element 19, d = 0.55, J = 0.00e+00 m, healthy J = 0.096 mm, 265 structures
+
+Blind noise-free cases (spec sensors L/4, L/2, 3L/4; 5 truck positions)
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  case 1: element found                                             7                      7   0.000e+00    0.000e+00 rel<=0%       PASS
+  case 1: loss d [%]                                               30                     30   0.000e+00    0.000e+00 rel<=1e-06%   PASS
+  case 2: element found                                             3                      3   0.000e+00    0.000e+00 rel<=0%       PASS
+  case 2: loss d [%]                                               45                     45   0.000e+00    0.000e+00 rel<=1e-06%   PASS
+  case 3: element found                                            15                     15   0.000e+00    0.000e+00 rel<=0%       PASS
+  case 3: loss d [%]                                               20                     20   0.000e+00    0.000e+00 rel<=1e-06%   PASS
+  case 4: element found                                            12                     12   0.000e+00    0.000e+00 rel<=0%       PASS
+  case 4: loss d [%]                                               27                     27   0.000e+00    0.000e+00 rel<=1e-06%   PASS
+  case 5: element found                                            19                     19   0.000e+00    0.000e+00 rel<=0%       PASS
+  case 5: loss d [%]                                               55                     55   0.000e+00    0.000e+00 rel<=1e-06%   PASS
+--- PASS
+
+=== testInverseDamage / The undamaged bridge is recognized, and the coarse scan has 241 structures for 20 elements ===
+  PASS undamaged data: best = healthy (d = 0); coarse scan = 241 structures
+--- PASS
+
+=== testInverseDamage / Data from a finer mesh and missing readings still give the true region ===
+  PASS other mesh for the data: E7 at 30 %; 3 missing readings: m = 12, E7 at 30 %
+--- PASS
+
+=== testInverseDamage / One noise realization (seed 7): the true E7 stays inside the reported region at 1-10 % noise ===
+  true: element 7 (6-7 m), d = 0.30; proportional noise, seed 7
+  noise   best    d     d range       J/J_healthy  competing  region [m]        healthy competes
+     1 %  E6    0.31  [0.27 0.34]   0.41          5         2-7               0
+     2 %  E5    0.35  [0.25 0.40]   0.69          5         2-7               0
+     5 %  E17   0.44  [0.05 0.60]   0.94         20         0-20              1
+    10 %  E17   0.48  [0.05 0.60]   0.98         20         0-20              1
+  PASS the true element is inside the reported region at 1, 2, 5 and 10 % noise, and competitors are listed
+--- PASS
+
+=== testInverseDamage / Symmetric data are reported as ambiguous, and a loss beyond 60 % is flagged ===
+  PASS mirror elements 7 and 14 tie (ratio 1.000000); true E7 at 70 %: best E9 at the 60 % limit, flagged (beyond the limit the location is not reliable)
+--- PASS
+
+=== testInverseDamage / Invalid inverse input is rejected ===
+  PASS expected error BridgeFE:invalidInput: Observed deflections must be a 3-by-5 matrix (sensors x vehicle positions).
+  PASS expected error BridgeFE:invalidInput: Observed deflections need at least one finite value (NaN = missing).
+  PASS expected error BridgeFE:invalidInput: The baseline model must be healthy (all stiffness factors 1).
+  PASS expected error BridgeFE:invalidInput: Levels must be values of d with 0 < d < 1.
+  PASS expected error BridgeFE:invalidInput: Groups must be a cell array of element index vectors (1 to 20).
+  PASS expected error BridgeFE:invalidInput: Unknown option 'Tolerance'.
+  PASS wrong data size, no data, damaged baseline, d >= 1, element 25 and unknown option are rejected
+--- PASS
+
+=== testInverseUncertainty / Chi-square quantiles match the tables without a toolbox ===
+
+Chi-square quantiles (tables; exact for 2 degrees of freedom)
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  chi2(0.95, 1) [-]                                   3.8414588206941               3.841459   1.793e-07    4.668e-06 rel<=0.0001%  PASS
+  chi2(0.95, 2) = -2 ln 0.05 [-]                      5.9914645471079         5.991464547108   1.288e-13    2.149e-12 rel<=1e-09%   PASS
+  chi2(0.95, 3) [-]                                   7.8147279032511               7.814728   9.675e-08    1.238e-06 rel<=0.0001%  PASS
+  chi2(0.95, 10) [-]                                  18.307038053275              18.307038   5.327e-08    2.910e-07 rel<=0.0001%  PASS
+  chi2(0.95, 13) [-]                                  22.362032494827              22.362032   4.948e-07    2.213e-06 rel<=0.0001%  PASS
+  chi2(0.95, 30) [-]                                  43.772971825741              43.772972   1.743e-07    3.981e-07 rel<=0.0001%  PASS
+  chi2(0.99, 2) = -2 ln 0.01 [-]                      9.2103403719761        9.2103403719762   3.730e-14    4.050e-13 rel<=1e-09%   PASS
+  PASS expected error BridgeFE:invalidInput: Probability P must satisfy 0 < P < 1.
+  PASS expected error BridgeFE:invalidInput: Degrees of freedom K must be a number >= 1.
+--- PASS
+
+=== testInverseUncertainty / Candidate regions of a chosen length cover every element once and end on nodes ===
+  PASS expected error BridgeFE:invalidInput: Region length must be a positive number [m].
+  PASS 2, 3, 4, 9 and 0.5 m regions on 1 m elements; 3 m regions on 1.5/1.875 m elements
+--- PASS
+
+=== testInverseUncertainty / With one constant sigma the chi-square misfit is m J^2 / sigma^2 and selects the minimum-RMSE candidate ===
+  PASS S = m J^2/sigma^2 for all 396 structures; minimum S = minimum RMSE: E8, d = 0.296
+--- PASS
+
+=== testInverseUncertainty / Noise per reading comes from the healthy prediction, and S is the weighted misfit ===
+  PASS sigma from the healthy prediction (2 % + 0.02 mm); S_best = 21.15, S_healthy = 44.94
+--- PASS
+
+=== testInverseUncertainty / Noise-free data with a stated noise level: exact best fit, true region inside, no misfit ===
+  PASS exact fit S = 0.0e+00; region [5 8] m; d range of E7 [0.26 0.33]
+--- PASS
+
+=== testInverseUncertainty / Losses between the 1 % grid points with a small stated noise are not mistaken for a misfit ===
+  true E7 at 27.4 %, noise-free, stated 0.1 %: S at the best 1 % point 4.73; at the parabola vertex d = 0.2739: S = 0.0016; limit 22.4
+  PASS no false misfit from the 1 % grid
+--- PASS
+
+=== testInverseUncertainty / A noisy case (one realization): the region contains the truth and equals an exhaustive 1 % scan ===
+  true E3 at 45 %, 2 % noise, seed 7 (one realization)
+  ratio:      best E4, d = 0.25, region [0 20] m
+  likelihood: best E5, d = 0.16, region [0 20] m, S = 21.5 (fit limit 22.4)
+  PASS the noise-based region (20 groups) contains the true 2-3 m and equals the exhaustive 1 % scan
+--- PASS
+
+=== testInverseUncertainty / A region that reaches the 60 % search limit is flagged even when the best loss is below it ===
+  true E7 at 55 %, noise-free, stated 5 %: best d = 0.55, d range of E7 [0.45 0.60]
+  PASS region at the 60 % limit flagged; not flagged for a 30 % loss
+--- PASS
+
+=== testInverseUncertainty / An RCC baseline gives the spec's caveat ===
+warning: RCC baseline: normal cracking or an uncertain I_eff can mimic a stiffness loss, so the result cannot be separated from them (PROJECT_SPEC.md section 7). Use it only with a defensibly established baseline E_c*I_eff.
+warning: called from
+    identifySingleDamage at line 173 column 5
+    runScriptTestsPortable>runSection at line 53 column 5
+    runScriptTestsPortable at line 37 column 27
+    runAllTests at line 25 column 13
+
+  PASS RCC baseline: warning BridgeFE:rccInverse
+--- PASS
+
+=== testInverseUncertainty / A wrong support assumption is flagged by the fit check ===
+  data from a fixed-roller beam, model pin-roller: S_best = 60022, limit 25.0, p = 0
+  PASS wrong supports flagged (no single region explains the data); correct supports not flagged
+--- PASS
+
+=== testInverseUncertainty / Larger candidate regions recover a region-sized loss exactly ===
+  PASS 2 m regions: 6-8 m at 30 % recovered exactly with 206 structures
+--- PASS
+
+=== testInverseUncertainty / The undamaged bridge with noise is not reported as certainly damaged ===
+  undamaged, 2 % noise, seed 7: damage detected 1, healthy in region 1, S_healthy = 23.1, S_best = 23.1
+  PASS undamaged data: "no damage" stays inside the region; healthy best uses 15 degrees of freedom
+--- PASS
+
+=== testInverseUncertainty / A different confidence level and missing readings change the thresholds as the tables say ===
+  PASS 90 % region (11 groups) inside 95 % region (12 groups); missing readings: m = 12, dof = 10
+--- PASS
+
+=== testInverseUncertainty / Invalid noise input is rejected ===
+  PASS expected error BridgeFE:invalidInput: NoiseLevel and NoiseAbsolute must be numbers >= 0 (or empty).
+  PASS expected error BridgeFE:invalidInput: Confidence must satisfy 0 < Confidence < 1.
+  PASS expected error BridgeFE:invalidInput: Every observed reading needs a noise standard deviation > 0; give NoiseAbsolute when a predicted reading is zero (e.g. the vehicle off the span).
+  PASS negative noise, confidence 1 and zero predicted readings without an absolute noise part are rejected
+--- PASS
+
+=== testMaterials / Steel and RCC records hold E, I and EI = E*I ===
+  steel: type steel, Is = 0.01 m^4, E = 200 GPa, EI = 2e+09 N*m^2, basis: EI = Es*Is (steel section)
+  rcc:   type rcc, Ieff = 0.0625 m^4, E = 32 GPa, EI = 2e+09 N*m^2, basis: Ieff assumed for this test, not computed
+  PASS EI = Es*Is = Ec*Ieff = 2e9 N*m^2 exactly
+--- PASS
+
+=== testMaterials / Equal-EI steel and RCC models give identical static results ===
+  max|U_steel - U_rcc| = 0 m, max|R_steel - R_rcc| = 0 N, max|f_steel - f_rcc| = 0
+  PASS steel, RCC and plain-EI models (EI = 2e9) give bit-identical U, R and element forces
+--- PASS
+
+=== testMaterials / Equal-EI steel and RCC models give identical moving-load envelopes ===
+  PASS steel and RCC (equal EI) give identical envelopes, reactions and critical values (max M = 735.9731 kN*m)
+--- PASS
+
+=== testMaterials / A uniform change of EI scales deflections but not forces ===
+
+Indeterminate two-span beam, EI 2e9 (steel) vs 1e9 (RCC) everywhere, q = 20 kN/m
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  max|U_rcc - 2*U_steel| / max|U_rcc| [-]         9.2760963745385e-14                      0   9.276e-14          n/a abs<=1e-12    PASS
+  max|R_rcc - R_steel| / max|R| [-]               5.4797818583824e-14                      0   5.480e-14          n/a abs<=1e-12    PASS
+  max|M_rcc - M_steel| / max|M| [-]               1.1362135410308e-13                      0   1.136e-13          n/a abs<=1e-12    PASS
+--- PASS
+
+=== testMaterials / Steel and RCC spans redistribute the support moment as the three-moment equation predicts ===
+  materials: 2 (Steel, RCC); materialId span 1 = 1, span 2 = 2
+  M_B with steel + RCC spans = -484.3750 kN*m; with uniform EI it would be -437.5000 kN*m
+
+Steel span 10 m (EI 2e+09) + RCC span 15 m (EI 1e+09), q = 20 kN/m
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  M_B [kN*m] (three-moment, two EI)                  -484.37499999999               -484.375   5.855e-12    1.209e-12 rel<=0.1%     PASS
+  M_B from span 1 [kN*m]                             -484.37499999999               -484.375   5.400e-12    1.115e-12 rel<=0.1%     PASS
+  R_A [kN]                                            51.562500000001                51.5625   9.024e-13    1.750e-12 rel<=0.1%     PASS
+  R_B [kN]                                            330.72916666666        330.72916666667   5.286e-12    1.598e-12 rel<=0.1%     PASS
+  R_C [kN]                                            117.70833333334        117.70833333333   7.148e-12    6.073e-12 rel<=0.1%     PASS
+  change of M_B vs uniform EI [kN*m]                 -46.874999999994                -46.875   5.876e-12    1.254e-11 rel<=0.1%     PASS
+--- PASS
+
+=== testMaterials / EI cannot be edited behind a material, but materials can be reassigned ===
+  PASS expected error BridgeFE:invalidModel: EI of element 3 (1.5e+09 N*m^2) differs from its material 'Steel' (E*I = 2e+09 N*m^2). Change materials with assignMaterial instead of editing EI.
+  PASS direct EI edit rejected; identical material reused; element 3 reassigned to RCC
+--- PASS
+
+=== testMaterials / Unit slips trigger a warning but still create the material ===
+warning: Steel modulus E = 200 Pa is outside the usual 150-250 GPa. Check the units (the engine expects Pa); the material was still created.
+warning: called from
+    defineMaterial at line 68 column 5
+    runScriptTestsPortable>runSection at line 53 column 5
+    runScriptTestsPortable at line 37 column 27
+    runAllTests at line 25 column 13
+
+warning: RCC modulus E = 3e+07 Pa is outside the usual 10-70 GPa. Check the units (the engine expects Pa); the material was still created.
+warning: called from
+    defineMaterial at line 68 column 5
+    runScriptTestsPortable>runSection at line 53 column 5
+    runScriptTestsPortable at line 37 column 27
+    runAllTests at line 25 column 13
+
+  steel E = 200 Pa -> BridgeFE:unusualModulus: Steel modulus E = 200 Pa is outside the usual 150-250 GPa. Check the units (the engine expects Pa); the material was still created.
+  rcc E = 30 MPa -> BridgeFE:unusualModulus
+  rcc E = 30 GPa -> warning id ''
+  PASS unit-sanity warnings
+--- PASS
+
+=== testMaterials / Invalid material input is rejected ===
+  PASS expected error BridgeFE:invalidMaterial: Material type must be 'steel' or 'rcc'.
+  PASS expected error BridgeFE:invalidInput: E must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: I must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidMaterial: material.EI (3e+09) is not E*I (2e+09); create materials with defineMaterial.
+  PASS expected error BridgeFE:invalidInput: elements must be a vector of element indices between 1 and 2.
+--- PASS
+
+=== testMeshSpansAndLoads / Two equal spans give the hand-written coordinates with a node at every support ===
+  x = [0 2.5 5 7.5 10 12.5 15 17.5 20]
+  xSupports = [0 10 20]
+  PASS meshSpans([10 10], 4) matches the hand-written coordinates exactly
+--- PASS
+
+=== testMeshSpansAndLoads / Unequal spans with different element counts keep every support on a node ===
+  x = [0 2.5 5 7.5 10 15 20 25]
+  xSupports = [0 10 25]
+  PASS every support coordinate of spans [7.3 11.9 4.15] is exactly a node (26 nodes)
+--- PASS
+
+=== testMeshSpansAndLoads / Invalid span input is rejected ===
+  PASS expected error BridgeFE:invalidInput: spanLengths must be a vector of real, finite, positive lengths [m].
+  PASS expected error BridgeFE:invalidInput: elementsPerSpan must be a positive integer or one positive integer per span (2).
+  PASS expected error BridgeFE:invalidInput: elementsPerSpan must be a positive integer or one positive integer per span (2).
+  PASS expected error BridgeFE:invalidInput: elementsPerSpan must be a positive integer or one positive integer per span (2).
+--- PASS
+
+=== testMeshSpansAndLoads / elementsBetween selects the elements of one span and refuses off-node limits ===
+  PASS span 1 -> elements 1-4, span 2 -> elements 5-8, 7.5..12.5 m -> elements 4-5
+  PASS expected error BridgeFE:notOnNode: No node at x = 11 m (nearest node 5 at x = 10 m). Align the mesh with this coordinate.
+  PASS expected error BridgeFE:invalidInput: x2 (10 m) must be greater than x1 (10 m).
+--- PASS
+
+=== testMeshSpansAndLoads / Consistent uniform-load vector matches hand-written values ===
+  fe0 = [-12000 -4000 -12000 4000]
+
+Consistent load vector, w = -12 kN/m, Le = 2 m
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  F1 = wLe/2 [N]                                               -12000                 -12000   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  M1 = wLe^2/12 [N*m]                                           -4000                  -4000   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  F2 = wLe/2 [N]                                               -12000                 -12000   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  M2 = -wLe^2/12 [N*m]                                           4000                   4000   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  PASS expected error BridgeFE:invalidInput: w must be a real, finite numeric scalar.
+  PASS expected error BridgeFE:invalidInput: Le must be a real, finite, positive numeric scalar.
+--- PASS
+
+=== testMeshSpansAndLoads / Consistent load vector equals Gauss integration of w*N over the element ===
+
+Consistent load vector vs integral of w*N_i, w = -7.5 kN/m, Le = 1.37 m
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  max|fe0 - integral| / max|integral| [-]         1.7703059888524e-16                      0   1.770e-16          n/a abs<=1e-14    PASS
+--- PASS
+
+=== testMeshSpansAndLoads / Uniform loads superpose and assemble into the hand-written global vector ===
+  elementUDL = [-6 -6], F = [-3 -0.5 -6 0 -3 0.5]
+  PASS assembled F equals the hand-written vector
+--- PASS
+
+=== testMeshSpansAndLoads / Assembled uniform load keeps the resultant force and moment on a nonuniform mesh ===
+
+Resultants of the assembled load vector, w = -15 kN/m over 6 m plus a nodal load
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  sum Fv [kN]                                                     -98                    -98   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  sum moment about x = 0 [kN*m]                                -285.6                 -285.6   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+--- PASS
+
+=== testMeshSpansAndLoads / Invalid uniform-load input is rejected ===
+  PASS expected error BridgeFE:invalidInput: w must be a real, finite numeric scalar.
+  PASS expected error BridgeFE:invalidInput: elements must be a vector of element indices between 1 and 2.
+  PASS expected error BridgeFE:invalidInput: elements must be a vector of element indices between 1 and 2.
+  PASS expected error BridgeFE:invalidModel: model.loads.elementUDL must be a real, finite 2-by-1 vector [N/m].
+--- PASS
+
+=== testMovingLoadEnvelopes / Single moving load envelopes on a simple span equal the influence-line maxima ===
+  161 positions, 33 stations (every 0.625 m)
+
+Single 100 kN load, 20 m simple span, 8 elements: envelopes at all interior stations
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  max|Mmax - Px(L-x)/L| / (PL/4) [-]              4.2957253754139e-14                      0   4.296e-14          n/a abs<=0.005    PASS
+  max|Vmax - P(L-x)/L| / P [-]                    5.7043507695198e-14                      0   5.704e-14          n/a abs<=0.005    PASS
+  max|Vmin + Px/L| / P [-]                        3.7252902984619e-14                      0   3.725e-14          n/a abs<=0.005    PASS
+  min over stations of Mmin [kN*m] (no hogging)   -1.6298145055771e-12                      0   1.630e-12          n/a abs<=0.002    PASS
+  vmin(L/2) [mm] = -PL^3/(48EI)                      -8.3333333333337       -8.3333333333333   3.197e-13    3.837e-12 rel<=0.5%     PASS
+  critical max M [kN*m] = PL/4                        500.00000000002                    500   2.024e-11    4.047e-12 rel<=0.5%     PASS
+  critical max M at x [m]                                          10                     10   0.000e+00    0.000e+00 rel<=0.5%     PASS
+  critical max M for x_v [m]                                       10                     10   0.000e+00    0.000e+00 rel<=0.5%     PASS
+  R_A max [kN] (load on A)                                        100                    100   0.000e+00    0.000e+00 rel<=0.5%     PASS
+  R_A max at x_v [m]                                                0                      0   0.000e+00          n/a abs<=1e-09    PASS
+  R_B max [kN] (load on B)                                        100                    100   0.000e+00    0.000e+00 rel<=0.5%     PASS
+  R_A min [kN]                                                      0                      0   0.000e+00          n/a abs<=0.0001   PASS
+--- PASS
+
+=== testMovingLoadEnvelopes / Two equal axles reach the absolute maximum moment of the resultant rule ===
+  coarse step 0.55 m: max M 801.000000 kN*m at x_v = 13.2000; refined (108 extra positions): 801.024750 kN*m at x = 8.9450, x_v = 13.1450, axles [13.145 8.945]
+
+Two 100 kN axles at 4.2 m on a 20 m span: absolute maximum moment
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  refined max M [kN*m] = P(2L-d)^2/(8L)               801.02475000004                801.025   2.500e-04    3.121e-05 rel<=0.5%     PASS
+  |x - L/2| [m] = d/4                                           1.055                   1.05   5.000e-03    4.762e-01 rel<=5.71429% PASS
+  distance from max to nearest axle [m]                             0                      0   0.000e+00          n/a abs<=1e-09    PASS
+  refined error <= coarse error [-] (1 = yes)                       1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+--- PASS
+
+=== testMovingLoadEnvelopes / Step convergence of the maximum moment for the two-axle vehicle ===
+  step 2.4200 m: max M 790.000000 kN*m, error 11.025000 kN*m, bound (2P/L)(h/2)^2 = 14.641000 kN*m
+  step 1.2100 m: max M 800.769000 kN*m, error 0.256000 kN*m, bound (2P/L)(h/2)^2 = 3.660250 kN*m
+  step 0.6050 m: max M 800.769000 kN*m, error 0.256000 kN*m, bound (2P/L)(h/2)^2 = 0.915063 kN*m
+  step 0.3025 m: max M 800.821938 kN*m, error 0.203062 kN*m, bound (2P/L)(h/2)^2 = 0.228766 kN*m
+  step 2.42 m + refinement x20 (171 extra positions): max M 801.009790 kN*m
+
+Step convergence, two-axle vehicle (no refinement unless stated)
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  step 2.4200 m: error / bound [-] (<= 1)            0.75302233453754                      0   7.530e-01          n/a abs<=1        PASS
+  step 1.2100 m: error / bound [-] (<= 1)           0.069940577818092                      0   6.994e-02          n/a abs<=1        PASS
+  step 0.6050 m: error / bound [-] (<= 1)            0.27976231127237                      0   2.798e-01          n/a abs<=1        PASS
+  step 0.3025 m: error / bound [-] (<= 1)            0.88764428645148                      0   8.876e-01          n/a abs<=1        PASS
+  step 2.42 m + refinement x20: max M [kN*m]          801.00979000003                801.025   1.521e-02    1.899e-03 rel<=0.01%    PASS
+  all coarse errors >= 0, i.e. no overshoot (1 = yes) [-]                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+--- PASS
+
+=== testMovingLoadEnvelopes / Spec 3-axle truck on a 20 m simple span matches the resultant rule ===
+  max M 1349.1024 kN*m at x = 9.7400, x_v = 13.9400, axles [13.94 9.74 8.34] (coarse 1349.0800 at x_v = 13.90)
+
+Spec 3-axle truck on a 20 m simple span (positions every 0.1 m, refined to 0.01 m)
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  max M [kN*m]                                        1349.1024000001              1349.1025   1.000e-04    7.412e-06 rel<=0.5%     PASS
+  x of max M [m] (under the middle axle)                         9.74                 9.7375   2.500e-03    2.567e-02 rel<=0.102696% PASS
+  x_v for max M [m]                                             13.94                13.9375   2.500e-03    1.794e-02 rel<=0.0717489% PASS
+  R_A max [kN]                                                  289.2                  289.2   1.080e-12    3.735e-13 rel<=0.5%     PASS
+  R_A max at x_v [m]                                              5.6                    5.6   8.882e-16    1.586e-14 rel<=0.5%     PASS
+  R_B max [kN]                                                  261.2                  261.2   1.876e-12    7.182e-13 rel<=0.5%     PASS
+  R_B max at x_v [m]                                               20                     20   0.000e+00    0.000e+00 rel<=0.5%     PASS
+  max upward deflection [mm] (none expected)                        0                      0   0.000e+00          n/a abs<=1e-09    PASS
+--- PASS
+
+=== testMovingLoadEnvelopes / Two-span continuous beam: negative moment over the support and uplift ===
+  most negative M -192.4501 kN*m at x = 20.000 m for x_v = 11.5500 m; R_A min -9.6225 kN at x_v = 28.4500 m
+
+Single 100 kN load on two 20 m spans (16 elements each), positions every 0.1 m, refined
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  envelope Mmin at B [kN*m] = -PL/(6*sqrt3)          -192.45007031256       -192.45008972988   1.942e-05    1.009e-05 rel<=0.5%     PASS
+  critical min M [kN*m]                              -192.45007031256       -192.45008972988   1.942e-05    1.009e-05 rel<=0.5%     PASS
+  critical min M at x [m] (support B)                              20                     20   0.000e+00    0.000e+00 rel<=0.5%     PASS
+  distance of x_v from L/sqrt3 or 2L - L/sqrt3 [m]     0.0029946162074843                      0   2.995e-03          n/a abs<=0.02     PASS
+  R_A min [kN] = -P/(6*sqrt3) (uplift)               -9.6225035156254       -9.6225044864938   9.709e-07    1.009e-05 rel<=0.5%     PASS
+  R_A min at x_v [m] = 2L - L/sqrt3                             28.45        28.452994616207   2.995e-03    1.052e-02 rel<=0.0702914% PASS
+  R_B max [kN] (load on B)                                        100                    100   0.000e+00    0.000e+00 rel<=0.5%     PASS
+  R_A max [kN] (load on A)                                        100                    100   0.000e+00    0.000e+00 rel<=0.5%     PASS
+--- PASS
+
+=== testMovingLoadEnvelopes / Permanent uniform load adds its static response to every envelope ===
+
+Superposition: 20 kN/m permanent load + spec truck (same positions)
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  max|Mmax(q + truck) - Mmax(q) - Mmax(truck)| / max [-]    8.7261910739096e-15                      0   8.726e-15          n/a abs<=1e-09    PASS
+  max|Mmin(q + truck) - Mmin(q) - Mmin(truck)| / max [-]    1.1117663234472e-14                      0   1.112e-14          n/a abs<=1e-09    PASS
+  max|Vmax(q + truck) - Vmax(q) - Vmax(truck)| / max [-]     3.832603187718e-14                      0   3.833e-14          n/a abs<=1e-09    PASS
+  max|Vmin(q + truck) - Vmin(q) - Vmin(truck)| / max [-]    2.8468375643268e-14                      0   2.847e-14          n/a abs<=1e-09    PASS
+  max|vmax(q + truck) - vmax(q) - vmax(truck)| / max [-]                      0                      0   0.000e+00          n/a abs<=1e-09    PASS
+  max|vmin(q + truck) - vmin(q) - vmin(truck)| / max [-]    6.0656805533414e-16                      0   6.066e-16          n/a abs<=1e-09    PASS
+  R_A max: (q + truck) - truck [kN] = qL/2                        200                    200   2.785e-12    1.393e-12 rel<=0.1%     PASS
+--- PASS
+
+=== testMovingLoadEnvelopes / Reversed travel direction gives the mirror-image envelopes on a symmetric span ===
+
+Travel toward -x vs toward +x on a symmetric 20 m span (spec truck)
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  max|Mmax(-x)(x) - Mmax(+x)(L-x)| / max [-]      2.9276553486149e-14                      0   2.928e-14          n/a abs<=1e-09    PASS
+  max|vmin(-x)(x) - vmin(+x)(L-x)| / max [-]      6.1245873316468e-15                      0   6.125e-15          n/a abs<=1e-09    PASS
+  max|Vmax(-x)(x) + Vmin(+x)(L-x)| / max [-]       5.707427113212e-14                      0   5.707e-14          n/a abs<=1e-09    PASS
+  max|Vmin(-x)(x) + Vmax(+x)(L-x)| / max [-]      7.5694246111393e-14                      0   7.569e-14          n/a abs<=1e-09    PASS
+  R_A max (-x) - R_B max (+x) [kN]               -9.3132257461548e-13                      0   9.313e-13          n/a abs<=1e-09    PASS
+  critical max M (-x) - (+x) [kN*m]              -1.3969838619232e-12                      0   1.397e-12          n/a abs<=1e-09    PASS
+--- PASS
+
+=== testMovingLoadFastPath / Fast path equals the static engine at 14 positions in both directions ===
+  xv =   0.00 dir +1: 1 axle(s) on bridge; max normalized diffs U 1.1e-14 R 1.9e-14 VL 7.0e-14 VR 7.0e-14 M 4.5e-14 v 1.1e-14
+  xv =   2.30 dir +1: 1 axle(s) on bridge; max normalized diffs U 1.0e-14 R 3.1e-14 VL 3.6e-14 VR 3.6e-14 M 2.6e-14 v 1.0e-14
+  xv =   6.00 dir +1: 3 axle(s) on bridge; max normalized diffs U 9.8e-15 R 2.2e-14 VL 2.8e-14 VR 2.8e-14 M 2.1e-14 v 9.6e-15
+  xv =  12.00 dir +1: 3 axle(s) on bridge; max normalized diffs U 9.1e-15 R 2.7e-14 VL 4.1e-14 VR 4.1e-14 M 2.4e-14 v 9.3e-15
+  xv =  13.70 dir +1: 3 axle(s) on bridge; max normalized diffs U 9.6e-15 R 2.4e-14 VL 3.4e-14 VR 3.4e-14 M 2.0e-14 v 9.7e-15
+  xv =  16.20 dir +1: 3 axle(s) on bridge; max normalized diffs U 1.5e-14 R 2.2e-15 VL 1.3e-14 VR 1.3e-14 M 1.3e-14 v 1.5e-14
+  xv =  20.25 dir +1: 3 axle(s) on bridge; max normalized diffs U 1.3e-14 R 2.4e-14 VL 1.2e-13 VR 1.2e-13 M 6.6e-14 v 1.3e-14
+  xv =  27.00 dir +1: 3 axle(s) on bridge; max normalized diffs U 9.0e-15 R 8.0e-15 VL 2.5e-13 VR 2.5e-13 M 5.7e-14 v 9.1e-15
+  xv =  30.90 dir +1: 2 axle(s) on bridge; max normalized diffs U 1.3e-14 R 6.2e-15 VL 1.2e-14 VR 1.2e-14 M 1.9e-14 v 1.3e-14
+  xv =  32.60 dir +1: 1 axle(s) on bridge; max normalized diffs U 1.1e-14 R 2.0e-14 VL 7.0e-14 VR 7.0e-14 M 4.5e-14 v 1.1e-14
+  xv =  27.00 dir -1: 1 axle(s) on bridge; max normalized diffs U 1.1e-14 R 2.4e-14 VL 7.0e-14 VR 7.0e-14 M 4.5e-14 v 1.1e-14
+  xv =  15.50 dir -1: 3 axle(s) on bridge; max normalized diffs U 1.0e-14 R 3.4e-14 VL 2.0e-13 VR 2.0e-13 M 5.5e-14 v 1.0e-14
+  xv =   5.60 dir -1: 3 axle(s) on bridge; max normalized diffs U 9.2e-15 R 2.1e-14 VL 4.1e-14 VR 4.1e-14 M 2.5e-14 v 9.4e-15
+  xv =  -2.40 dir -1: 2 axle(s) on bridge; max normalized diffs U 9.1e-15 R 1.4e-14 VL 4.0e-14 VR 4.0e-14 M 3.3e-14 v 9.3e-15
+
+Fast moving-load path vs static engine (14 positions, 2-span model with permanent loads)
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  max|U_fast - U_ref| / max|U_ref| [-]            1.5114019767808e-14                      0   1.511e-14          n/a abs<=1e-09    PASS
+  max|R_fast - R_ref| / max|R_ref| [-]            3.3878453484651e-14                      0   3.388e-14          n/a abs<=1e-09    PASS
+  max|V(x-) diff| / max|V| [-]                    2.4617033844786e-13                      0   2.462e-13          n/a abs<=1e-09    PASS
+  max|V(x+) diff| / max|V| [-]                    2.4617033844786e-13                      0   2.462e-13          n/a abs<=1e-09    PASS
+  max|M diff| / max|M| [-] (both limits)          6.5595891285465e-14                      0   6.560e-14          n/a abs<=1e-09    PASS
+  max|v diff| / max|v| [-]                        1.4920515557489e-14                      0   1.492e-14          n/a abs<=1e-09    PASS
+--- PASS
+
+=== testMovingLoadFastPath / Single-element model with no axle on the bridge returns the permanent response ===
+
+No axle on a one-element simple span: permanent uniform load only
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  max|U - U_static| / max|U_static| [-]           1.3010426069826e-16                      0   1.301e-16          n/a abs<=1e-12    PASS
+  M(5 m) [kN*m] = qL^2/8                                          250                    250   0.000e+00    0.000e+00 rel<=0.1%     PASS
+  v(5 m) [mm] = -5qL^4/(384EI)                       -1.3020833333333       -1.3020833333333   2.220e-16    1.705e-14 rel<=0.1%     PASS
+--- PASS
+
+=== testMovingPointLoad / Benchmark B over 88 load positions with an 8-element mesh ===
+      a [m]     R_A [kN]    R_A exact   M(a) [kN*m]    M(a) exact     v(a) [mm]    v(a) exact
+     0.0000   100.000000   100.000000      0.000000      0.000000     0.0000000    -0.0000000
+     0.1000    99.500000    99.500000      9.950000      9.950000    -0.0033001    -0.0033001
+     1.2340    93.830000    93.830000    115.786220    115.786220    -0.4468816    -0.4468816
+     2.5000    87.500000    87.500000    218.750000    218.750000    -1.5950521    -1.5950521
+     4.7500    76.250000    76.250000    362.187500    362.187500    -4.3726595    -4.3726595
+     5.0000    75.000000    75.000000    375.000000    375.000000    -4.6875000    -4.6875000
+     7.7700    61.150000    61.150000    475.135500    475.135500    -7.5251248    -7.5251248
+    10.0000    50.000000    50.000000    500.000000    500.000000    -8.3333333    -8.3333333
+    12.3456    38.272000    38.272000    472.490803    472.490803    -7.4415853    -7.4415853
+    15.2500    23.750000    23.750000    362.187500    362.187500    -4.3726595    -4.3726595
+    19.9900     0.050000     0.050000      0.999500      0.999500    -0.0000333    -0.0000333
+    20.0000     0.000000     0.000000      0.000000      0.000000     0.0000000    -0.0000000
+
+Benchmark B: L = 20 m, P = 100 kN, 8 elements, 88 positions (79 inside elements)
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  max rel. error of R_A over positions [%]        6.9849193096161e-12                      0   6.985e-12          n/a abs<=0.5      PASS
+  max rel. error of R_B over positions [%]        2.4835268656413e-12                      0   2.484e-12          n/a abs<=0.5      PASS
+  max rel. error of M under load [%]              2.4214386617144e-12                      0   2.421e-12          n/a abs<=0.5      PASS
+  max rel. error of v under load [%]              2.0667090012557e-12                      0   2.067e-12          n/a abs<=0.5      PASS
+  max rel. error of shear jump vs P [%]           6.7229848355055e-12                      0   6.723e-12          n/a abs<=0.5      PASS
+  max|M_max(samples) - M(a)| / (PL/4) [-]                           0                      0   0.000e+00          n/a abs<=1e-09    PASS
+  load at a = 0: R_A [kN]                                         100                    100   0.000e+00    0.000e+00 rel<=0.5%     PASS
+  load at a = 0: R_B [kN]                                           0                      0   0.000e+00          n/a abs<=0.0001   PASS
+  load at a = L: R_B [kN]                                         100                    100   0.000e+00    0.000e+00 rel<=0.5%     PASS
+  critical position a* for max M [m]                               10                     10   0.000e+00    0.000e+00 rel<=0.5%     PASS
+  max M over positions [kN*m]                                     500                    500   4.434e-12    8.868e-13 rel<=0.5%     PASS
+  max|sum Fv| over positions [kN]                  3.492459654808e-12                      0   3.492e-12          n/a abs<=0.0001   PASS
+  max|sum M about 0| over positions [kN*m]        1.8735590856522e-11                      0   1.874e-11          n/a abs<=0.002    PASS
+--- PASS
+
+=== testMovingPointLoad / Results are continuous as the load crosses a node ===
+
+Load at x = 5 m (node 3) vs 1e-7 m to either side (elements 2 and 3)
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  max|U(5 - d) - U(5)| / max|U| [-]               1.6363636809205e-08                      0   1.636e-08          n/a abs<=1e-06    PASS
+  max|U(5 + d) - U(5)| / max|U| [-]               1.6363636355023e-08                      0   1.636e-08          n/a abs<=1e-06    PASS
+  |R_A(5 + d) - R_A(5 - d)| [N] (exact 2*P*d/L)     0.0010000001639128                  0.001   1.639e-10    1.639e-05 rel<=1%       PASS
+--- PASS
+
+=== testPointLoadsInElements / Two loads inside ONE simply supported element are not moved to the nodes ===
+  samples at the loads: V(3-) = 59, V(3+) = 9, V(7-) = 9, V(7+) = -71 kN
+
+One-element simple span, 50 kN at 3 m and 80 kN at 7 m
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  R_A [kN]                                                         59                     59   7.105e-15    1.204e-14 rel<=0.1%     PASS
+  R_B [kN]                                                         71                     71   0.000e+00    0.000e+00 rel<=0.1%     PASS
+  M(3 m) [kN*m]                                                   177                    177   2.842e-14    1.606e-14 rel<=0.1%     PASS
+  M(7 m) [kN*m]                                                   213                    213   5.684e-14    2.669e-14 rel<=0.1%     PASS
+  V(3-) [kN]                                                       59                     59   7.105e-15    1.204e-14 rel<=0.1%     PASS
+  V(3+) [kN]                                                        9                      9   7.105e-15    7.895e-14 rel<=0.1%     PASS
+  V(7+) [kN]                                                      -71                    -71   0.000e+00    0.000e+00 rel<=0.1%     PASS
+  max|M - M_exact| / max M [-] (all samples)      5.4655080669922e-16                      0   5.466e-16          n/a abs<=0.001    PASS
+  v(3 m) [mm]                                                 -0.8595                -0.8595   1.110e-16    1.292e-14 rel<=0.1%     PASS
+  v(7 m) [mm]                                                 -0.8955                -0.8955   1.110e-16    1.240e-14 rel<=0.1%     PASS
+  max|v - v_exact| / max|v_exact| [-] (41 points)    3.0327333496098e-16                      0   3.033e-16          n/a abs<=0.001    PASS
+--- PASS
+
+=== testPointLoadsInElements / Propped cantilever with a load inside an element (indeterminate) ===
+
+Propped cantilever, P = 100 kN at x = 3.7 m (inside element 2), 4 elements
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  R_B = P*a^2*(3L - a)/(2L^3) [kN]                           18.00235               18.00235   5.684e-14    3.158e-13 rel<=0.1%     PASS
+  R_A [kN]                                                   81.99765               81.99765   8.527e-14    1.040e-13 rel<=0.1%     PASS
+  M_A = R_B*L - P*a [kN*m]                                  -189.9765              -189.9765   1.421e-13    7.480e-14 rel<=0.1%     PASS
+  M(a) = R_B*(L - a) [kN*m]                                113.414805             113.414805   1.563e-13    1.378e-13 rel<=0.1%     PASS
+  shear jump under the load [kN]                                  100                    100   0.000e+00    0.000e+00 rel<=0.1%     PASS
+  v(a) [mm]                                          -0.3040756574625       -0.3040756574625   2.220e-16    7.302e-14 rel<=0.1%     PASS
+  max|v - v_exact| / |v(a)| [-] (12 points on 0..a)    7.1311342810742e-16                      0   7.131e-16          n/a abs<=0.001    PASS
+--- PASS
+
+=== testPointLoadsInElements / Deflection between nodes is exact for uniform and point loads ===
+
+Deflection between nodes (Hermite part + fixed-fixed particular solution)
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  UDL, 2 elements: max|v - v_exact| / v_mid [-] (41 points)    4.9960036108132e-16                      0   4.996e-16          n/a abs<=0.001    PASS
+  UDL, 2 elements: v(L/4) [mm]                           -0.927734375           -0.927734375   2.220e-16    2.393e-14 rel<=0.1%     PASS
+  P at 7.3 m, 4 elements: max|v - v_exact| / max|v| [-]    6.1718556799972e-15                      0   6.172e-15          n/a abs<=0.001    PASS
+  P at 7.3 m: v(7.3 m) [mm]                                -0.6474735             -0.6474735   3.664e-15    5.659e-13 rel<=0.1%     PASS
+  fixed-fixed 1 element: v(L/2) [mm]                -0.26041666666667      -0.26041666666667   0.000e+00    0.000e+00 rel<=0.1%     PASS
+  fixed-fixed 1 element: v(L/4) [mm]                     -0.146484375           -0.146484375   0.000e+00    0.000e+00 rel<=0.1%     PASS
+  PASS expected error BridgeFE:offBeam: Query coordinates must lie within the beam [0, 10] m.
+--- PASS
+
+=== testPointLoadsInElements / Mixed loads close element equilibrium and show a jump of P at each interior load ===
+
+Fixed + roller, UDL on elements 2-4, interior loads at 4.5 m (down) and 5.2 m (up), load at node 5, couple at node 4
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  max|V(x_j-) - V_j| / 60 kN [-]                  6.0632980118195e-17                      0   6.063e-17          n/a abs<=1e-12    PASS
+  max|M(x_j-) - M_j| / (60 kN * L) [-]            1.9402553637822e-16                      0   1.940e-16          n/a abs<=1e-12    PASS
+  shear jump at 4.5 m [kN]                                        -60                    -60   0.000e+00    0.000e+00 rel<=0.1%     PASS
+  shear jump at 5.2 m [kN]                                         25                     25   0.000e+00    0.000e+00 rel<=0.1%     PASS
+  sum Fv, loads + reactions [kN]                 -6.9849193096161e-13                      0   6.985e-13          n/a abs<=6e-05    PASS
+  sum M about x = 0 [kN*m]                       -4.7730281949043e-12                      0   4.773e-12          n/a abs<=0.0006   PASS
+--- PASS
+
+=== testPointLoadsInElements / A point load on a support goes straight into that reaction ===
+
+50 kN downward point load exactly at the pin (x = 0)
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  R_A [kN]                                                         50                     50   0.000e+00    0.000e+00 rel<=0.1%     PASS
+  R_B [kN]                                                          0                      0   0.000e+00          n/a abs<=1e-09    PASS
+--- PASS
+
+=== testProppedCantilever / Propped cantilever with a central point load at a node ===
+
+Propped cantilever, P = 100 kN at L/2, L = 10 m, 16 elements
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  R_A [kN] (+ up)                                     68.750000000013                  68.75   1.327e-11    1.931e-11 rel<=0.1%     PASS
+  R_B [kN] (+ up)                                     31.250000000011                  31.25   1.118e-11    3.577e-11 rel<=0.1%     PASS
+  reaction couple at A [kN*m] (+ CCW)                 187.50000000004                  187.5   4.272e-11    2.278e-11 rel<=0.1%     PASS
+  M_A = M(0) [kN*m] (+ sagging)                      -187.50000000004                 -187.5   4.272e-11    2.278e-11 rel<=0.1%     PASS
+  M(L/2) [kN*m]                                       156.25000000003                 156.25   3.470e-11    2.221e-11 rel<=0.1%     PASS
+  v(L/2) [mm]                                       -0.45572916666678      -0.45572916666667   1.174e-13    2.576e-11 rel<=0.1%     PASS
+  max|M - M_exact| / (3PL/16) [-]                 2.2786358992259e-13                      0   2.279e-13          n/a abs<=0.001    PASS
+  max|V - V_exact| / P [-]                        1.9092112779617e-13                      0   1.909e-13          n/a abs<=0.001    PASS
+  sum Fv, loads + reactions [kN]                  2.4447217583656e-11                      0   2.445e-11          n/a abs<=0.0001   PASS
+  sum M about x = 0 [kN*m]                        1.5448313206434e-10                      0   1.545e-10          n/a abs<=0.001    PASS
+  PASS v_A = theta_A = v_B = 0 exactly
+--- PASS
+
+=== testProppedCantilever / Benchmark C propped cantilever under uniform load with 16 elements ===
+  rcond(Kff) = 3.689e-05, max|Kff*Uf - Ff| = 1.490e-08
+
+Benchmark C: q = 20 kN/m, L = 10 m, EI = 2e+09 N*m^2, 16 elements
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  R_A [kN] (+ up)                                     125.00000000002                    125   1.560e-11    1.248e-11 rel<=0.5%     PASS
+  R_B [kN] (+ up)                                     75.000000000013                     75   1.305e-11    1.739e-11 rel<=0.5%     PASS
+  M_A = M(0) [kN*m] (+ sagging)                      -250.00000000005                   -250   5.002e-11    2.001e-11 rel<=0.5%     PASS
+  reaction couple at A [kN*m] (+ CCW)                 250.00000000005                    250   5.002e-11    2.001e-11 rel<=0.5%     PASS
+  max sagging M from samples [kN*m]                   140.62500000005                140.625   4.658e-11    3.313e-11 rel<=0.5%     PASS
+  x of max sagging M [m]                                         6.25                   6.25   0.000e+00    0.000e+00 rel<=0.5%     PASS
+  M(L) at roller [kN*m]                           7.7602635428775e-13                      0   7.760e-13          n/a abs<=0.00025  PASS
+  theta_B [rad] (+ CCW)                           0.00020833333333339    0.00020833333333333   5.513e-17    2.646e-11 rel<=0.5%     PASS
+  v(L/2) [mm]                                       -0.52083333333347      -0.52083333333333   1.383e-13    2.656e-11 rel<=0.5%     PASS
+  max|v - v_exact| / (qL^4/192EI) [-] (17 nodes)    2.7935986857131e-13                      0   2.794e-13          n/a abs<=0.005    PASS
+  max|M - M_exact| / (qL^2/8) [-] (144 samples)     2.001179382205e-13                      0   2.001e-13          n/a abs<=0.005    PASS
+  max|V - V_exact| / (5qL/8) [-] (144 samples)    1.8998980522156e-13                      0   1.900e-13          n/a abs<=0.005    PASS
+  sum Fv, loads + reactions [kN]                  2.8638169169426e-11                      0   2.864e-11          n/a abs<=0.0002   PASS
+  sum M about x = 0 [kN*m]                        1.8041464500129e-10                      0   1.804e-10          n/a abs<=0.002    PASS
+  PASS v_A = theta_A = 0 at the fixed end and v_B = 0 at the prop, exactly
+--- PASS
+
+=== testProppedCantilever / Benchmark C mesh independence with 1, 2, 4 and 16 elements ===
+
+Benchmark C mesh independence
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  ne =  1: R_A [kN]                                               125                    125   0.000e+00    0.000e+00 rel<=0.5%     PASS
+  ne =  1: R_B [kN]                                                75                     75   0.000e+00    0.000e+00 rel<=0.5%     PASS
+  ne =  1: M_A [kN*m]                                            -250                   -250   2.842e-14    1.137e-14 rel<=0.5%     PASS
+  ne =  1: theta_B [rad]                          0.00020833333333333    0.00020833333333333   0.000e+00    0.000e+00 rel<=0.5%     PASS
+  ne =  2: R_A [kN]                                               125                    125   1.421e-14    1.137e-14 rel<=0.5%     PASS
+  ne =  2: R_B [kN]                                                75                     75   0.000e+00    0.000e+00 rel<=0.5%     PASS
+  ne =  2: M_A [kN*m]                                            -250                   -250   5.684e-14    2.274e-14 rel<=0.5%     PASS
+  ne =  2: theta_B [rad]                          0.00020833333333333    0.00020833333333333   2.711e-20    1.301e-14 rel<=0.5%     PASS
+  ne =  4: R_A [kN]                                               125                    125   1.137e-13    9.095e-14 rel<=0.5%     PASS
+  ne =  4: R_B [kN]                                                75                     75   2.274e-13    3.032e-13 rel<=0.5%     PASS
+  ne =  4: M_A [kN*m]                                            -250                   -250   2.842e-13    1.137e-13 rel<=0.5%     PASS
+  ne =  4: theta_B [rad]                          0.00020833333333333    0.00020833333333333   3.253e-19    1.561e-13 rel<=0.5%     PASS
+  ne = 16: R_A [kN]                                   125.00000000002                    125   1.560e-11    1.248e-11 rel<=0.5%     PASS
+  ne = 16: R_B [kN]                                   75.000000000013                     75   1.305e-11    1.739e-11 rel<=0.5%     PASS
+  ne = 16: M_A [kN*m]                                -250.00000000005                   -250   5.002e-11    2.001e-11 rel<=0.5%     PASS
+  ne = 16: theta_B [rad]                          0.00020833333333339    0.00020833333333333   5.513e-17    2.646e-11 rel<=0.5%     PASS
+--- PASS
+
+=== testShapeFunctionsAndPointLoads / Shape functions take nodal values and reproduce rigid-body motion ===
+
+Hermite shape functions, Le = 2.5 m, 101 points
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  max|N1 + N3 - 1| [-] (vertical translation)     1.1102230246252e-16                      0   1.110e-16          n/a abs<=1e-14    PASS
+  max|N2 + Le*N3 + N4 - s| [m] (rigid rotation)    8.8817841970013e-16                      0   8.882e-16          n/a abs<=1e-14    PASS
+--- PASS
+
+=== testShapeFunctionsAndPointLoads / Shape functions at r = 1/3 match hand-computed fractions ===
+  N(1/3) = [0.740740740741 0.444444444444 0.259259259259 -0.222222222222]
+
+Shape functions at r = 1/3, Le = 3 m
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  N1 = 20/27 [-]                                     0.74074074074074       0.74074074074074   1.110e-16    1.499e-14 rel<=1e-10%   PASS
+  N2 = 4Le/27 [m]                                    0.44444444444444       0.44444444444444   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  N3 = 7/27 [-]                                      0.25925925925926       0.25925925925926   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  N4 = -2Le/27 [m]                                  -0.22222222222222      -0.22222222222222   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+--- PASS
+
+=== testShapeFunctionsAndPointLoads / Shape-function slopes at the element ends select the nodal rotations ===
+  dN/ds(0) = [-1.76473e-06 0.999998 1.7647e-06 -9.99999e-07]
+  dN/ds(Le) = [-1.76473e-06 -1.00009e-06 1.76473e-06 0.999998]
+
+Finite-difference slopes of N at the element ends (step 1e-6*Le)
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  max|dN/ds(0) - [0 1 0 0]| [-]                   1.9999990001907e-06                      0   2.000e-06          n/a abs<=1e-05    PASS
+  max|dN/ds(Le) - [0 0 0 1]| [-]                  2.0000380230867e-06                      0   2.000e-06          n/a abs<=1e-05    PASS
+--- PASS
+
+=== testShapeFunctionsAndPointLoads / Point-load vector equals the textbook fixed-end actions ===
+  midspan: [-50000 -37500 -50000 37500]
+  third point: [-74074.07407 -44444.44444 -25925.92593 22222.22222]
+
+Consistent point-load vectors, P = -100 kN, Le = 3 m
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  midspan F1 = P/2 [N]                                         -50000                 -50000   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  midspan M1 = P*Le/8 [N*m]                                    -37500                 -37500   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  midspan F2 = P/2 [N]                                         -50000                 -50000   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  midspan M2 = -P*Le/8 [N*m]                                    37500                  37500   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  a = Le/3: M1 = P*a*b^2/Le^2 [N*m]                  -44444.444444444       -44444.444444444   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  a = Le/3: M2 = -P*a^2*b/Le^2 [N*m]                  22222.222222222        22222.222222222   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  a = Le/3: F1 = P*b^2*(3a + b)/Le^3 [N]             -74074.074074074       -74074.074074074   1.455e-11    1.965e-14 rel<=1e-10%   PASS
+  a = Le/3: F2 = P*a^2*(a + 3b)/Le^3 [N]             -25925.925925926       -25925.925925926   3.638e-12    1.403e-14 rel<=1e-10%   PASS
+  PASS a = 0 -> [P 0 0 0], a = Le -> [0 0 P 0] exactly
+--- PASS
+
+=== testShapeFunctionsAndPointLoads / Point-load vector keeps the resultant force and moment for any position ===
+
+Resultant of the consistent point-load vector (about the left node)
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  a = 0.05 m: F1 + F2 [kN]                                        -73                    -73   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  a = 0.05 m: M1 + M2 + F2*Le [kN*m]                            -3.65                  -3.65   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  a = 0.40 m: F1 + F2 [kN]                                        -73                    -73   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  a = 0.40 m: M1 + M2 + F2*Le [kN*m]                            -29.2                  -29.2   3.553e-15    1.217e-14 rel<=1e-10%   PASS
+  a = 1.10 m: F1 + F2 [kN]                                        -73                    -73   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  a = 1.10 m: M1 + M2 + F2*Le [kN*m]                            -80.3                  -80.3   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  a = 1.73 m: F1 + F2 [kN]                                        -73                    -73   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  a = 1.73 m: M1 + M2 + F2*Le [kN*m]                          -126.29                -126.29   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  a = 2.19 m: F1 + F2 [kN]                                        -73                    -73   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  a = 2.19 m: M1 + M2 + F2*Le [kN*m]                          -159.87                -159.87   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+--- PASS
+
+=== testShapeFunctionsAndPointLoads / Point loads at nodes are nodal loads and interior loads keep their position ===
+       x [m]   node  element      a [m]
+           0      1        0          0
+         2.5      2        0          0
+         2.5      2        0          0
+         3.7      0        2        1.2
+         9.9      0        4        2.4
+          10      5        0          0
+  PASS loads at 0, 2.5 and 10 m -> nodes 1, 2, 5; 2.5 m + 1e-12 -> node 2 (round-off only);
+       3.7 m -> element 2 at a = 1.2 m; 9.9 m -> element 4 at a = 2.4 m
+--- PASS
+
+=== testShapeFunctionsAndPointLoads / Assembled F is the nodal load at a node and the Hermite vector inside an element ===
+  PASS point load at a node == nodal load; at 6.1 m == Hermite vector on DOFs 5-8
+--- PASS
+
+=== testShapeFunctionsAndPointLoads / Invalid shape-function and point-load input is rejected ===
+  PASS expected error BridgeFE:invalidInput: r must be a real vector of normalized positions in [0, 1].
+  PASS expected error BridgeFE:invalidInput: r must be a real vector of normalized positions in [0, 1].
+  PASS expected error BridgeFE:invalidInput: a (2.6 m) must lie within the element, 0 <= a <= Le = 2.5 m.
+  PASS expected error BridgeFE:invalidInput: P must be a real, finite numeric scalar.
+  PASS expected error BridgeFE:offBeam: Point load at x = 10.5 m is outside the beam [0, 10] m.
+  PASS expected error BridgeFE:offBeam: Point load at x = -0.01 m is outside the beam [0, 10] m.
+  PASS expected error BridgeFE:invalidInput: Fv must be a real, finite numeric scalar.
+  PASS expected error BridgeFE:invalidModel: model.loads.point has a load outside the beam [0, 10] m.
+--- PASS
+
+=== testSimplySupportedBeam / Analytical references reproduce the values stated in PROJECT_SPEC.md ===
+
+Closed-form references vs the Benchmark A numbers in PROJECT_SPEC.md
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  P/2 [kN] vs spec 50 kN                                           50                     50   0.000e+00    0.000e+00 rel<=1e-12%   PASS
+  PL/4 [kN*m] vs spec 500 kN*m                                    500                    500   0.000e+00    0.000e+00 rel<=1e-12%   PASS
+  PL^3/(48EI) [mm] vs spec 8.333... = 25/3 mm         8.3333333333333        8.3333333333333   0.000e+00    0.000e+00 rel<=1e-12%   PASS
+--- PASS
+
+=== testSimplySupportedBeam / Benchmark A with 20 elements ===
+  rcond(Kff) = 6.840e-06, max|Kff*Uf - Ff| = 8.941e-08
+
+Benchmark A: L = 20 m, P = 100 kN, E = 200 GPa, I = 0.01 m^4, 20 elements
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  R_A [kN] (+ up)                                     50.000000000039                     50   3.912e-11    7.823e-11 rel<=0.1%     PASS
+  R_B [kN] (+ up)                                     50.000000000054                     50   5.402e-11    1.080e-10 rel<=0.1%     PASS
+  M_max over element ends [kN*m] (+ sagging)          500.00000000031                    500   3.134e-10    6.269e-11 rel<=0.1%     PASS
+  x of M_max [m]                                                   10                     10   0.000e+00    0.000e+00 rel<=0.1%     PASS
+  M(midspan-), left element [kN*m]                    500.00000000031                    500   3.134e-10    6.269e-11 rel<=0.1%     PASS
+  M(midspan+), right element [kN*m]                    500.0000000003                    500   2.963e-10    5.925e-11 rel<=0.1%     PASS
+  M at pin A [kN*m]                               9.3132257461548e-13                      0   9.313e-13          n/a abs<=0.0005   PASS
+  M at roller B [kN*m]                                              0                      0   0.000e+00          n/a abs<=0.0005   PASS
+  v_mid [mm] (+ up)                                  -8.3333333333391       -8.3333333333333   5.809e-12    6.970e-11 rel<=0.1%     PASS
+  |delta_mid| [mm]                                    8.3333333333391        8.3333333333333   5.809e-12    6.970e-11 rel<=0.1%     PASS
+  theta_A [rad] (+ CCW)                           -0.0012500000000009               -0.00125   8.537e-16    6.830e-11 rel<=0.1%     PASS
+  theta_B [rad] (+ CCW)                             0.001250000000001                0.00125   9.602e-16    7.681e-11 rel<=0.1%     PASS
+  theta_mid [rad]                                -7.6304512664243e-17                      0   7.630e-17          n/a abs<=1.25e-09 PASS
+  min V, left half [kN]                               49.999999999978                     50   2.235e-11    4.471e-11 rel<=0.1%     PASS
+  max V, left half [kN]                                50.00000000006                     50   5.961e-11    1.192e-10 rel<=0.1%     PASS
+  min V, right half [kN]                             -50.000000000067                    -50   6.705e-11    1.341e-10 rel<=0.1%     PASS
+  max V, right half [kN]                             -49.999999999965                    -50   3.492e-11    6.985e-11 rel<=0.1%     PASS
+  sum Fv, loads + reactions [kN]                  9.3132257461548e-11                      0   9.313e-11          n/a abs<=0.0001   PASS
+  sum M about x = 0 [kN*m]                         1.080334186554e-09                      0   1.080e-09          n/a abs<=0.0005   PASS
+--- PASS
+
+=== testSimplySupportedBeam / Mesh independence with 2, 4, 8, 20 and 40 elements ===
+
+Benchmark A mesh independence
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  ne =  2: R_A [kN]                                                50                     50   2.842e-14    5.684e-14 rel<=0.1%     PASS
+  ne =  2: M_max [kN*m]                                           500                    500   5.684e-14    1.137e-14 rel<=0.1%     PASS
+  ne =  2: |delta_mid| [mm]                           8.3333333333333        8.3333333333333   0.000e+00    0.000e+00 rel<=0.1%     PASS
+  ne =  4: R_A [kN]                                                50                     50   2.913e-13    5.826e-13 rel<=0.1%     PASS
+  ne =  4: M_max [kN*m]                                           500                    500   2.785e-12    5.571e-13 rel<=0.1%     PASS
+  ne =  4: |delta_mid| [mm]                           8.3333333333333        8.3333333333333   5.329e-14    6.395e-13 rel<=0.1%     PASS
+  ne =  8: R_A [kN]                                   50.000000000001                     50   1.400e-12    2.800e-12 rel<=0.1%     PASS
+  ne =  8: M_max [kN*m]                                           500                    500   3.581e-12    7.162e-13 rel<=0.1%     PASS
+  ne =  8: |delta_mid| [mm]                           8.3333333333333        8.3333333333333   1.421e-14    1.705e-13 rel<=0.1%     PASS
+  ne = 20: R_A [kN]                                   50.000000000039                     50   3.912e-11    7.823e-11 rel<=0.1%     PASS
+  ne = 20: M_max [kN*m]                               500.00000000031                    500   3.134e-10    6.269e-11 rel<=0.1%     PASS
+  ne = 20: |delta_mid| [mm]                           8.3333333333391        8.3333333333333   5.809e-12    6.970e-11 rel<=0.1%     PASS
+  ne = 40: R_A [kN]                                   49.999999999359                     50   6.408e-10    1.282e-09 rel<=0.1%     PASS
+  ne = 40: M_max [kN*m]                               499.99999999655                    500   3.446e-09    6.892e-10 rel<=0.1%     PASS
+  ne = 40: |delta_mid| [mm]                           8.3333333332458        8.3333333333333   8.749e-11    1.050e-09 rel<=0.1%     PASS
+--- PASS
+
+=== testSimplySupportedBeam / Nodal deflections and rotations match the analytical elastic curve along the span ===
+     x [m]        v FE [mm]     v exact [mm]     err [mm]       theta FE    theta exact
+      0.00     0.0000000000    -0.0000000000    0.000e+00  -1.250000e-03  -1.250000e-03
+      1.00    -1.2458333333    -1.2458333333   -8.502e-13  -1.237500e-03  -1.237500e-03
+      2.00    -2.4666666667    -2.4666666667   -1.680e-12  -1.200000e-03  -1.200000e-03
+      3.00    -3.6375000000    -3.6375000000   -2.469e-12  -1.137500e-03  -1.137500e-03
+      4.00    -4.7333333333    -4.7333333333   -3.200e-12  -1.050000e-03  -1.050000e-03
+      5.00    -5.7291666667    -5.7291666667   -3.860e-12  -9.375000e-04  -9.375000e-04
+      6.00    -6.6000000000    -6.6000000000   -4.446e-12  -8.000000e-04  -8.000000e-04
+      7.00    -7.3208333333    -7.3208333333   -4.954e-12  -6.375000e-04  -6.375000e-04
+      8.00    -7.8666666667    -7.8666666667   -5.367e-12  -4.500000e-04  -4.500000e-04
+      9.00    -8.2125000000    -8.2125000000   -5.659e-12  -2.375000e-04  -2.375000e-04
+     10.00    -8.3333333333    -8.3333333333   -5.810e-12  -7.630451e-17  -0.000000e+00
+     11.00    -8.2125000000    -8.2125000000   -5.808e-12   2.375000e-04   2.375000e-04
+     12.00    -7.8666666667    -7.8666666667   -5.650e-12   4.500000e-04   4.500000e-04
+     13.00    -7.3208333333    -7.3208333333   -5.342e-12   6.375000e-04   6.375000e-04
+     14.00    -6.6000000000    -6.6000000000   -4.885e-12   8.000000e-04   8.000000e-04
+     15.00    -5.7291666667    -5.7291666667   -4.289e-12   9.375000e-04   9.375000e-04
+     16.00    -4.7333333333    -4.7333333333   -3.575e-12   1.050000e-03   1.050000e-03
+     17.00    -3.6375000000    -3.6375000000   -2.767e-12   1.137500e-03   1.137500e-03
+     18.00    -2.4666666667    -2.4666666667   -1.887e-12   1.200000e-03   1.200000e-03
+     19.00    -1.2458333333    -1.2458333333   -9.558e-13   1.237500e-03   1.237500e-03
+     20.00     0.0000000000    -0.0000000000    0.000e+00   1.250000e-03   1.250000e-03
+
+Benchmark A elastic curve at all 21 nodes
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  max|v - v_exact| / delta_mid [-]                6.9715067052556e-13                      0   6.972e-13          n/a abs<=0.001    PASS
+  max|theta - theta_exact| / |theta_A| [-]        7.6813555516253e-13                      0   7.681e-13          n/a abs<=0.001    PASS
+--- PASS
+
+=== testSimplySupportedBeam / A load applied at a support node goes directly into that reaction ===
+
+Benchmark A plus an extra 10 kN downward load at roller B (a restrained DOF)
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  R_A [kN]                                            50.000000000039                     50   3.912e-11    7.823e-11 rel<=0.1%     PASS
+  R_B [kN]                                            60.000000000054                     60   5.402e-11    9.003e-11 rel<=0.1%     PASS
+  max|U - U_without_extra_load| [m]                                 0                      0   0.000e+00          n/a abs<=1e-15    PASS
+  sum Fv, loads + reactions [kN]                  9.3132257461548e-11                      0   9.313e-11          n/a abs<=0.0001   PASS
+--- PASS
+
+=== testStiffnessDamage / Zero loss reproduces the healthy model and results exactly ===
+  PASS d = 0 leaves the model and its solution bit-identical; re-applying d = 0 restores it
+--- PASS
+
+=== testStiffnessDamage / Only the chosen element changes: K_D - K_H = -d * A_j'' k_j A_j ===
+
+Stiffness loss d = 0.35 in element 3 of 5
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  max|(K_D - K_H) - (-d A3' k3 A3)| / max|K_H| [-]    1.4901161193848e-17                      0   1.490e-17          n/a abs<=1e-14    PASS
+  EI_eff of element 3 [N*m^2] = (1 - d) EI                 1300000000             1300000000   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  max|EI_eff change| outside element 3 [N*m^2]                      0                      0   0.000e+00          n/a abs<=1e-09    PASS
+  material EI of element 3 unchanged [N*m^2]               2000000000             2000000000   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+--- PASS
+
+=== testStiffnessDamage / Simply supported beam: damage changes deflection only (statically determinate) ===
+
+Simple span, P = 100 kN at midspan, d = 0.3 on 3..7 m
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  max|R_D - R_H| / P [-]                          1.9371509552002e-12                      0   1.937e-12          n/a abs<=1e-09    PASS
+  max|M_D - M_H| / (PL/4) [-] (element ends)      2.3096799850464e-12                      0   2.310e-12          n/a abs<=1e-09    PASS
+  healthy |delta_mid| [mm] = PL^3/(48EI)              8.3333333333391        8.3333333333333   5.809e-12    6.970e-11 rel<=0.1%     PASS
+  damaged |delta_mid| [mm] (virtual work)             8.8976190476027         8.897619047619   1.640e-11    1.843e-10 rel<=0.1%     PASS
+  increase of |delta_mid| [mm]                       0.56428571426351       0.56428571428571   2.220e-11    3.935e-09 rel<=0.1%     PASS
+--- PASS
+
+=== testStiffnessDamage / Propped cantilever: damage redistributes the reactions (statically indeterminate) ===
+
+Propped cantilever, q = 20 kN/m: R_B redistributes with the damaged region
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  d = 0.5 on 0..2 m: R_B [kN]                         80.161290322591        80.161290322581   9.962e-12    1.243e-11 rel<=0.1%     PASS
+  d = 0.5 on 0..2 m: M_A [kN*m]                      -198.38709677423       -198.38709677419   3.334e-11    1.680e-11 rel<=0.1%     PASS
+  d = 0.5 on 6..8 m: R_B [kN]                         72.727272727318        72.727272727273   4.539e-11    6.241e-11 rel<=0.1%     PASS
+  d = 0.5 on 6..8 m: M_A [kN*m]                      -272.72727272741       -272.72727272727   1.363e-10    4.996e-11 rel<=0.1%     PASS
+  d = 0.2 on 3..5 m: R_B [kN]                         74.281650071137        74.281650071124   1.289e-11    1.735e-11 rel<=0.1%     PASS
+  d = 0.2 on 3..5 m: M_A [kN*m]                      -257.18349928879       -257.18349928876   2.780e-11    1.081e-11 rel<=0.1%     PASS
+  healthy R_B [kN] = 3qL/8                            74.999999999991                     75   9.308e-12    1.241e-11 rel<=0.1%     PASS
+  R_B healthy 75.0000 kN; damage near the fixed end lowers the fixed-end restraint, so R_B rises
+--- PASS
+
+=== testStiffnessDamage / Two-span beam with span 1 damaged follows the three-moment equation ===
+
+Spans 10 + 15 m, q = 20 kN/m, span 1 with d = 0.3
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  M_B [kN*m] (three-moment, EI1 = 0.7 EI)            -410.06097560972       -410.06097560976   3.348e-11    8.165e-12 rel<=0.1%     PASS
+  change of M_B vs healthy [kN*m]                     27.439024390306        27.439024390244   6.182e-11    2.253e-10 rel<=0.1%     PASS
+  R_A [kN] = qL1/2 + M_B/L1                           58.993902439027        58.993902439024   3.006e-12    5.095e-12 rel<=0.1%     PASS
+  PASS material EI and material record unchanged; only stiffnessFactor carries the loss
+--- PASS
+
+=== testStiffnessDamage / Moving-load comparison: determinate beam keeps forces, continuous beam redistributes ===
+  simple span: Mmax 1349.040 -> 1349.040 kN*m, vmin -24.925 -> -30.837 mm (-23.72 %), Mmin pct = NaN (healthy ~0)
+  continuous: M_B min -467.767 -> -371.462 kN*m (+20.59 %), R_B max 311.297 -> 308.957 kN (-0.75 %)
+
+Healthy vs damaged under the spec truck (positions every 0.2 m)
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  simple span: max |R change| over supports [kN]    3.7252902984619e-12                      0   3.725e-12          n/a abs<=1e-06    PASS
+  simple span: max |Mmax envelope change| [kN*m]    5.3783878684044e-11                      0   5.378e-11          n/a abs<=1e-06    PASS
+  simple span: downward deflection grows, signed pct < 0 (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  simple span: zero healthy Mmin gives NaN percent (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  continuous: R_B max changes (|change| > 1 kN) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  continuous: damaged critical M min = direct runMovingLoad [kN*m]       -371.46227450983       -371.46227450983   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  continuous: pct change = 100*(D-H)/|H| [%]          20.588235294118        20.588235294118   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+--- PASS
+
+=== testStiffnessDamage / Moving-load fast path equals the static engine on a damaged model ===
+
+Damaged two-span model: analyzeVehiclePosition vs static engine (3 positions, axles in damaged elements)
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  max normalized difference in U and in v at stations and under axles [-]    1.0705896638123e-13                      0   1.071e-13          n/a abs<=1e-09    PASS
+--- PASS
+
+=== testStiffnessDamage / Sensitivity sweep ranks the midspan elements first for deflection and finds no change in moment ===
+  vmin per damaged element [mm]: [-8.36124 -8.52865 -8.87989 -9.40314 -9.40314 -8.87989 -8.52865 -8.36124] (healthy -8.3333)
+  ranking for vmin: [5 4 6 3 7 2 1 8]
+
+Sensitivity sweep, d = 0.3 moved over 8 elements, single 100 kN load
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  vmin: two most influential elements are the middle two (4, 5) (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  vmin: symmetric (max|value(e) - value(9-e)| / |healthy|) [-]    3.8719027983801e-14                      0   3.872e-14          n/a abs<=1e-09    PASS
+  vmin: every location increases deflection (1 = yes)                      1                      1   0.000e+00    0.000e+00 rel<=1e-09%   PASS
+  vmin of element 3 = direct runMovingLoad [mm]       -8.8798918805805       -8.8798918805805   0.000e+00    0.000e+00 rel<=1e-10%   PASS
+  Mmax: max |change| over locations [kN*m] (determinate)    9.8953023552895e-12                      0   9.895e-12          n/a abs<=1e-06    PASS
+  R_A max: max |change| over locations [kN] (determinate)                      0                      0   0.000e+00          n/a abs<=1e-06    PASS
+--- PASS
+
+=== testStiffnessDamage / Invalid damage input is rejected and material reassignment keeps the loss ===
+  PASS expected error BridgeFE:invalidInput: Stiffness loss d must satisfy 0 <= d < 1 (got 1).
+  PASS expected error BridgeFE:invalidInput: Stiffness loss d must satisfy 0 <= d < 1 (got -0.1).
+  PASS expected error BridgeFE:invalidInput: elements must be a vector of element indices between 1 and 5.
+  PASS expected error BridgeFE:invalidInput: d must be a real scalar or one value per listed element.
+  PASS expected error BridgeFE:invalidModel: model.elements.stiffnessFactor must be a 5-by-1 vector with 0 < factor <= 1 (factor = 1 - d).
+  PASS expected error BridgeFE:invalidInput: d must be a scalar with 0 < d < 1.
+  PASS expected error BridgeFE:invalidInput: For Rmax give option 'Node' with a supported node.
+  PASS per-element losses 0.1 / 0.25; RCC reassignment of element 4 keeps its 25 % loss (EI_eff = 1.5e9)
+--- PASS
+
+=== testSupportsAndStability / Pin and roller restrain v only and fixed restrains v and theta ===
+  PASS pin -> [v], roller -> [v], fixed -> [v theta]
+--- PASS
+
+=== testSupportsAndStability / Simply supported 4-element beam restrains v at the two end nodes only ===
+  restrained DOFs [1 9], free DOFs [2 3 4 5 6 7 8 10]
+--- PASS
+
+=== testSupportsAndStability / Fixed end plus roller (propped-cantilever layout) restrains v1, theta1 and v5 ===
+  restrained DOFs [1 2 9], free DOFs [3 4 5 6 7 8 10]
+--- PASS
+
+=== testSupportsAndStability / Under-restrained models are rejected with BridgeFE:underRestrained ===
+  PASS expected error BridgeFE:underRestrained: Under-restrained model: no vertical displacement is restrained, so rigid-body vertical translation is free. Add two pin/roller supports or one fixed support.
+  PASS expected error BridgeFE:underRestrained: Under-restrained model: no vertical displacement is restrained, so rigid-body vertical translation is free. Add two pin/roller supports or one fixed support.
+  PASS expected error BridgeFE:underRestrained: Under-restrained model: only node 1 (x = 0 m) restrains v and no rotation is restrained, so rigid-body rotation about that node is free. Add a second pin/roller support or make a support fixed.
+  PASS expected error BridgeFE:underRestrained: Under-restrained model: only node 1 (x = 0 m) restrains v and no rotation is restrained, so rigid-body rotation about that node is free. Add a second pin/roller support or make a support fixed.
+  PASS expected error BridgeFE:underRestrained: Under-restrained model: only node 3 (x = 10 m) restrains v and no rotation is restrained, so rigid-body rotation about that node is free. Add a second pin/roller support or make a support fixed.
+--- PASS
+
+=== testSupportsAndStability / Stability rule agrees with the numerical rank of Kff for many support layouts ===
+  none                               rank(Kff) = 8 of 10   rule stable = 0   numerically stable = 0
+  pin@node1                          rank(Kff) = 8 of 9   rule stable = 0   numerically stable = 0
+  roller@node3                       rank(Kff) = 8 of 9   rule stable = 0   numerically stable = 0
+  fixed@node5                        rank(Kff) = 8 of 8   rule stable = 1   numerically stable = 1
+  pin@node1 roller@node5             rank(Kff) = 8 of 8   rule stable = 1   numerically stable = 1
+  pin@node2 roller@node4             rank(Kff) = 8 of 8   rule stable = 1   numerically stable = 1
+  fixed@node1 roller@node5           rank(Kff) = 7 of 7   rule stable = 1   numerically stable = 1
+  fixed@node1 fixed@node5            rank(Kff) = 6 of 6   rule stable = 1   numerically stable = 1
+  fixed@node3                        rank(Kff) = 8 of 8   rule stable = 1   numerically stable = 1
+  pin@node1 pin@node2 roller@node3   rank(Kff) = 7 of 7   rule stable = 1   numerically stable = 1
+--- PASS
+
+=== testSupportsAndStability / Duplicate, unknown-type and off-range supports are rejected ===
+  PASS expected error BridgeFE:duplicateSupport: Node 1 already has a support; a node may carry at most one support.
+  PASS expected error BridgeFE:invalidSupportType: Unknown support type 'hinge'. Use 'pin', 'roller' or 'fixed'.
+  PASS expected error BridgeFE:invalidInput: node must be an integer scalar between 1 and 5.
+  PASS expected error BridgeFE:invalidInput: node must be an integer scalar between 1 and 5.
+  PASS expected error BridgeFE:invalidModel: Restraint flags of the support at node 1 do not match its type 'pin'.
+--- PASS
+
+=== testSupportsAndStability / Coordinates map to nodes only where a node exists ===
+  PASS x = 0, 10, 20 m map to nodes 1, 11, 21
+  PASS expected error BridgeFE:notOnNode: No node at x = 10.3 m (nearest node 11 at x = 10 m). Align the mesh with this coordinate.
+  PASS expected error BridgeFE:notOnNode: No node at x = -1 m (nearest node 1 at x = 0 m). Align the mesh with this coordinate.
+--- PASS
+
+=== testUniformLoadBeams / Simply supported beam under uniform load, 10 elements ===
+
+Simple span, q = 20 kN/m down, L = 10 m, EI = 2e+09 N*m^2, 10 elements
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  R_A [kN]                                                        100                    100   4.661e-12    4.661e-12 rel<=0.1%     PASS
+  R_B [kN]                                                        100                    100   0.000e+00    0.000e+00 rel<=0.1%     PASS
+  M_max from samples [kN*m]                           250.00000000001                    250   5.684e-12    2.274e-12 rel<=0.1%     PASS
+  x of M_max [m]                                                    5                      5   0.000e+00    0.000e+00 rel<=0.1%     PASS
+  v_mid [mm]                                         -1.3020833333334       -1.3020833333333   2.354e-14    1.808e-12 rel<=0.1%     PASS
+  theta_A [rad]                                  -0.00041666666666668   -0.00041666666666667   1.225e-17    2.940e-12 rel<=0.1%     PASS
+  max|v - v_exact| / |v_mid| [-] (11 nodes)       2.1482815526497e-14                      0   2.148e-14          n/a abs<=0.001    PASS
+  max|M - M_exact| / (qL^2/8) [-] (88 samples)    5.0873495638371e-14                      0   5.087e-14          n/a abs<=0.001    PASS
+  max|V - V_exact| / (qL/2) [-] (88 samples)      6.0535967350006e-14                      0   6.054e-14          n/a abs<=0.001    PASS
+  sum Fv, loads + reactions [kN]                  4.6566128730774e-12                      0   4.657e-12          n/a abs<=0.0002   PASS
+  sum M about x = 0 [kN*m]                                          0                      0   0.000e+00          n/a abs<=0.002    PASS
+--- PASS
+
+=== testUniformLoadBeams / Fixed-fixed single element has no free DOF and its forces come only from -f_e0 ===
+
+Fixed-fixed beam as ONE element, uniform load (empty free-DOF set)
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  R_A [kN]                                                        100                    100   0.000e+00    0.000e+00 rel<=0.1%     PASS
+  reaction couple at A [kN*m] (+ CCW)                 166.66666666667        166.66666666667   2.842e-14    1.705e-14 rel<=0.1%     PASS
+  R_B [kN]                                                        100                    100   0.000e+00    0.000e+00 rel<=0.1%     PASS
+  reaction couple at B [kN*m] (+ CCW)                -166.66666666667       -166.66666666667   2.842e-14    1.705e-14 rel<=0.1%     PASS
+  M(0) [kN*m]                                        -166.66666666667       -166.66666666667   2.842e-14    1.705e-14 rel<=0.1%     PASS
+  M(L) [kN*m]                                        -166.66666666667       -166.66666666667   2.842e-14    1.705e-14 rel<=0.1%     PASS
+  M(L/2) from samples [kN*m]                          83.333333333333        83.333333333333   1.421e-14    1.705e-14 rel<=0.1%     PASS
+--- PASS
+
+=== testUniformLoadBeams / Fixed-fixed beam with 16 elements matches the exact moment and deflection ===
+
+Fixed-fixed beam, 16 elements, uniform load
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  R_A [kN]                                                        100                    100   3.027e-12    3.027e-12 rel<=0.1%     PASS
+  M(0) [kN*m]                                        -166.66666666668       -166.66666666667   1.205e-11    7.230e-12 rel<=0.1%     PASS
+  M(L/2) [kN*m]                                       83.333333333346        83.333333333333   1.293e-11    1.552e-11 rel<=0.1%     PASS
+  v_mid [mm]                                         -0.2604166666667      -0.26041666666667   3.125e-14    1.200e-11 rel<=0.1%     PASS
+  max|v - v_exact| / |v_mid| [-] (17 nodes)       1.2011225347663e-13                      0   1.201e-13          n/a abs<=0.001    PASS
+  max|M - M_exact| / (qL^2/12) [-] (144 samples)    1.1298106983304e-13                      0   1.130e-13          n/a abs<=0.001    PASS
+--- PASS
+
+=== testUniformLoadBeams / Sampled diagrams close element equilibrium at both element ends ===
+
+Sampled V and M at element right ends vs recovered end forces (mixed loads)
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  max|V(L_e) - V_j| / (qL) [-]                    7.2759576141834e-17                      0   7.276e-17          n/a abs<=1e-12    PASS
+  max|M(L_e) - M_j| / (qL^2) [-]                  3.3469405025244e-16                      0   3.347e-16          n/a abs<=1e-12    PASS
+--- PASS
+
+=== testUnitsDisplay / Unit factors equal independent constants, and SI is the default ===
+
+US customary unit factors to SI (NIST SP 811)
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  1 ft [m]                                                     0.3048                 0.3048   0.000e+00    0.000e+00 rel<=1e-12%   PASS
+  1 in [m]                                                     0.0254                 0.0254   0.000e+00    0.000e+00 rel<=1e-12%   PASS
+  1 kip [N]                                           4448.2216152605        4448.2216152605   0.000e+00    0.000e+00 rel<=1e-12%   PASS
+  1 kip*ft [N*m]                                      1355.8179483314        1355.8179483314   0.000e+00    0.000e+00 rel<=1e-12%   PASS
+  1 kip/ft [N/m]                                      14593.902937206        14593.902937206   0.000e+00    0.000e+00 rel<=1e-12%   PASS
+  1 ksi [Pa]                                          6894757.2931684        6894757.2931684   0.000e+00    0.000e+00 rel<=1e-12%   PASS
+  1 in^4 [m^4]                                        4.162314256e-07        4.162314256e-07   0.000e+00    0.000e+00 rel<=1e-12%   PASS
+  1 ksi [MPa], published 6.894757                     6.8947572931684               6.894757   2.932e-07    4.252e-06 rel<=1e-05%   PASS
+  PASS expected error BridgeFE:invalidInput: Unknown unit system 'imperial'. Use 'SI' or 'US'.
+--- PASS
+
+=== testUnitsDisplay / quantityDisplay: SI as before, US in kip*ft, kip and in ===
+  PASS expected error BridgeFE:invalidInput: Unknown quantity code 'x'.
+  PASS SI = before M9; US: M in kip*ft, V and R in kip, v in in (scale = 1 / factor)
+--- PASS
+
+=== testUnitsDisplay / Critical-position table: values, x, x_v and axle positions in US units ===
+  US row 1: Moment M [kip*ft] max = 644.359 at x = 40.491 ft (SI: 873.634)
+  PASS SI table unchanged; 6 US rows = SI quantities / factor, within the 3 decimals shown
+--- PASS
+
+=== testUnitsDisplay / Reaction tables: forces in kip, couples in kip*ft, coordinates in ft ===
+
+US reaction table at x_v = 12 m: forces add up to the truck
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  sum of shown forces [kip] = 320 kN / kip                     71.939        71.938861791907   1.382e-04    1.921e-04 rel<=0.01%    PASS
+  two-span Min [kN]: -38.988 / 0.000 / -18.332; [kip]: -8.765 / 0.000 / -4.121
+
+US reaction envelope, two-span beam: minimum (lift-off) at the end supports
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  node 1 Min [kip] = Rmin / kip                                -8.765       -8.7649129330714   8.707e-05    9.934e-04 rel<=0.01%    PASS
+  node 19 Min [kip] = Rmin / kip                               -4.121       -4.1211350784419   1.351e-04    3.278e-03 rel<=0.02%    PASS
+--- PASS
+
+=== testUnitsDisplay / Damage comparison table and findings: extremes and reactions in US units, percentages unchanged ===
+  Statically indeterminate beam (degree 1): the EI loss redistributes reactions, shears and moments, and increases deflections.
+  Largest change of an extreme: Deflection v min, -0.4486 -> -0.5433 in (-21.11 %, larger magnitude).
+  Largest reaction change: node 9 max, 52.468 -> 54.086 kip (+3.08 %).
+  PASS SI unchanged; 10 US rows and the findings = SI quantities / factor; percentages unchanged
+  Statically indeterminate beam (degree 1): the EI loss redistributes reactions, shears and moments, and increases deflections.
+  Largest change of an extreme: Deflection v min, -0.2690 -> -0.3658 in (-35.98 %, larger magnitude).
+  Largest reaction change: node 1 min, -8.765 -> -10.559 kip (-20.47 %).
+
+US damage comparison, two-span beam: minimum reaction at node 1 (lift-off)
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  healthy min [kip] = healthyMin / kip                         -8.765       -8.7649129330714   8.707e-05    9.934e-04 rel<=0.01%    PASS
+  damaged min [kip] = damagedMin / kip                        -10.559       -10.559275480227   2.755e-04    2.609e-03 rel<=0.01%    PASS
+  change of min [kip] = changeMin / kip                        -1.794       -1.7943625471557   3.625e-04    2.020e-02 rel<=0.05%    PASS
+  PASS two-span: non-zero min rows and the findings in kip = SI quantities / factor
+--- PASS
+
+=== testUnitsDisplay / Findings: a reaction change below the last decimal shown in the chosen force unit counts as unchanged ===
+  PASS 2 N is a change in kN but not in kip; 3 N is a change in both
+--- PASS
+
+=== testUnitsDisplay / Sensitivity table and bar chart: coordinates in ft, deflection in in ===
+  PASS table and chart: SI unchanged; US x in ft, vmin and changes in in
+--- PASS
+
+=== testUnitsDisplay / Candidate table and summary of the Stage 3 search: regions in ft, RMSE and absolute noise in in ===
+  Method: noise-based region (95 % likelihood ratio), stated noise 1 % of each reading + 0.0019685 in; 15 readings, 101 structures analysed.
+  Best fit (smallest noise-weighted misfit S): element 7 (x = 19.685-22.9659 ft), loss d = 29.1 % (remaining EI x 0.709), RMSE 0.00716 in, J_N 1.38 %.
+  Region of uncertainty: 13.1234-16.4042 ft, 19.685-22.9659 ft (2 candidate region(s)); loss in the best region 25.0-33.0 %.
+  PASS table and summary: SI unchanged; US regions in ft, RMSE and absolute noise in in
+--- PASS
+
+=== testUnitsDisplay / Inches keep about the resolution of millimetres: deflection tables show one decimal more in US units ===
+  PASS inches: critical v to 4, sensitivity and RMSE to 5 decimals (mm: 3 and 4); M, V, R unchanged
+--- PASS
+
+=== testUnitsDisplay / Fit profile, fit chart and readings chart in US units ===
+  PASS fit profile (x1, x2 in ft), fit chart and readings chart (x in ft, deflections in in); SI unchanged
+--- PASS
+
+=== testUnitsDisplay / Stage 3 inputs: readings and absolute noise typed in in, region sizes in ft, both returned in m ===
+  PASS expected error BridgeFE:invalidInput: Readings must be finite numbers in in (leave a cell empty if it is missing).
+  PASS expected error BridgeFE:invalidInput: Unknown candidate region size '2 m regions'.
+  PASS expected error BridgeFE:invalidInput: Unknown candidate region size '6 ft regions'.
+  PASS expected error BridgeFE:invalidInput: Absolute noise [in] must be 0 or more.
+  PASS readings and absolute noise in in -> m; region sizes 6 ft and 12 ft -> 1.8288 m and 3.6576 m
+--- PASS
+
+=== testUnitsDisplay / Node choices for the region drop-downs: labels in the display length, coordinates in m ===
+  US labels: 'node 7 (x = 24.6063 ft)', 'node 17 (x = 65.6168 ft)'
+  PASS one label per node in m or ft; coordinates always in m
+--- PASS
+
+=== testVehicleAndPositions / Axle coordinates follow the front-axle reference in both directions ===
+  +x: axles at [10 5.8 4.4] m, forces [-80000 -120000 -120000] N
+  -x: axles at [10 14.2 15.6] m
+  PASS axle coordinates and signed forces
+--- PASS
+
+=== testVehicleAndPositions / Position grid runs from first entry to full exit with an exact step ===
+  +x: 257 positions from 0 to 25.6 m, step 0.1 m
+  requested 0.3 m -> 87 positions, actual step 0.297674418605 m (= 25.6/86)
+  -x: from 20 to -5.6 m
+  PASS position grids (+x, -x, single axle)
+--- PASS
+
+=== testVehicleAndPositions / Only axles on the bridge act and an axle on a support goes into the reaction ===
+  axles on bridge: xv=0 [true false false], xv=2 [true false false], xv=25.6 [false false true], xv=15 [true true true]
+
+On-bridge axle policy, spec truck on a 20 m simple span
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  xv = 0: R_A [kN] (front axle on support A)                       80                     80   0.000e+00    0.000e+00 rel<=0.1%     PASS
+  xv = 0: R_B [kN]                                                  0                      0   0.000e+00          n/a abs<=1e-09    PASS
+  xv = 2: R_A [kN] (front axle only)                               72                     72   4.547e-13    6.316e-13 rel<=0.1%     PASS
+  xv = 25.6: R_B [kN] (rear axle on support B)                    120                    120   0.000e+00    0.000e+00 rel<=0.1%     PASS
+  xv = 15: R_A [kN] (all axles on)                              138.8                  138.8   4.633e-12    3.338e-12 rel<=0.1%     PASS
+  xv = 15: R_A + R_B [kN]                             320.00000000001                    320   1.023e-11    3.197e-12 rel<=0.1%     PASS
+--- PASS
+
+=== testVehicleAndPositions / Invalid vehicle and moving-load input is rejected ===
+  PASS expected error BridgeFE:invalidVehicle: axleLoads must be a vector of real, finite, positive magnitudes [N] (positive = downward).
+  PASS expected error BridgeFE:invalidVehicle: axleSpacings must hold 1 real, finite, positive spacing(s) [m] for 2 axle(s).
+  PASS expected error BridgeFE:invalidVehicle: axleSpacings must hold 1 real, finite, positive spacing(s) [m] for 2 axle(s).
+  PASS expected error BridgeFE:invalidVehicle: axleLoads must be a vector of real, finite, positive magnitudes [N] (positive = downward).
+  PASS expected error BridgeFE:invalidInput: direction must be +1 (toward +x) or -1 (toward -x).
+  PASS expected error BridgeFE:invalidInput: step must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: Unknown option 'Stepp'.
+  PASS expected error BridgeFE:invalidInput: Direction must be +1 or -1.
+  PASS expected error BridgeFE:offBeam: stations must lie within the beam [0, 20] m.
+--- PASS
+
+==================== TEST SUMMARY ====================
+Platform : GNU Octave 8.4.0
+Date     : 2026-11-19 05:29:04
+  PASS  testAssembly / Element DOF map is [v_i theta_i v_j theta_j] with node n owning DOFs 2n-1 and 2n
+  PASS  testAssembly / Two equal unit elements assemble to the hand-computed 6x6 matrix
+  PASS  testAssembly / Unequal lengths and EI match K = sum(A_e'*k_e*A_e) with explicit Boolean A_e
+  PASS  testAssembly / Assembled K is symmetric with exactly two rigid-body modes
+  PASS  testAssembly / Nodal load vector puts forces at v DOFs and couples at theta DOFs and sums repeats
+  PASS  testAssembly / Invalid model data are rejected
+  PASS  testBeamStiffness / Exact matrix for EI = 2e9 N*m^2 and Le = 2 m (hand-computed literals)
+  PASS  testBeamStiffness / Unit EI and unit length give the integer coefficient matrix exactly
+  PASS  testBeamStiffness / Spec mesh example Le = 1.5 m with steel E = 200 GPa and I = 0.01 m^4
+  PASS  testBeamStiffness / Element matrix is exactly symmetric for arbitrary EI and Le
+  PASS  testBeamStiffness / Rigid-body modes lie in the null space and ke is positive semi-definite of rank 2
+  PASS  testBeamStiffness / Stiffness scales linearly with EI, as later EI-reduction studies assume
+  PASS  testBeamStiffness / Invalid EI or Le inputs are rejected with BridgeFE:invalidInput
+  PASS  testCantileverTipLoad / Cantilever with a tip load and 10 elements
+  PASS  testContinuousBeam / Two equal spans with a point load at each midspan
+  PASS  testContinuousBeam / Benchmark D two equal spans with uniform load on both spans
+  PASS  testContinuousBeam / Uniform load on one span only gives uplift at the far support
+  PASS  testContinuousBeam / Unequal spans of 10 m and 15 m under uniform load (three-moment equation)
+  PASS  testDrawingGeometry / Pin, roller and fixed symbols have the conventional geometry
+  PASS  testDrawingGeometry / Beam drawing contains every support, load and label
+  PASS  testDrawingGeometry / Vehicle axles on and off the bridge and the deformed shape are drawn distinctly
+  PASS  testDrawingGeometry / Damaged elements are overdrawn in the damage colour with their EI factor
+  PASS  testDrawingGeometry / Axis limits contain every primitive and leave room for labels
+  PASS  testGuiHelpers / Numbers typed in text fields are parsed without evaluating code
+  PASS  testGuiHelpers / App model inputs build exactly the model built directly with the engine (Benchmark D)
+  PASS  testGuiHelpers / Support entries, RCC material and unit warnings are converted correctly
+  PASS  testGuiHelpers / Invalid model inputs give clear errors instead of a model
+  PASS  testGuiHelpers / Vehicle inputs in kN and m build the engine vehicle
+  PASS  testGuiHelpers / The static path used by the Matrices tab reproduces the moving-load position
+  PASS  testGuiHelpers / Diagram data list both limits at every point, sorted along the beam
+  PASS  testGuiHelpers / Table data match the moving-load results they display
+  PASS  testGuiHelpers / Damage-tab inputs and tables match the Stage 2 engine
+  PASS  testGuiHelpers / Table numbers never show a negative zero, and the findings name the determinacy
+  PASS  testGuiHelpers / Theme colours are valid RGB triplets
+  PASS  testIdentificationHelpers / Default sensors and truck positions follow the spec and drop positions with no axle on the beam
+  PASS  testIdentificationHelpers / Synthetic readings are the forward model of the hidden case plus reproducible noise
+  PASS  testIdentificationHelpers / Tab inputs become the documented search options, and readings come back in metres
+  PASS  testIdentificationHelpers / Fit profile, candidate table and summary describe the search result
+  PASS  testIdentificationHelpers / The summary states every limiting flag in plain words
+  PASS  testIdentificationHelpers / The drawing shows sensors, the region of uncertainty, the best fit and the hidden case
+  PASS  testInputTables / Support letters run A to Z, then AA, AB, ...; support labels map to the engine types
+  PASS  testInputTables / SI tables with equal element counts build exactly the model of buildModelFromInputs
+  PASS  testInputTables / Each span gets its own element count
+  PASS  testInputTables / US customary tables convert exactly to the SI engine model
+  PASS  testInputTables / Every invalid table entry gives an error that names its row
+  PASS  testInputTables / Vehicle tables give the engine vehicle in SI
+  PASS  testInputTables / Vehicle presets convert exactly between SI and US customary units
+  PASS  testInputTables / Drawing: bold support letters below the span ends and load texts in the display units
+  PASS  testInputTables / Drawing: close axles share one label and the uniform-load label sits at the left end of its load
+  PASS  testInputTables / Drawing with node numbers leaves out the numbers where a support letter is drawn
+  PASS  testInverseDamage / Sensor deflections equal the static engine and the closed form, vehicle only
+  PASS  testInverseDamage / Noise generator is reproducible on every platform and has the intended size
+  PASS  testInverseDamage / Blind noise-free cases are recovered exactly, including losses between the 5 % steps
+  PASS  testInverseDamage / The undamaged bridge is recognized, and the coarse scan has 241 structures for 20 elements
+  PASS  testInverseDamage / Data from a finer mesh and missing readings still give the true region
+  PASS  testInverseDamage / One noise realization (seed 7): the true E7 stays inside the reported region at 1-10 % noise
+  PASS  testInverseDamage / Symmetric data are reported as ambiguous, and a loss beyond 60 % is flagged
+  PASS  testInverseDamage / Invalid inverse input is rejected
+  PASS  testInverseUncertainty / Chi-square quantiles match the tables without a toolbox
+  PASS  testInverseUncertainty / Candidate regions of a chosen length cover every element once and end on nodes
+  PASS  testInverseUncertainty / With one constant sigma the chi-square misfit is m J^2 / sigma^2 and selects the minimum-RMSE candidate
+  PASS  testInverseUncertainty / Noise per reading comes from the healthy prediction, and S is the weighted misfit
+  PASS  testInverseUncertainty / Noise-free data with a stated noise level: exact best fit, true region inside, no misfit
+  PASS  testInverseUncertainty / Losses between the 1 % grid points with a small stated noise are not mistaken for a misfit
+  PASS  testInverseUncertainty / A noisy case (one realization): the region contains the truth and equals an exhaustive 1 % scan
+  PASS  testInverseUncertainty / A region that reaches the 60 % search limit is flagged even when the best loss is below it
+  PASS  testInverseUncertainty / An RCC baseline gives the spec's caveat
+  PASS  testInverseUncertainty / A wrong support assumption is flagged by the fit check
+  PASS  testInverseUncertainty / Larger candidate regions recover a region-sized loss exactly
+  PASS  testInverseUncertainty / The undamaged bridge with noise is not reported as certainly damaged
+  PASS  testInverseUncertainty / A different confidence level and missing readings change the thresholds as the tables say
+  PASS  testInverseUncertainty / Invalid noise input is rejected
+  PASS  testMaterials / Steel and RCC records hold E, I and EI = E*I
+  PASS  testMaterials / Equal-EI steel and RCC models give identical static results
+  PASS  testMaterials / Equal-EI steel and RCC models give identical moving-load envelopes
+  PASS  testMaterials / A uniform change of EI scales deflections but not forces
+  PASS  testMaterials / Steel and RCC spans redistribute the support moment as the three-moment equation predicts
+  PASS  testMaterials / EI cannot be edited behind a material, but materials can be reassigned
+  PASS  testMaterials / Unit slips trigger a warning but still create the material
+  PASS  testMaterials / Invalid material input is rejected
+  PASS  testMeshSpansAndLoads / Two equal spans give the hand-written coordinates with a node at every support
+  PASS  testMeshSpansAndLoads / Unequal spans with different element counts keep every support on a node
+  PASS  testMeshSpansAndLoads / Invalid span input is rejected
+  PASS  testMeshSpansAndLoads / elementsBetween selects the elements of one span and refuses off-node limits
+  PASS  testMeshSpansAndLoads / Consistent uniform-load vector matches hand-written values
+  PASS  testMeshSpansAndLoads / Consistent load vector equals Gauss integration of w*N over the element
+  PASS  testMeshSpansAndLoads / Uniform loads superpose and assemble into the hand-written global vector
+  PASS  testMeshSpansAndLoads / Assembled uniform load keeps the resultant force and moment on a nonuniform mesh
+  PASS  testMeshSpansAndLoads / Invalid uniform-load input is rejected
+  PASS  testMovingLoadEnvelopes / Single moving load envelopes on a simple span equal the influence-line maxima
+  PASS  testMovingLoadEnvelopes / Two equal axles reach the absolute maximum moment of the resultant rule
+  PASS  testMovingLoadEnvelopes / Step convergence of the maximum moment for the two-axle vehicle
+  PASS  testMovingLoadEnvelopes / Spec 3-axle truck on a 20 m simple span matches the resultant rule
+  PASS  testMovingLoadEnvelopes / Two-span continuous beam: negative moment over the support and uplift
+  PASS  testMovingLoadEnvelopes / Permanent uniform load adds its static response to every envelope
+  PASS  testMovingLoadEnvelopes / Reversed travel direction gives the mirror-image envelopes on a symmetric span
+  PASS  testMovingLoadFastPath / Fast path equals the static engine at 14 positions in both directions
+  PASS  testMovingLoadFastPath / Single-element model with no axle on the bridge returns the permanent response
+  PASS  testMovingPointLoad / Benchmark B over 88 load positions with an 8-element mesh
+  PASS  testMovingPointLoad / Results are continuous as the load crosses a node
+  PASS  testPointLoadsInElements / Two loads inside ONE simply supported element are not moved to the nodes
+  PASS  testPointLoadsInElements / Propped cantilever with a load inside an element (indeterminate)
+  PASS  testPointLoadsInElements / Deflection between nodes is exact for uniform and point loads
+  PASS  testPointLoadsInElements / Mixed loads close element equilibrium and show a jump of P at each interior load
+  PASS  testPointLoadsInElements / A point load on a support goes straight into that reaction
+  PASS  testProppedCantilever / Propped cantilever with a central point load at a node
+  PASS  testProppedCantilever / Benchmark C propped cantilever under uniform load with 16 elements
+  PASS  testProppedCantilever / Benchmark C mesh independence with 1, 2, 4 and 16 elements
+  PASS  testShapeFunctionsAndPointLoads / Shape functions take nodal values and reproduce rigid-body motion
+  PASS  testShapeFunctionsAndPointLoads / Shape functions at r = 1/3 match hand-computed fractions
+  PASS  testShapeFunctionsAndPointLoads / Shape-function slopes at the element ends select the nodal rotations
+  PASS  testShapeFunctionsAndPointLoads / Point-load vector equals the textbook fixed-end actions
+  PASS  testShapeFunctionsAndPointLoads / Point-load vector keeps the resultant force and moment for any position
+  PASS  testShapeFunctionsAndPointLoads / Point loads at nodes are nodal loads and interior loads keep their position
+  PASS  testShapeFunctionsAndPointLoads / Assembled F is the nodal load at a node and the Hermite vector inside an element
+  PASS  testShapeFunctionsAndPointLoads / Invalid shape-function and point-load input is rejected
+  PASS  testSimplySupportedBeam / Analytical references reproduce the values stated in PROJECT_SPEC.md
+  PASS  testSimplySupportedBeam / Benchmark A with 20 elements
+  PASS  testSimplySupportedBeam / Mesh independence with 2, 4, 8, 20 and 40 elements
+  PASS  testSimplySupportedBeam / Nodal deflections and rotations match the analytical elastic curve along the span
+  PASS  testSimplySupportedBeam / A load applied at a support node goes directly into that reaction
+  PASS  testStiffnessDamage / Zero loss reproduces the healthy model and results exactly
+  PASS  testStiffnessDamage / Only the chosen element changes: K_D - K_H = -d * A_j'' k_j A_j
+  PASS  testStiffnessDamage / Simply supported beam: damage changes deflection only (statically determinate)
+  PASS  testStiffnessDamage / Propped cantilever: damage redistributes the reactions (statically indeterminate)
+  PASS  testStiffnessDamage / Two-span beam with span 1 damaged follows the three-moment equation
+  PASS  testStiffnessDamage / Moving-load comparison: determinate beam keeps forces, continuous beam redistributes
+  PASS  testStiffnessDamage / Moving-load fast path equals the static engine on a damaged model
+  PASS  testStiffnessDamage / Sensitivity sweep ranks the midspan elements first for deflection and finds no change in moment
+  PASS  testStiffnessDamage / Invalid damage input is rejected and material reassignment keeps the loss
+  PASS  testSupportsAndStability / Pin and roller restrain v only and fixed restrains v and theta
+  PASS  testSupportsAndStability / Simply supported 4-element beam restrains v at the two end nodes only
+  PASS  testSupportsAndStability / Fixed end plus roller (propped-cantilever layout) restrains v1, theta1 and v5
+  PASS  testSupportsAndStability / Under-restrained models are rejected with BridgeFE:underRestrained
+  PASS  testSupportsAndStability / Stability rule agrees with the numerical rank of Kff for many support layouts
+  PASS  testSupportsAndStability / Duplicate, unknown-type and off-range supports are rejected
+  PASS  testSupportsAndStability / Coordinates map to nodes only where a node exists
+  PASS  testUniformLoadBeams / Simply supported beam under uniform load, 10 elements
+  PASS  testUniformLoadBeams / Fixed-fixed single element has no free DOF and its forces come only from -f_e0
+  PASS  testUniformLoadBeams / Fixed-fixed beam with 16 elements matches the exact moment and deflection
+  PASS  testUniformLoadBeams / Sampled diagrams close element equilibrium at both element ends
+  PASS  testUnitsDisplay / Unit factors equal independent constants, and SI is the default
+  PASS  testUnitsDisplay / quantityDisplay: SI as before, US in kip*ft, kip and in
+  PASS  testUnitsDisplay / Critical-position table: values, x, x_v and axle positions in US units
+  PASS  testUnitsDisplay / Reaction tables: forces in kip, couples in kip*ft, coordinates in ft
+  PASS  testUnitsDisplay / Damage comparison table and findings: extremes and reactions in US units, percentages unchanged
+  PASS  testUnitsDisplay / Findings: a reaction change below the last decimal shown in the chosen force unit counts as unchanged
+  PASS  testUnitsDisplay / Sensitivity table and bar chart: coordinates in ft, deflection in in
+  PASS  testUnitsDisplay / Candidate table and summary of the Stage 3 search: regions in ft, RMSE and absolute noise in in
+  PASS  testUnitsDisplay / Inches keep about the resolution of millimetres: deflection tables show one decimal more in US units
+  PASS  testUnitsDisplay / Fit profile, fit chart and readings chart in US units
+  PASS  testUnitsDisplay / Stage 3 inputs: readings and absolute noise typed in in, region sizes in ft, both returned in m
+  PASS  testUnitsDisplay / Node choices for the region drop-downs: labels in the display length, coordinates in m
+  PASS  testVehicleAndPositions / Axle coordinates follow the front-axle reference in both directions
+  PASS  testVehicleAndPositions / Position grid runs from first entry to full exit with an exact step
+  PASS  testVehicleAndPositions / Only axles on the bridge act and an axle on a support goes into the reaction
+  PASS  testVehicleAndPositions / Invalid vehicle and moving-load input is rejected
+Total: 157 passed, 0 failed, 157 tests
+======================================================

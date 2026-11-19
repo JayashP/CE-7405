@@ -1285,3 +1285,20 @@ These are MATLAB uitable behaviours that the Octave stand-ins cannot show.
 | Cleared cell | not shown; a cleared cell gives NaN or `[]`, and the app reads both as "not a number" (Octave check row and V-025 review) | not seen in MATLAB |
 
 **Status of M9:** verified in Octave (V-025) and in MATLAB R2026b (V-026 parts 1, 2a, 2b): suite 157/157, app check all rows PASS, the app in SI and US identical to Octave, table editing and the refused switch as designed. **Merged into `main`.** The four cosmetic notes of part 2a are handled in M9c.
+
+## V-027 — 2026-11-19 — M9c cosmetic follow-ups in GNU Octave
+
+| Item | Value |
+|---|---|
+| Platform | **GNU Octave 8.4.0**, Ubuntu 24.04.5 cloud container |
+| MATLAB | **NOT RUN.** The user needs to run `checkBridgeConditionApp(true)` and look at the Vehicle and Identification tabs; record as V-028 |
+| Code version | Branch `claude/m9c-polish` from `main` at `e96bd8a`; tests run on `b69ff87` |
+| Changes | The four notes of V-026 part 2a: (1) round slider ticks (1, 2 or 5 x 10^k, 4 to 10 intervals, clamped inside the limits, never -0), so the crossing end is not labelled next to the last tick; (2) current-reaction headers without the sign rule, which moved to the label above ("Support reactions (forces + up, couples + CCW)"); (3) "Vehicle edited: press Apply vehicle" after a preset, an axle edit, a name, step or direction edit, and "Vehicle applied: ..." after Apply vehicle; (4) left panels 400 -> 460 px on every tab. `plotReadings`: shorter second title line. Stand-in slider: `MajorTicks` must lie inside `Limits` |
+| Main suite | **157 passed, 0 failed, 157 tests**. Raw log: `results/verification/2026-11-19_M9c_octave-8.4.0_runAllTests.log` |
+| App check (stand-ins) | **92/92 PASS** (89 + 3: status and slider ticks on a -x crossing; status after a preset and Apply vehicle; round ticks in US units). The callback sweep now makes 40 calls (name, step and direction fields have callbacks). Raw log: `..._M9c_octave-8.4.0_gui_mock_check.log` |
+| Mutation check | 9 M9c faults with `tools/app_mutation_check.py`: **9/9 detected** (7 by a FAIL row; 2 by the check stopping when a removed callback is called). Raw output: `..._M9c_mutation_check_octave-8.4.0.txt` |
+| Independent review | 2 agents (behaviour; layout measured from the user's PNGs). All findings low, all addressed: tick count promised by the check (6-16, not 8-17), -0 first tick, a tick 1e-14 outside Limits on 0.3 % of US crossings, ticks too dense on a restored window, no status after name/step/direction edits, "Vehicle applied" could hide a reported error, reaction table with about 10 px to spare, readings-plot title as wide as the narrower plot. Measured from the screenshots at 460 px: vehicle name 217 of 248 px, five truck positions 229 of 248 px |
+
+**Limits:** the layout numbers are estimates from the user's screenshots; the MATLAB look (slider labels, reaction table without scroll bar, readings-plot title) is **NOT VERIFIED IN MATLAB** yet.
+
+**Status of M9c:** verified in Octave (V-027). MATLAB not run yet (V-028 pending).

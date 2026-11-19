@@ -1,0 +1,30 @@
+M9c app mutation check, GNU Octave 8.4.0 (2026-11-19): tools/app_mutation_check.py, faults 31-39, run against
+runGuiMockCheck (tests/gui/checkBridgeConditionApp.m with the Octave stand-ins) at b69ff87.
+MUTATION 31: M9c: slider keeps the automatic ticks (limit labelled)
+  exit=1 detected=yes
+  via: direction or step edited: the status asks for Apply vehicle; the slider has round ticks (-x crossing, from bel
+MUTATION 32: M9c: slider ticks too coarse
+  exit=1 detected=yes
+  via: direction or step edited: the status asks for Apply vehicle; the slider has round ticks (-x crossing, from bel
+MUTATION 33: M9c: no status after a preset is chosen
+  exit=1 detected=yes
+  via: preset chosen: the status asks for Apply vehicle; after it: "Vehicle applied: HL-93 ..., 3 axle(s), total 320.
+MUTATION 34: M9c: no status after an axle edit
+  exit=1 detected=yes
+  via: + Add axle: 4 axles, the new one 1.2 m behind; - Remove last axle: 3; editing sets the preset to Custom (1 = y
+MUTATION 35: M9c: no status after Apply vehicle
+  exit=1 detected=yes
+  via: preset chosen: the status asks for Apply vehicle; after it: "Vehicle applied: HL-93 ..., 3 axle(s), total 320.
+MUTATION 36: M9c: ticks neither clamped nor -0 removed
+  exit=1 detected=yes
+  via: US: slider ticks are round (1, 2 or 5 x 10^k ft) and the non-round crossing end has no label (1 = yes)
+MUTATION 37: M9c: no status after a direction edit
+  exit=1 detected=yes
+  via: error: feval: first argument must be a string, inline function, or a function handle
+MUTATION 38: M9c: no status after a position-step edit
+  exit=1 detected=yes
+  via: error: feval: first argument must be a string, inline function, or a function handle
+MUTATION 39: M9c: reaction headers keep the sign rule
+  exit=1 detected=yes
+  via: US: reaction table header and position text in kip and ft (1 = yes)
+SUMMARY M9c: 9 / 9 detected
