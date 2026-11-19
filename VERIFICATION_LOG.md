@@ -1271,6 +1271,17 @@ Cosmetic notes from these screenshots (not errors):
 3. Choosing a preset fills the axle table, but the drawing keeps the applied truck until **Apply vehicle**, and the status line does not say so (the model tab does: "Model edited: press Apply model").
 4. The vehicle name and truck-position fields are narrower than their text (the fifth position, 123.031 ft, is out of view; the Octave replay confirms it is there and was used).
 
-**Still to see (part 2b):** table-editing behaviours (text and cleared cells, the Type drop-down, the blank last spacing) and the refused-switch alert.
+### V-026 part 2b (2026-11-19): table editing and the refused switch in MATLAB
 
-**Status of M9:** verified in Octave (V-025); in MATLAB the suite, the app check and the app in SI and US agree (V-026 parts 1 and 2a). Table-editing checks pending (part 2b).
+These are MATLAB uitable behaviours that the Octave stand-ins cannot show.
+
+| Action | Seen in MATLAB | Result |
+|---|---|---|
+| Span length typed as `25` | `disp(app.Controls.SpansTable.Data)` gives `{[25]} {[16]}`: stored as a number (`..._M9_matlab_spans_table_typed_25.png`) | as designed |
+| Span length typed as `abc` | stored as `{[NaN]}`: MATLAB never stores text in a 'numeric' column; the app's reader and `buildModelFromTables` both reject NaN (`..._typed_abc.png`). The text case handled since the review is therefore defensive only | as designed |
+| Type drop-down | Support A set to Fixed and B to Free (one 10 ft span, US): the preview redraws a cantilever with the wall at A, and the summary reads "A Fixed (x = 0 ft), B Free (x = 10 ft)" (`..._app_cantilever_fixed_free_US.png`) | as designed |
+| Axle table | the last axle's spacing cell is blank with no error (`..._app_vehicle_blank_last_spacing_US.png`) | as designed |
+| Unit switch with span 1 = 0 (in US) | alert "Unit switch error: Span 1: length must be a positive number (ft). The units stay US: correct this input, then switch again."; the drop-down stays on US; the status line repeats the message (`..._app_refused_unit_switch.png`) | as designed |
+| Cleared cell | not shown; a cleared cell gives NaN or `[]`, and the app reads both as "not a number" (Octave check row and V-025 review) | not seen in MATLAB |
+
+**Status of M9:** verified in Octave (V-025) and in MATLAB R2026b (V-026 parts 1, 2a, 2b): suite 157/157, app check all rows PASS, the app in SI and US identical to Octave, table editing and the refused switch as designed. **Merged into `main`.** The four cosmetic notes of part 2a are handled in M9c.
