@@ -32,7 +32,11 @@ classdef MockComponent < handle
                     error('Mock:parent', '%s needs a UI container as its parent.', type);
                 end
                 obj.Parent = parent;
-                parent.Children{end+1} = obj;
+                if isa(parent, 'MockTabGroup')
+                    parent.Children{end+1} = obj;           % a tab group lists its tabs in tab order
+                else
+                    parent.Children = [{obj}, parent.Children];   % MATLAB lists other children newest first
+                end
             end
             obj.applyArgs(args);
         end

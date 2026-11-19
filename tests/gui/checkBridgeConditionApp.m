@@ -357,8 +357,8 @@ rows(end+1) = flag('US: supports table x = 0, 12, 27 m in ft', ...
     max(abs([c.SupportsTable.Data{:, 2}] - [0 12 27] / ft)) < 1e-9);
 [sDef, pDef] = identificationDefaults(refModel, refVehicle, 1);
 rows(end+1) = flag('US: default sensors and truck positions written in ft (L/4, L/2, 3L/4 of the 27 m beam)', ...
-    max(abs(parseNumberList(c.SensorField.Value, 'sensors') * ft - sDef)) < 1e-4 ...
-    && max(abs(parseNumberList(c.IdentPositionsField.Value, 'positions') * ft - pDef)) < 1e-4);
+    max(abs(parseNumberList(c.SensorField.Value, 'sensors') * ft ./ sDef - 1)) < 1e-5 ...
+    && max(abs(parseNumberList(c.IdentPositionsField.Value, 'positions') * ft ./ pDef - 1)) < 1e-5);   % 6 digits shown
 rows(end+1) = flag(['US: emptied result tables keep no header in SI units; readings tab ''Readings [in]''; ' ...
     'noise tooltip in in; numeric fields shown with 6 digits'], noSIHeaders(c.CriticalTable) ...
     && noSIHeaders(c.EnvReactionsTable) && noSIHeaders(c.SensitivityTable) && noSIHeaders(c.CandidateTable) ...
@@ -409,7 +409,7 @@ rows(end+1) = flag('US: critical table = criticalTableData(result, US) (kip*ft, 
     && strcmp(c.CriticalTable.ColumnName{4}, 'x [ft]'));
 [envData, envColumns] = reactionEnvelopeTableData(app.MovingLoad, app.Model.nodes.x, US);
 rows(end+1) = flag('US: reaction envelope table = reactionEnvelopeTableData(result, x, US); envelopes drawn in ft', ...
-    isequal(c.EnvReactionsTable.Data, envData) && isequal(c.EnvReactionsTable.ColumnName, envColumns) ...
+    isequal(c.EnvReactionsTable.Data, envData) && isequal(c.EnvReactionsTable.ColumnName(:), envColumns(:)) ...
     && max(abs(c.EnvMomentAxes.XLim - [0 27] / ft)) < 1e-9);
 c.HiddenFromDropDown.Value = nodeLabel(nodeLabelsUS, nodeXUS, 9);
 c.HiddenToDropDown.Value = nodeLabel(nodeLabelsUS, nodeXUS, 10.5);
@@ -473,8 +473,13 @@ rows(end+1) = flag('axle added in US: back in SI the first 3 axles are exactly 8
 c.SpansTable.Data{2, 1} = 15;
 app.applyModelInputs();
 
-% 12b. A preset and a sensor at the beam end typed in US units
+% 12b. Apply model, a preset and a sensor at the beam end in US units
 app.setUnitSystem('US');
+okApply = app.applyModelInputs();          % pressed in US units: the defaults are written in ft
+[sNow, pNow] = identificationDefaults(app.Model, app.Vehicle, 1);   % the vehicle now has 4 axles
+rows(end+1) = flag('US: Apply model writes the default sensors and truck positions in ft', okApply ...
+    && max(abs(parseNumberList(c.SensorField.Value, 'sensors') * ft ./ sNow - 1)) < 1e-5 ...
+    && max(abs(parseNumberList(c.IdentPositionsField.Value, 'positions') * ft ./ pNow - 1)) < 1e-5);
 app.choosePreset(hl.name);
 okHL = app.applyVehicleInputs();
 rows(end+1) = flag('US: preset HL-93 fills 8, 32, 32 kip at 14, 14 ft; applied = vehicleFromTable(..., US)', okHL ...
@@ -540,16 +545,23 @@ for k = 1:numel(comps)
             calls{end+1} = {h.SelectionChangedFcn, struct('NewValue', tab, 'OldValue', tab)}; %#ok<AGROW>
         end
     end
+    if isprop(h, 'Text') && strcmp(h.Text, 'Run identification')
+        % MATLAB lists children newest first, so the sweep may reach this button before
+        % "Generate synthetic readings": give it the readings it needs, whatever the order.
+        if ~app.generateSyntheticReadings()
+            failures{end+1} = sprintf('Generate synthetic readings: %s', app.LastError); %#ok<AGROW>
+        end
+    end
     for j = 1:numel(calls)
         nCalls = nCalls + 1;
+        seen = app.LastError;
         try
             feval(calls{j}{1}, h, calls{j}{2});
         catch err
             failures{end+1} = err.message; %#ok<AGROW>
         end
-        if ~isempty(app.LastError)               % an error the app reported (alert) rather than threw
+        if ~isempty(app.LastError) && ~strcmp(app.LastError, seen)   % reported by the app (alert), not thrown
             failures{end+1} = sprintf('reported by the app: %s', app.LastError); %#ok<AGROW>
-            app.LastError = '';
         end
     end
 end

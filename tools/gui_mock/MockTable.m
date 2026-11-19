@@ -26,11 +26,17 @@ classdef MockTable < MockComponent
             if ~(ischar(v) || iscellstr(v))
                 error('Mock:value', 'uitable ColumnName must be text or a cell array of text.');
             end
+            if iscell(v) && ~isempty(v)
+                v = v(:);                               % MATLAB stores a 1-by-n cell array as n-by-1
+            end
             obj.ColumnName = v;
         end
         function set.RowName(obj, v)
             if ~(ischar(v) || iscellstr(v))
                 error('Mock:value', 'uitable RowName must be text or a cell array of text.');
+            end
+            if iscell(v) && ~isempty(v)
+                v = v(:);                               % as MATLAB stores it
             end
             obj.RowName = v;
         end
