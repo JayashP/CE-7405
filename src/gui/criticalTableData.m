@@ -21,14 +21,14 @@ columns = {'Quantity', 'Extreme', 'Value', sprintf('x [%s]', len.unit), sprintf(
 c = ml.critical;
 data = cell(numel(c), numel(columns));
 for k = 1:numel(c)
-    q = quantityDisplay(c(k).quantity, U);
+    [q, extra] = quantityDisplay(c(k).quantity, U);
     s = q.scale;
     axles = strjoin(arrayfun(@(v) sprintf('%.2f', v / len.toSI), c(k).axleX, 'UniformOutput', false), ', ');
     if isempty(axles)
         axles = '(none)';
     end
-    data(k, :) = {sprintf('%s [%s]', q.label, q.unit), c(k).extreme, formatNumber(c(k).value * s, 3), ...
+    data(k, :) = {sprintf('%s [%s]', q.label, q.unit), c(k).extreme, formatNumber(c(k).value * s, 3 + extra), ...
         formatNumber(c(k).x / len.toSI, 3), formatNumber(c(k).xv / len.toSI, 3), axles, ...
-        formatNumber(c(k).coarseValue * s, 3)};   % no -0.000
+        formatNumber(c(k).coarseValue * s, 3 + extra)};   % no -0.000
 end
 end

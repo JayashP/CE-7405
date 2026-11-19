@@ -42,7 +42,7 @@ for k = 1:numel(c)
     xr = c(k).x / len.toSI;
     data(k, :) = {sprintf('%g-%g', xr(1), xr(2)), elementText, formatNumber(100 * c(k).d, 1), ...
         sprintf('%s-%s', formatNumber(100 * c(k).dRange(1), 1), formatNumber(100 * c(k).dRange(2), 1)), ...
-        formatNumber(1 - c(k).d, 3), formatNumber(perM * c(k).J, 4), m};
+        formatNumber(1 - c(k).d, 3), formatNumber(perM * c(k).J, 4 + U.deflection.extraDecimals), m};
 end
 if result.healthyCompetes || ~result.damageDetected
     if likelihood
@@ -53,7 +53,7 @@ if result.healthyCompetes || ~result.damageDetected
             m = formatNumber(1, 3);
         end
     end
-    row = {'no damage (healthy)', '-', '0', '-', '1.000', formatNumber(perM * result.Jhealthy, 4), m};
+    row = {'no damage (healthy)', '-', '0', '-', '1.000', formatNumber(perM * result.Jhealthy, 4 + U.deflection.extraDecimals), m};
     if result.damageDetected
         data(end+1, :) = row;
     else

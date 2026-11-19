@@ -2,6 +2,27 @@
 
 This file records every notable change to the source, tests and project records. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Dates are ISO 8601.
 
+## [0.10.0-M9] — 2026-11-19 (branch `claude/m9-input-redesign`)
+
+Input redesign requested by the user (DECISIONS.md D-031): tables and drop-downs instead of typed lists, one SI / US unit switch, vehicle presets, MATLAB-style colours.
+
+### Added
+- `src/gui/unitSystem` (SI: m, mm, kN, kN*m, kN/m, GPa, m^4; US: ft, in, kip, kip*ft, kip/ft, ksi, in^4; exact NIST SP 811 factors). The engine stays SI.
+- Part A, results in the chosen units: optional last argument `U` for `quantityDisplay`, `criticalTableData`, `reactionEnvelopeTableData`, `currentReactionTableData`, `damageComparisonTableData`, `damageComparisonSummary`, `sensitivityTableData`, `plotSensitivity`, `fitProfileData`, `plotFitProfile`, `identificationTableData`, `identificationSummary`, `plotReadings`, `readingsFromTable`, `identificationOptions`, `candidateRegionLength`. Without `U` the output is unchanged (isequal). New `nodeChoices`. Optional x-axis label for `plotDiagram`, `plotEnvelope` and `plotEnvelopeComparison`.
+- Part B, table inputs: `supportLetters`, `supportTypeList` (Pin, Roller, Fixed, Free), `buildModelFromTables` (per-span element counts; errors name the row, e.g. "Span 2: ...", "Support C: ..."), `vehicleFromTable` ("Axle 2: ..."), `vehiclePresets` (spec 3-axle truck; AASHTO HL-93 design truck, axle loads only; custom). `bridgeDrawing` options `Units` and `EndLabels`; close axles share one label; the load label sits at the left end of the load. `renderDrawing` draws in the display length unit.
+- App:
+  - Bridge model tab: unit-system drop-down; span table with **+ Add span** / **- Remove last span**; supports table lettered A, B, C, ... with a type drop-down; one material for all spans. Edits are previewed in the drawing; **Apply model** analyses them.
+  - Vehicle tab: preset drop-down with a note, axle table with **+ Add axle** / **- Remove last axle**, total load and length line.
+  - Damage and Identification tabs: regions chosen on node drop-downs; support drop-down for the reaction sensitivity.
+  - Every input and result in the chosen units. A unit switch converts every input (12 significant digits) and restores inputs not edited since the last switch exactly, so SI -> US -> SI gives the same model.
+  - Support letters drawn under the span ends.
+- Tests: `tests/testUnitsDisplay.m`, `tests/testInputTables.m`, `tests/helpers/RecordingAxes.m`; app check rewritten for the new controls (74 rows without the in-app test run); M9a/M9b mutants.
+
+### Changed
+- `appTheme`: MATLAB-style colours (light grey window, white panels, blue #0072BD buttons; lines in blue, orange, purple and dark red; yellow only as a fill). Field names unchanged. Slides keep the sage theme.
+- `drawingPrimitive` has a `fontWeight` field (default 'normal').
+- `mutation_check.py`: four M6–M8 targets moved with the Part A code (same names, new target lines).
+
 ## [0.9.1-M8b] — 2026-11-18 (branch `claude/m8b-polish`)
 
 Cosmetic follow-ups after the M8 MATLAB run (V-022).

@@ -27,6 +27,7 @@ L = U.length.toSI;
 lu = U.length.unit;
 perM = 1 / U.deflection.toSI;                % deflection display units per m (1000 for mm, exactly)
 du = U.deflection.unit;
+rd = 4 + U.deflection.extraDecimals;         % RMSE decimals: 4 in mm, 5 in inches
 likelihood = strcmp(result.method, 'likelihood');
 lines = {};
 flags = cell(0, 1);
@@ -56,7 +57,7 @@ regions = strjoin(arrayfun(@(k) sprintf('%g-%g %s', result.uncertaintyRegions(k,
 if result.damageDetected
     lines{end+1, 1} = sprintf('Best fit (%s): %s (x = %g-%g %s), loss d = %s %% (remaining EI x %s), RMSE %s %s, J_N %s %%.', ...
         ranking, elementText(b.elements), b.x(1) / L, b.x(2) / L, lu, formatNumber(100 * b.d, 1), formatNumber(1 - b.d, 3), ...
-        formatNumber(perM * b.J, 4), du, formatNumber(100 * b.JN, 2));
+        formatNumber(perM * b.J, rd), du, formatNumber(100 * b.JN, 2));
     lines{end+1, 1} = sprintf('Region of uncertainty: %s (%d candidate region(s)); loss in the best region %s-%s %%.', ...
         regions, numel(result.competing), formatNumber(100 * result.dRange(1), 1), formatNumber(100 * result.dRange(2), 1));
     mr = result.minRMSE;
@@ -68,10 +69,10 @@ if result.damageDetected
                 formatNumber(100 * mr.d, 1));
         end
         lines{end+1, 1} = sprintf(['Minimum-RMSE candidate (spec section 7 ranking): %s, RMSE %s %s. It differs because ' ...
-            'the noise-weighted fit gives small readings their due weight.'], what, formatNumber(perM * mr.J, 4), du);
+            'the noise-weighted fit gives small readings their due weight.'], what, formatNumber(perM * mr.J, rd), du);
     end
 else
-    lines{end+1, 1} = sprintf('Best fit: NO DAMAGE (the healthy model fits best), RMSE %s %s.', formatNumber(perM * b.J, 4), du);
+    lines{end+1, 1} = sprintf('Best fit: NO DAMAGE (the healthy model fits best), RMSE %s %s.', formatNumber(perM * b.J, rd), du);
     if ~isempty(result.competing)
         dMax = max(arrayfun(@(c) c.dRange(2), result.competing));
         lines{end+1, 1} = sprintf('Damage cannot be ruled out in: %s (%d candidate region(s), loss up to %s %%).', ...

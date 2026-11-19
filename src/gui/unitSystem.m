@@ -9,7 +9,7 @@ function U = unitSystem(name)
 %   U fields:
 %     name    'SI' or 'US'
 %     label   text for the unit-system drop-down
-%     and one struct (unit text, toSI factor) per kind of quantity:
+%     and one struct (unit text, toSI factor, extraDecimals) per kind of quantity:
 %       kind          SI              US customary
 %       length        m               ft      (0.3048 m, exact)
 %       deflection    mm              in      (0.0254 m, exact)
@@ -18,6 +18,9 @@ function U = unitSystem(name)
 %       distributed   kN/m            kip/ft
 %       modulus       GPa             ksi     (kip/in^2 = 6894757.293 Pa)
 %       inertia       m^4             in^4
+%   extraDecimals is the number of decimals a table shows beyond the SI
+%   count, so a value keeps about the same resolution: 1 for inches
+%   (1 in = 25.4 mm), 0 otherwise.
 %   Factors follow NIST SP 811 (international foot and inch, avoirdupois
 %   pound-force with standard gravity 9.80665 m/s^2).
 %
@@ -52,7 +55,7 @@ switch upper(name)
         U.name = 'US';
         U.label = 'US customary (ft, kip, ksi)';
         U.length = unit('ft', ft);
-        U.deflection = unit('in', inch);
+        U.deflection = unit('in', inch, 1);         % one decimal more than mm
         U.force = unit('kip', kip);
         U.moment = unit('kip*ft', kip * ft);
         U.distributed = unit('kip/ft', kip / ft);
@@ -63,6 +66,9 @@ switch upper(name)
 end
 end
 
-function u = unit(text, toSI)
-u = struct('unit', text, 'toSI', toSI);
+function u = unit(text, toSI, extraDecimals)
+if nargin < 3
+    extraDecimals = 0;
+end
+u = struct('unit', text, 'toSI', toSI, 'extraDecimals', extraDecimals);
 end

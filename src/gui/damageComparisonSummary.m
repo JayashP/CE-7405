@@ -39,13 +39,13 @@ if isempty(i) || ~isfinite(largest) || round(100 * largest) == 0
     lines{end+1, 1} = 'Largest change of an extreme: none (to the decimals shown).';
 else
     c = cmp.critical(i);
-    q = quantityDisplay(c.quantity, U);
+    [q, extra] = quantityDisplay(c.quantity, U);
     trend = 'smaller magnitude';
     if abs(c.damaged) > abs(c.healthy)
         trend = 'larger magnitude';
     end
     lines{end+1, 1} = sprintf('Largest change of an extreme: %s %s, %s -> %s %s (%s %%, %s).', q.label, c.extreme, ...
-        formatNumber(c.healthy * q.scale, 3), formatNumber(c.damaged * q.scale, 3), q.unit, ...
+        formatNumber(c.healthy * q.scale, 3 + extra), formatNumber(c.damaged * q.scale, 3 + extra), q.unit, ...
         formatNumber(c.pctChange, 2, true), trend);
 end
 

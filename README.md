@@ -6,7 +6,7 @@ This is a MATLAB direct-stiffness solver for a **2D equivalent Euler–Bernoulli
 - **Deadline:** 24 Nov 2026.
 - **Authoritative requirements:** `PROJECT_SPEC.md`.
 
-## Current status (2026-11-10, milestone M7b)
+## Current status (2026-11-19, milestone M9)
 
 | Capability | State |
 |---|---|
@@ -20,9 +20,10 @@ This is a MATLAB direct-stiffness solver for a **2D equivalent Euler–Bernoulli
 | Multi-axle vehicles, quasi-static moving-load stepping (both directions), M/V/v and reaction envelopes, critical vehicle positions with step refinement | Implemented (M4); tested in GNU Octave 8.4.0 and MATLAB (74/74; V-008) |
 | Moving-load benchmarks (two-axle absolute maximum moment, spec 3-axle truck 1349.1 kN·m, two-span negative moment and uplift) | **PASS** in Octave (error ≤ about 1e‑5 %, target 0.5 %) and in MATLAB (V-008) |
 | Steel (E_s·I_s) and RCC (E_c·I_eff, user-supplied, constant) material input, per span; equal-EI steel/RCC equivalence | Implemented (M5); tested in GNU Octave 8.4.0 and MATLAB (82/82; V-010) |
-| Sage-green MATLAB app `BridgeConditionApp` (code-built): model, vehicle and moving-load view, envelopes, matrices, verification | Implemented (M6). MATLAB: 95/95 tests, scripted app check 27/27, all 5 tabs used (V-012). Octave: same results against stand-in components (V-011) |
+| MATLAB app `BridgeConditionApp` (code-built; sage green until M8, MATLAB-style colours since M9): model, vehicle and moving-load view, envelopes, matrices, verification | Implemented (M6). MATLAB: 95/95 tests, scripted app check 27/27, all 5 tabs used (V-012). Octave: same results against stand-in components (V-011) |
 | Stage 2: prescribed EI loss EI_D = (1 − d)EI per element, healthy vs damaged moving-load comparison, sensitivity sweep over locations | Engine implemented (M7); 104/104 tests in GNU Octave and MATLAB (V-014). App tab "Damage (Stage 2)" (M7b): 106/106 and 33/33 in MATLAB (V-016). Display revisions M7c (sub-tabs, findings text, no −0.000): 107/107 and 33/33 in Octave (V-017); MATLAB not run yet |
 | Stage 3: single-region inverse search from sensor deflections (241-structure scan + 1 % refinement, RMSE, competing candidates, region of uncertainty) | Engine implemented and revised after an independent review (D-028, D-029): exact on noise-free synthetic data; with a stated noise level, a likelihood-ratio region of uncertainty, a fit check and selectable candidate region size. Octave results and the 20-seed coverage study in V-019; MATLAB 129/129 tests and app check (V-020). App tab "Identification (Stage 3)" (M8): verified in Octave (V-021) and MATLAB (V-022: 135/135 tests, app check all PASS). Synthetic data only, not field validation |
+| Input redesign (M9, D-031): span, support and axle tables with + / - buttons, support letters A, B, C with type drop-downs, vehicle presets (spec truck, AASHTO HL-93 axles), node drop-downs for regions, one SI / US customary unit switch for every input and result, MATLAB-style colours | Implemented. GNU Octave: see VERIFICATION_LOG V-025. MATLAB: **not run yet** |
 | Stage 4 (repair categories) | Not implemented |
 
 See `VERIFICATION_LOG.md` for the actual numbers and `DEVELOPMENT_PLAN.md` for what comes next.
@@ -33,15 +34,17 @@ From the repository root:
 
 ```matlab
 addProjectPaths;
-app = BridgeConditionApp;            % opens the sage-green app window
+app = BridgeConditionApp;            % opens the app window (MATLAB-style colours)
 checkBridgeConditionApp(true)        % optional: scripted check of the app against the engine
 ```
 
 The app has no calculations of its own: every number comes from the tested functions in `src/` (DECISIONS.md D-023).
 
-Tabs: Bridge model · Vehicle & moving load · Envelopes · Damage (Stage 2) · Identification (Stage 3) · Matrices · Verification. On the Damage tab, enter a region on node coordinates and a loss d in %, press **Apply damage**, then **Compare healthy vs damaged** or **Run sensitivity** (DECISIONS.md D-026). d is a loss of model flexural rigidity, not a measure of real damage.
+Choose the unit system first (top of the Bridge model tab): **SI** (m, kN, GPa, mm) or **US customary** (ft, kip, ksi, in). Every input and result follows it; the engine always works in SI. Enter the spans in the span table (**+ Add span** adds a row), pick a type for each support A, B, C, ... (Pin, Roller, Fixed, Free), then press **Apply model**. On the Vehicle tab, pick a preset or edit the axle table, then press **Apply vehicle**.
 
-On the Identification tab, check the sensors and truck positions, press **Generate synthetic readings** (a hidden test case) or **New empty table** (type measured deflections in mm), state the reading noise and press **Run identification** (DECISIONS.md D-030). It reports where effective stiffness may have changed, with a region of uncertainty; on synthetic readings this checks the algorithm, not a real bridge.
+Tabs: Bridge model · Vehicle & moving load · Envelopes · Damage (Stage 2) · Identification (Stage 3) · Matrices · Verification. On the Damage tab, choose a region by its first and last node and a loss d in %, press **Apply damage**, then **Compare healthy vs damaged** or **Run sensitivity** (DECISIONS.md D-026). d is a loss of model flexural rigidity, not a measure of real damage.
+
+On the Identification tab, check the sensors and truck positions, press **Generate synthetic readings** (a hidden test case) or **New empty table** (type measured deflections in mm or in), state the reading noise and press **Run identification** (DECISIONS.md D-030). It reports where effective stiffness may have changed, with a region of uncertainty; on synthetic readings this checks the algorithm, not a real bridge.
 
 ## Run the tests
 

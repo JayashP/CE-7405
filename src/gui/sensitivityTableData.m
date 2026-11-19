@@ -13,7 +13,7 @@ function [data, columns] = sensitivityTableData(s, model, U)
 if nargin < 3 || isempty(U)
     U = unitSystem('SI');
 end
-q = quantityDisplay(s.quantity, U);
+[q, extra] = quantityDisplay(s.quantity, U);
 columns = {'Rank', 'Elements', sprintf('x [%s]', U.length.unit), sprintf('%s [%s]', s.quantity, q.unit), 'Change', ...
     'Change [%]'};
 x = model.nodes.x / U.length.toSI;
@@ -31,6 +31,7 @@ for k = 1:n
         elementText = sprintf('%d', els);
     end
     data(k, :) = {sprintf('%d', k), elementText, sprintf('%g-%g', x(min(els)), x(max(els) + 1)), ...
-        formatNumber(s.values(g) * q.scale, 4), formatNumber(s.change(g) * q.scale, 4, true), pct};
+        formatNumber(s.values(g) * q.scale, 4 + extra), ...
+        formatNumber(s.change(g) * q.scale, 4 + extra, true), pct};
 end
 end

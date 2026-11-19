@@ -24,9 +24,10 @@ columns = {'Quantity', 'Healthy', 'Damaged', 'Change', 'Change [%]'};
 data = cell(0, 5);
 for k = 1:numel(cmp.critical)
     c = cmp.critical(k);
-    q = quantityDisplay(c.quantity, U);
-    data(end+1, :) = {sprintf('%s %s [%s]', q.label, c.extreme, q.unit), formatNumber(c.healthy * q.scale, 3), ...
-        formatNumber(c.damaged * q.scale, 3), formatNumber(c.change * q.scale, 3, true), percentText(c.pctChange)}; %#ok<AGROW>
+    [q, extra] = quantityDisplay(c.quantity, U);
+    data(end+1, :) = {sprintf('%s %s [%s]', q.label, c.extreme, q.unit), formatNumber(c.healthy * q.scale, 3 + extra), ...
+        formatNumber(c.damaged * q.scale, 3 + extra), formatNumber(c.change * q.scale, 3 + extra, true), ...
+        percentText(c.pctChange)}; %#ok<AGROW>
 end
 for k = 1:numel(cmp.reactions)
     r = cmp.reactions(k);
