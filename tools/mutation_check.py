@@ -102,6 +102,10 @@ mutations = [
   ('M8: -x travel positions not mirrored', 'src/gui/identificationDefaults.m', '    positions = x(end) - offset;', '    positions = x(1) + offset;'),
   ('M8: region bands drawn over the beam', 'src/visualization/bridgeDrawing.m', 'prims = [band, prims];', 'prims = [prims, band];'),
   ('M8: readings mm converted with 1/100', 'src/gui/readingsFromTable.m', 'uObs = double(data) / perM;', 'uObs = double(data) / (perM / 10);'),
+  # M9c (labels clipped to the axes after the user's zoom screenshot; tests/testGuiHelpers.m)
+  ('M9c: drawing labels not clipped to the axes', 'src/visualization/renderDrawing.m', "'Interpreter', 'none', ...\n                'Clipping', 'on');", "'Interpreter', 'none');"),
+  ('M9c: diagram peak labels not clipped to the axes', 'src/visualization/plotDiagram.m', "    'Interpreter', 'none', 'Clipping', 'on');", "    'Interpreter', 'none');"),
+  ('M9c: peak labels face outwards', 'src/visualization/plotDiagram.m', 'if x <= middle', 'if x > middle'),
   # M9a (results in the chosen display units)
   ('M9a: kip taken as 1000 lbf with g = 9.81 m/s^2', 'src/gui/unitSystem.m', 'kip = 4448.2216152605;', 'kip = 4448.2216152605 * 9.81 / 9.80665;'),
   ('M9a: US moment shown with the force factor (kip)', 'src/gui/quantityDisplay.m', '        u = U.moment;\n', '        u = U.force;\n'),

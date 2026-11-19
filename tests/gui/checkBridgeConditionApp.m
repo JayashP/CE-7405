@@ -95,6 +95,8 @@ rows(end+1) = flag('reaction table shows 3 supports and R_B of the engine', size
     && strcmp(c.ReactionsTable.Data{2, 4}, sprintf('%.3f', ref.R(2*B - 1) / 1e3)));
 rows(end+1) = flag('beam, M, V and v axes are drawn', numel(c.BeamAxes.Children) > 20 && numel(c.MomentAxes.Children) >= 3 ...
     && numel(c.ShearAxes.Children) >= 3 && numel(c.DeflectionAxes.Children) >= 3);
+rows(end+1) = flag('labels of the model, beam and M drawings are clipped to the axes (none left outside after a zoom)', ...
+    textsClipped(c.ModelAxes) && textsClipped(c.BeamAxes) && textsClipped(c.MomentAxes));
 app.stepVehicle(1);
 rows(end+1) = compareToReference('Forward moves x_v by one step [m]', app.Position - 16.4, app.Step, 1e-9);
 
@@ -608,6 +610,32 @@ if isempty(lg)
 else
     s = lg.String;
 end
+end
+
+function ok = textsClipped(ax)
+% True when AX has text and every text object on it is clipped to the axes (MATLAB Text objects, whose
+% Clipping may read back as an on/off enumeration, or the Octave stand-ins, which record the call).
+ok = true;
+n = 0;
+kids = ax.Children;
+for k = 1:numel(kids)
+    if iscell(kids)
+        h = kids{k};
+    else
+        h = kids(k);
+    end
+    if isa(h, 'MockGraphic')
+        if strcmp(h.Type, 'text')
+            n = n + 1;
+            i = find(cellfun(@(v) ischar(v) && strcmp(v, 'Clipping'), h.Args), 1);
+            ok = ok && ~isempty(i) && strcmp(h.Args{i + 1}, 'on');
+        end
+    elseif isprop(h, 'Type') && strcmp(h.Type, 'text')
+        n = n + 1;
+        ok = ok && strcmp(char(h.Clipping), 'on');
+    end
+end
+ok = ok && n > 0;
 end
 
 function ok = roundSliderTicks(slider)

@@ -4,7 +4,7 @@ This file records every notable change to the source, tests and project records.
 
 ## [0.10.1-M9c] — 2026-11-19 (branch `claude/m9c-polish`)
 
-Cosmetic follow-ups from the user's MATLAB screenshots of M9 (VERIFICATION_LOG V-026 part 2a), revised after an independent review. No change to any result; the only `src/` change is a plot title.
+Cosmetic follow-ups from the user's MATLAB screenshots of M9 (VERIFICATION_LOG V-026 part 2a), revised after an independent review. No change to any result; the `src/` changes are display only (plot title, label clipping and placement).
 
 ### Changed
 - Position slider: round tick values (1, 2 or 5 x 10^k, 4 to 10 intervals, so labels stay apart on a restored window too). MATLAB's automatic ticks also labelled the non-round end of the crossing, next to the last round tick ("120126.4" in US units). Ticks are clamped inside the limits and never -0.
@@ -12,8 +12,9 @@ Cosmetic follow-ups from the user's MATLAB screenshots of M9 (VERIFICATION_LOG V
 - Current-reaction table: headers "Force [kip]" and "Couple [kip*ft]", with the sign rule in the label above ("Support reactions (forces + up, couples + CCW)"), so the table fits without a horizontal scroll bar. The helper `currentReactionTableData` is unchanged.
 - Choosing a vehicle preset, editing the axle table, the vehicle name, the position step or the travel direction sets the status "Vehicle edited: press "Apply vehicle" to use it (the drawing shows the applied vehicle)."; **Apply vehicle** reports "Vehicle applied: <name>, <n> axle(s), total <load>" unless an error was reported while placing the vehicle.
 - `plotReadings`: second title line "markers: readings, solid: fit, dotted: healthy" (shorter, for the narrower readings plot).
+- Labels clipped to the axes (user's MATLAB screenshot after a zoom: node, element and axle labels showed outside the drawing): `renderDrawing` and `plotDiagram` draw text with `'Clipping', 'on'`, so a label whose point leaves the zoomed view is hidden with it. Diagram peak labels sit on the side of their point that faces the inside of the plot. Test: `testGuiHelpers` (66 drawing labels, peak-label sides); `RecordingAxes` records `text` calls. App check: 93 rows.
 - GUI stand-in slider: `MajorTicks` must be increasing and inside `Limits`.
-- App check: 92 rows (round slider ticks in US units and on a -x crossing; status after a preset, an axle edit, a direction or step edit and Apply vehicle; reaction headers and label). `tools/app_mutation_check.py`: 9 M9c faults.
+- App check: 93 rows (round slider ticks in US units and on a -x crossing; status after a preset, an axle edit, a direction or step edit and Apply vehicle; reaction headers and label; labels clipped). `tools/app_mutation_check.py`: 10 M9c faults; `tools/mutation_check.py`: 3 M9c faults.
 
 ## [0.10.0-M9] — 2026-11-19 (branch `claude/m9-input-redesign`)
 

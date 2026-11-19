@@ -219,6 +219,30 @@ reac = reactionEnvelopeTableData(runMovingLoad(simple, truck, 'Step', 0.5), simp
 assert(~any(strcmp([crit(:); reac(:)], '-0.000')), 'Envelopes tables: round-off is 0.000, never -0.000');
 fprintf('  PASS formatNumber (no -0.000, also in the Envelopes tables); findings: simple span determinate, propped degree 1, fixed-fixed degree 2\n');
 
+%% Drawing and diagram labels are clipped to the axes, and peak labels face the inside of the plot
+% MATLAB draws text outside the axes unless Clipping is on, so after a zoom the labels of the hidden part
+% were left beside the axes (user's MATLAB screenshot, 2026-11-19).
+opt = @(t, name) t.options{find(strcmp(t.options, name), 1) + 1};
+ax = RecordingAxes();
+renderDrawing(ax, bridgeDrawing(buildModelFromInputs(in), struct('ShowNumbers', true)));
+objs = recorded(ax).Objects;
+texts = objs(strcmp({objs.kind}, 'text'));
+clipped = arrayfun(@(t) any(strcmp(t.options, 'Clipping')) && strcmp(opt(t, 'Clipping'), 'on'), texts);
+assert(numel(texts) > 20 && all(clipped), 'every drawing label is clipped to the axes (%d of %d)', ...
+    nnz(clipped), numel(texts));
+ax = RecordingAxes();
+plotDiagram(ax, [0; 5; 10], [0; 1; 4], [0 0 1], 'v [mm]', 'first diagram, cleared by the next call');
+plotDiagram(ax, [0; 5; 10], [-3; 0; 2], [0 0 1], 'M [kN*m]', 'minimum at the left end, maximum at the right end');
+objs = recorded(ax).Objects;
+labels = objs(strcmp({objs.kind}, 'text'));
+assert(numel(labels) == 2, 'plotDiagram clears the axes and labels both extremes of the last diagram');
+assert(strcmp(opt(labels(1), 'String'), '2 ') && strcmp(opt(labels(1), 'HorizontalAlignment'), 'right') ...
+    && strcmp(opt(labels(1), 'VerticalAlignment'), 'bottom'), 'a peak in the right half is labelled on its left');
+assert(strcmp(opt(labels(2), 'String'), ' -3') && strcmp(opt(labels(2), 'HorizontalAlignment'), 'left') ...
+    && strcmp(opt(labels(2), 'VerticalAlignment'), 'top'), 'a peak in the left half is labelled on its right');
+assert(all(arrayfun(@(t) strcmp(opt(t, 'Clipping'), 'on'), labels)), 'diagram peak labels are clipped to the axes');
+fprintf('  PASS %d drawing labels and the diagram peak labels are clipped to the axes; peak labels face inwards\n', numel(texts));
+
 %% Theme colours are valid RGB triplets
 th = appTheme();
 names = fieldnames(th);

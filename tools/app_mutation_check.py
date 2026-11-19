@@ -3,7 +3,7 @@
 Usage: python3 -I tools/app_mutation_check.py <repo_root> <empty_scratch_dir> [i,j,...]
 Copies the repository once per fault (without .git and results), injects one fault, runs
 tools/gui_mock/runGuiMockCheck in GNU Octave (3 at a time) and prints one JSON line per fault
-with the first FAIL row or error. Never modifies <repo_root>. M9: faults 0-30, M9c: 31-39; see
+with the first FAIL row or error. Never modifies <repo_root>. M9: faults 0-30, M9c: 31-40; see
 results/verification/2026-11-19_M9_mutation_check_octave-8.4.0.txt.
 """
 import shutil, subprocess, sys, pathlib, json
@@ -52,6 +52,7 @@ M = [
  ('M9c: ticks neither clamped nor -0 removed', A, "            ticks = min(max(ticks, limits(1)), limits(2)) + 0;   % no tick 1e-14 outside; -0 becomes 0\n", ""),
  ('M9c: no status after a direction edit', A, "'Value', app.DirectionItems{1}, 'ValueChangedFcn', edited));", "'Value', app.DirectionItems{1}));"),
  ('M9c: no status after a position-step edit', A, "'ValueDisplayFormat', '%.6g', 'ValueChangedFcn', edited));", "'ValueDisplayFormat', '%.6g'));"),
+ ('M9c: drawing labels not clipped (app check)', 'src/visualization/renderDrawing.m', "'Interpreter', 'none', ...\n                'Clipping', 'on');", "'Interpreter', 'none');"),
  ('M9c: reaction headers keep the sign rule', A, "c.ReactionsTable.ColumnName = regexprep(columns, ' \\(\\+ (up|CCW)\\)$', '');", "c.ReactionsTable.ColumnName = columns;"),
 ]
 src = (repo / A).read_text()

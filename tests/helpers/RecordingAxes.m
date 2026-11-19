@@ -1,23 +1,24 @@
 classdef RecordingAxes < handle
     %RECORDINGAXES Stand-in axes that record what a plot function draws (tests only, no window).
     %   AX = RECORDINGAXES() is passed in place of real axes to plot
-    %   functions such as PLOTSENSITIVITY, PLOTFITPROFILE and PLOTREADINGS.
-    %   Their calls cla(AX), plot(AX, ...), patch(AX, ...), xlabel(AX, ...),
-    %   legend(AX, ...), ... dispatch to the methods of this class (MATLAB and
+    %   functions such as PLOTSENSITIVITY, PLOTFITPROFILE, PLOTREADINGS,
+    %   PLOTDIAGRAM and RENDERDRAWING. Their calls cla(AX), plot(AX, ...),
+    %   patch(AX, ...), text(AX, ...), xlabel(AX, ...), legend(AX, ...), ...
+    %   dispatch to the methods of this class (MATLAB and
     %   GNU Octave), which store what would be drawn instead of rendering it.
     %   GNU Octave cannot create real axes without a display, so this lets
     %   the test suite compare the drawn numbers and texts on any machine.
     %   S = RECORDED(AX) returns the record as a struct (two drawings can be
     %   compared with ISEQUAL):
-    %     Objects        struct array, one element per PLOT or PATCH call:
-    %                    kind ('line' or 'patch'), x, y (as passed) and
-    %                    options (name-value cell; a patch colour is stored
-    %                    as 'FaceColor')
+    %     Objects        struct array, one element per PLOT, PATCH or TEXT
+    %                    call: kind ('line', 'patch' or 'text'), x, y (as
+    %                    passed) and options (name-value cell; a patch colour
+    %                    is stored as 'FaceColor', a text string as 'String')
     %     XLabel, YLabel, Title, XLim, YLim   as passed
     %     Legend         cell of legend labels; LegendHandles the handles
     %                    passed with them (indices into Objects)
-    %   CLA empties Objects, like CLA on real axes; HOLD and GRID are
-    %   accepted and ignored. It checks only what the plot function passes,
+    %   CLA empties Objects, like CLA on real axes; HOLD, GRID and AXIS are
+    %   accepted and ignored; YTick is a plain property. It checks only what the plot function passes,
     %   not how MATLAB or Octave would render it.
     %
     %   See also PLOTSENSITIVITY, PLOTFITPROFILE, PLOTREADINGS.
@@ -25,6 +26,7 @@ classdef RecordingAxes < handle
     properties
         Record = struct('Objects', {struct('kind', {}, 'x', {}, 'y', {}, 'options', {})}, 'XLabel', '', ...
             'YLabel', '', 'Title', '', 'XLim', [], 'YLim', [], 'Legend', {{}}, 'LegendHandles', [])
+        YTick = []
     end
 
     methods
@@ -38,6 +40,13 @@ classdef RecordingAxes < handle
 
         function h = patch(ax, x, y, color, varargin)
             h = addObject(ax, 'patch', x, y, [{'FaceColor', color}, varargin]);
+        end
+
+        function h = text(ax, x, y, str, varargin)
+            h = addObject(ax, 'text', x, y, [{'String', str}, varargin]);
+        end
+
+        function axis(ax, varargin) %#ok<INUSD>
         end
 
         function cla(ax)

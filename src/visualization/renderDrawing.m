@@ -39,8 +39,11 @@ for k = 1:numel(prims)
             if isfield(p, 'fontWeight')
                 weight = p.fontWeight;
             end
+            % Clipping 'on': MATLAB draws text outside the axes by default, so labels outside a zoomed view
+            % would show beside the axes (the limits below keep every label inside the unzoomed view).
             text(ax, p.x, p.y, p.text, 'Color', p.color, 'FontSize', p.fontSize, 'FontWeight', weight, ...
-                'HorizontalAlignment', p.hAlign, 'VerticalAlignment', p.vAlign, 'Interpreter', 'none');
+                'HorizontalAlignment', p.hAlign, 'VerticalAlignment', p.vAlign, 'Interpreter', 'none', ...
+                'Clipping', 'on');
         otherwise
             error('BridgeFE:invalidInput', 'Unknown primitive kind ''%s''.', p.kind);
     end
