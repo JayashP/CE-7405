@@ -3,7 +3,7 @@
 Usage: python3 -I tools/app_mutation_check.py <repo_root> <empty_scratch_dir> [i,j,...]
 Copies the repository once per fault (without .git and results), injects one fault, runs
 tools/gui_mock/runGuiMockCheck in GNU Octave (3 at a time) and prints one JSON line per fault
-with the first FAIL row or error. Never modifies <repo_root>. M9: 31 faults, see
+with the first FAIL row or error. Never modifies <repo_root>. M9: faults 0-30, M9c: 31-35; see
 results/verification/2026-11-19_M9_mutation_check_octave-8.4.0.txt.
 """
 import shutil, subprocess, sys, pathlib, json
@@ -43,6 +43,12 @@ M = [
  ('fix: E/I fields keep the 4-digit display', A, "'Value', 200, 'Limits', [0 Inf], 'LowerLimitInclusive', 'off', 'ValueDisplayFormat', '%.6g'));", "'Value', 200, 'Limits', [0 Inf], 'LowerLimitInclusive', 'off'));"),
  ('sweep: Back button throws', A, "'ButtonPushedFcn', @(~, ~) app.stepVehicle(-1));", "'ButtonPushedFcn', @(~, ~) app.stepVehicle(-1, 2));"),
  ('sweep: Apply model reports an error (span 1 = -1 before the sweep)', 'tests/gui/checkBridgeConditionApp.m', "comps = collectComponents(app.UIFigure);", "c.SpansTable.Data{1, 1} = -1;\ncomps = collectComponents(app.UIFigure);"),
+ # M9c (cosmetic follow-ups from the MATLAB screenshots, V-026 part 2a)
+ ('M9c: slider keeps the automatic ticks (limit labelled)', A, "            s.MajorTicks = app.sliderTicks(s.Limits);   % round values; the crossing end is not labelled\n", ""),
+ ('M9c: slider ticks too coarse', A, "raw = (limits(2) - limits(1)) / 15;", "raw = (limits(2) - limits(1)) / 4;"),
+ ('M9c: no status after a preset is chosen', A, "            c.VehicleNameField.Value = p.name;\n            app.setStatus(app.vehicleEditedText());\n", "            c.VehicleNameField.Value = p.name;\n"),
+ ('M9c: no status after an axle edit', A, "            app.updateAxleTotal();\n            app.setStatus(app.vehicleEditedText());\n", "            app.updateAxleTotal();\n"),
+ ('M9c: no status after Apply vehicle', A, "            if ok\n                app.setStatus(sprintf('Vehicle applied:", "            if false\n                app.setStatus(sprintf('Vehicle applied:"),
 ]
 src = (repo / A).read_text()
 for name, f, old, new in M:

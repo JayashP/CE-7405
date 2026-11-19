@@ -307,7 +307,11 @@ app.generateSyntheticReadings();
 % 11. Vehicle presets and the axle table
 hl = presets(2);
 app.choosePreset(hl.name);
+statusPreset = c.StatusLabel.Text;
 ok = app.applyVehicleInputs();
+rows(end+1) = flag('preset chosen: the status asks for Apply vehicle; after it: "Vehicle applied: HL-93 ..., 3 axle(s), total 320.272 kN."', ...
+    strncmp(statusPreset, 'Vehicle edited: press "Apply vehicle"', 37) ...
+    && strcmp(c.StatusLabel.Text, sprintf('Vehicle applied: %s, 3 axle(s), total %g kN.', hl.name, sum(hl.loads))));
 refHL = vehicleFromTable([8 32 32], [14 14], hl.name, US);           % AASHTO HL-93 axles typed in kip and ft
 rows(end+1) = flag('preset HL-93: 3 axles in the table, its name, and the note (axle loads only, no lane load)', ok ...
     && size(c.AxlesTable.Data, 1) == 3 && strcmp(c.VehicleNameField.Value, hl.name) ...
@@ -323,7 +327,7 @@ lastSpacing = c.AxlesTable.Data{3, 2};
 app.removeAxle();
 rows(end+1) = flag('+ Add axle: 4 axles, the new one 1.2 m behind; - Remove last axle: 3; editing sets the preset to Custom', ...
     nAdded == 4 && abs(lastSpacing - 1.2) < 1e-12 && size(c.AxlesTable.Data, 1) == 3 ...
-    && strcmp(c.PresetDropDown.Value, 'Custom'));
+    && strcmp(c.PresetDropDown.Value, 'Custom') && strncmp(c.StatusLabel.Text, 'Vehicle edited', 14));
 app.choosePreset(truckName);
 ok = app.applyVehicleInputs();
 rows(end+1) = flag('back to the first preset: vehicle = vehicleFromInputs(''80 120 120'', ''4.2 1.4'') again', ok ...
@@ -398,6 +402,8 @@ slider.Value = 10 / ft;
 feval(slider.ValueChangedFcn, slider, struct('Value', slider.Value, 'PreviousValue', 0));
 xReleased = app.Position;
 feval(slider.ValueChangingFcn, slider, struct('Value', 5 / ft));
+rows(end+1) = flag('US: slider ticks are round (1, 2 or 5 x 10^k ft) and the non-round crossing end has no label', ...
+    roundSliderTicks(slider));
 rows(end+1) = flag('US: slider moved to 32.8 ft and dragged through 16.4 ft puts the front axle at 10 m and 5 m', ...
     abs(xReleased - 10) < 1e-9 && abs(app.Position - 5) < 1e-9 && max(abs(slider.Limits - [min(xvUS), max(xvUS)] / ft)) < 1e-9);
 app.setVehiclePosition(16.4);
@@ -592,6 +598,21 @@ if isempty(lg)
     s = {};
 else
     s = lg.String;
+end
+end
+
+function ok = roundSliderTicks(slider)
+% Ticks of 1, 2 or 5 x 10^k inside the limits (8 to 17 of them), the last one less than a step from the
+% upper limit: a non-round limit gets no label of its own (MATLAB's automatic ticks label it).
+t = slider.MajorTicks;
+lim = slider.Limits;
+ok = numel(t) >= 8 && numel(t) <= 17;
+if ok
+    step = t(2) - t(1);
+    m = step / 10 ^ floor(log10(step) + 1e-12);
+    ok = any(abs(m - [1 2 5]) < 1e-9) && all(abs(diff(t) - step) < 1e-9 * step) ...
+        && all(abs(t / step - round(t / step)) < 1e-6) && t(1) >= lim(1) - 1e-9 && t(end) <= lim(2) + 1e-9 ...
+        && lim(2) - t(end) < step && t(1) - lim(1) < step;
 end
 end
 

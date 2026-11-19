@@ -155,6 +155,10 @@ classdef BridgeConditionApp < handle
             if ~isempty(app.Model)
                 ok = app.resetMovingLoad();
             end
+            if ok
+                app.setStatus(sprintf('Vehicle applied: %s, %d axle(s), total %g %s.', vehicle.name, ...
+                    numel(vehicle.axleLoads), sum(vehicle.axleLoads) / U.force.toSI, U.force.unit));
+            end
         end
 
         function setVehiclePosition(app, xv)
@@ -502,6 +506,11 @@ classdef BridgeConditionApp < handle
             presets = vehiclePresets(app.Units);
             c.PresetNote.Text = presets(strcmp({presets.name}, 'Custom')).note;
             app.updateAxleTotal();
+            app.setStatus(app.vehicleEditedText());
+        end
+
+        function text = vehicleEditedText(~)
+            text = 'Vehicle edited: press "Apply vehicle" to use it (the drawing shows the applied vehicle).';
         end
 
         function addAxle(app)
@@ -571,9 +580,19 @@ classdef BridgeConditionApp < handle
             app.PositionRange = [min(xv), max(xv)];
             s = app.Controls.PositionSlider;
             s.Limits = app.PositionRange / app.Units.length.toSI;     % the slider works in display length
+            s.MajorTicks = app.sliderTicks(s.Limits);   % round values; the crossing end is not labelled
             s.Value = xv(1) / app.Units.length.toSI;
             app.setVehiclePosition(xv(1));
             ok = true;
+        end
+
+        function ticks = sliderTicks(~, limits)
+            % Round slider ticks (steps of 1, 2 or 5 x 10^k, about 15 intervals) inside LIMITS. MATLAB's
+            % automatic ticks also label the limits, which collides with the last round tick (120126.4).
+            raw = (limits(2) - limits(1)) / 15;
+            steps = [1 2 5 10] * 10 ^ floor(log10(raw));
+            step = steps(find(steps >= raw * (1 - 1e-12), 1));
+            ticks = (ceil(limits(1) / step - 1e-9):floor(limits(2) / step + 1e-9)) * step;
         end
 
         function ok = reportError(app, err, context)
@@ -1100,6 +1119,7 @@ classdef BridgeConditionApp < handle
             end
             app.setAxleTable(p.loads, p.spacings);
             c.VehicleNameField.Value = p.name;
+            app.setStatus(app.vehicleEditedText());
         end
 
         function setAxleTable(app, loads, spacings)
@@ -1165,7 +1185,7 @@ classdef BridgeConditionApp < handle
             [supportLabels] = supportTypeList();
             t1 = uitab(tabs, 'Title', 'Bridge model', 'BackgroundColor', th.background);
             g1 = uigridlayout(t1, [1 2]);
-            g1.ColumnWidth = {400, '1x'};
+            g1.ColumnWidth = {460, '1x'};   % every tab: room for the reactions table and long names
             g1.BackgroundColor = th.background;
             p1 = uipanel(g1, 'Title', 'Model input', 'BackgroundColor', th.panel, 'FontWeight', 'bold', ...
                 'ForegroundColor', th.sageDark);
@@ -1239,7 +1259,7 @@ classdef BridgeConditionApp < handle
             presets = vehiclePresets(U);
             t2 = uitab(tabs, 'Title', 'Vehicle & moving load', 'BackgroundColor', th.background);
             g2 = uigridlayout(t2, [1 2]);
-            g2.ColumnWidth = {400, '1x'};
+            g2.ColumnWidth = {460, '1x'};   % every tab: room for the reactions table and long names
             g2.BackgroundColor = th.background;
             p2 = uipanel(g2, 'Title', 'Vehicle (quasi-static)', 'BackgroundColor', th.panel, 'FontWeight', 'bold', ...
                 'ForegroundColor', th.sageDark);
@@ -1384,7 +1404,7 @@ classdef BridgeConditionApp < handle
             % ---- Tab: Damage (Stage 2)
             t6 = uitab(tabs, 'Title', 'Damage (Stage 2)', 'BackgroundColor', th.background);
             g6 = uigridlayout(t6, [1 2]);
-            g6.ColumnWidth = {400, '1x'};
+            g6.ColumnWidth = {460, '1x'};   % every tab: room for the reactions table and long names
             g6.BackgroundColor = th.background;
             p6 = uipanel(g6, 'Title', 'Prescribed stiffness loss', 'BackgroundColor', th.panel, 'FontWeight', 'bold', ...
                 'ForegroundColor', th.sageDark);
@@ -1480,7 +1500,7 @@ classdef BridgeConditionApp < handle
             % ---- Tab: Identification (Stage 3)
             t7 = uitab(tabs, 'Title', 'Identification (Stage 3)', 'BackgroundColor', th.background);
             g7 = uigridlayout(t7, [1 2]);
-            g7.ColumnWidth = {400, '1x'};
+            g7.ColumnWidth = {460, '1x'};   % every tab: room for the reactions table and long names
             g7.BackgroundColor = th.background;
             p7 = uipanel(g7, 'Title', 'Sensors, readings and search', 'BackgroundColor', th.panel, 'FontWeight', 'bold', ...
                 'ForegroundColor', th.sageDark);
