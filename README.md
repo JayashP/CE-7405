@@ -6,7 +6,20 @@ This is a MATLAB direct-stiffness solver for a **2D equivalent Euler–Bernoulli
 - **Deadline:** 24 Nov 2026.
 - **Authoritative requirements:** `PROJECT_SPEC.md`.
 
-## Current status (2026-11-19, milestone M9)
+## Try the app in one minute
+
+**MATLAB Online (browser, MathWorks account):** [![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=JayashP/CE-7405&file=openBridgeApp.m)
+<br>Link: https://matlab.mathworks.com/open/github/v1?repo=JayashP/CE-7405&file=openBridgeApp.m. It copies this repository into your MATLAB Online files and opens `openBridgeApp.m`; press **Run** if it does not start by itself. Best on a laptop or tablet (the app needs a wide window).
+
+**MATLAB desktop (tested in R2026b):** Code → Download ZIP on this page, unzip, open the folder in MATLAB and type `openBridgeApp`.
+
+The app opens with a built-in example (one 20 m steel span, pin and roller, the illustrative 3-axle truck 80, 120, 120 kN). Then:
+
+1. **Envelopes** tab → **Run moving-load analysis**: M max = 1349.102 kN·m at x = 9.740 m (truck front axle at x_v = 13.940 m).
+2. **Damage (Stage 2)** tab → **Apply damage** (30 % EI loss, 7.5–12.5 m) → **Compare healthy vs damaged**: largest deflection −24.925 → −30.839 mm; moments and reactions unchanged (statically determinate).
+3. **Identification (Stage 3)** tab → **Generate synthetic readings** → **Run identification**: the hidden 30 % loss at 5–6.25 m is found as element 5, d ≈ 30 %.
+
+## Current status (2026-11-24, milestone M10)
 
 | Capability | State |
 |---|---|
@@ -31,7 +44,7 @@ See `VERIFICATION_LOG.md` for the actual numbers and `DEVELOPMENT_PLAN.md` for w
 
 ## Open the app (MATLAB)
 
-From the repository root:
+From the repository root, `openBridgeApp` does both steps below. Or:
 
 ```matlab
 addProjectPaths;
