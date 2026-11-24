@@ -46,6 +46,10 @@ GUI clarity, requested by the user after the user guide (DECISIONS.md D-032). No
 - A redraw (node numbers, deformation scale) during an invalid pending edit no longer replaces the status with the input error.
 - GUI stand-in: `uihtml` refuses visual properties set after construction as well. `testGuiHelpers` checks what is printed (`evalc`), not `lastwarn`: MATLAB records a warning that is turned off in `lastwarn`, Octave does not, so the round-2 assertion would have failed in MATLAB.
 
+### Fixed after the third independent review of M10 (round 4)
+- The round-3 order (truck positions first) could blame a truck position that has axles on the bridge: with every sensor on a support ("Truck position 1 (x_v = 5 m) gives zero readings at every sensor" instead of "Sensor 1 (x = 0 m) ... (it is on a support)"), or with missing readings. A truck position is now named only when the whole beam is still (no deflection at any element midpoint); a sensor when its predicted readings are zero for every truck position (missing ones included); otherwise the first zero reading.
+- A sensor at a Free tip is no longer said to be "on a support" (the span ends listed in the model include Free ends); + Add likewise treats only real supports as places to avoid.
+
 ## [0.10.1-M9c] — 2026-11-19 (branch `claude/m9c-polish`)
 
 Cosmetic follow-ups from the user's MATLAB screenshots of M9 (VERIFICATION_LOG V-026 part 2a), revised after an independent review. No change to any result; the `src/` changes are display only (plot title, label clipping and placement).
