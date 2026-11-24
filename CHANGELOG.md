@@ -26,6 +26,18 @@ GUI clarity, requested by the user after the user guide (DECISIONS.md D-032). No
 - + Add span / - Remove last span keep the far-end support type (e.g. a Fixed end moves to the new end).
 - The app help text (no longer "sage green", support "none").
 
+### Fixed after the independent review of M10 (round 2)
+- **+ Add** (sensors, truck positions) puts a point that gives non-zero readings and is not in the table yet: one spacing after the last entry (in the travel direction for truck positions, so a -x crossing gets a smaller x_v), else halfway to the end of the range, else the middle of the largest gap (supports count as gap ends for sensors). A sensor on a support or a truck position with no axle inside a span read zero and stopped the search. If no point is left the status says so; MATLAB scrolls the table to the new row (R2021b and later).
+- Identification with a reading noise in % only: a sensor or truck position that reads zero is named ("Sensor 2 (x = 12 m) reads zero for every truck position (it is on a support). Remove it, or state Reading noise [mm] > 0.") instead of the engine's message about an option the app does not show.
+- **- Remove last span** with a Free far end (cantilever tip) no longer moves "Free" onto the last support, which left an unstable beam; the last support stays as it was.
+- Sensitivity status: ties and zero responses are judged against a physical size of the response (total load P, P*L for moments, P*L^3/EI for deflections), so round-off changes (1e-12 of the response) no longer name a "most influential" element; a response that is zero everywhere (e.g. the hogging moment of a simple span) shows "n/a" in the Change column with its own status.
+- A unit switch that applies pending model or vehicle edits (a new span length, a vehicle, the travel direction) gives the default sensors and truck positions for the new model and says so; a pure unit switch keeps and converts yours, as before.
+- Editing the sensor or truck-position table clears an identification result that belonged to the old entries.
+- The preview redrawn after "Show node and element numbers" no longer overwrites the status line; the unit-slip check no longer prints the engine's warning in Pa on every preview (the app's message in the typed unit remains).
+- The critical-table legend gets two lines (it was cut at one); the identification box shows the flags first and scrolls, and the Identification panel scrolls; the Summary lists the ratio method's warning ("No noise level stated ...") with the checks.
+- Formatted boxes: a leading "+" sign is highlighted, element/node/section/seed numbers and step numbers are not, long words wrap, the warning and tick signs use the text form (they take the colour), the colour of an item is never read from its text, and the Summary has no repeated "Method" heading.
+- GUI stand-ins: `uihtml` accepts only the properties the app uses; `scroll` for tables. `tools/crosscheck/replayV026.m` reads the new tables and boxes.
+
 ## [0.10.1-M9c] — 2026-11-19 (branch `claude/m9c-polish`)
 
 Cosmetic follow-ups from the user's MATLAB screenshots of M9 (VERIFICATION_LOG V-026 part 2a), revised after an independent review. No change to any result; the `src/` changes are display only (plot title, label clipping and placement).
