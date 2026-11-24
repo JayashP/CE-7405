@@ -457,12 +457,13 @@ refNeg = identifySingleDamage(refModel, refVehicle, pNeg, sNeg, uNeg, optsNeg{:}
 rows(end+1) = flag('-x travel: mirrored positions, readings and result = direct calls with direction -1', okGen && okRun ...
     && isequal(tableColumn(c.PositionsTable), pNeg) && isequal(c.ReadingsTable.Data, 1e3 * uNeg) ...
     && isequal([app.IdentResult.competing.group], [refNeg.competing.group]) && app.IdentResult.best.d == refNeg.best.d);
+sensorsBeforeAdd = tableColumn(c.SensorsTable);
 app.addIdentPoint('sensor');               % the result belongs to the old sensors: it is cleared
 staleCleared = isempty(app.IdentResult) && isempty(c.CandidateTable.Data) ...
     && strncmp(c.StatusLabel.Text, 'Sensors or truck positions edited', 33);
 app.removeIdentPoint('sensor');
 rows(end+1) = flag('a sensor added after a run clears the old result (candidate table emptied) and says why', ...
-    okRun && staleCleared && isequal(tableColumn(c.SensorsTable), sNeg));
+    okRun && staleCleared && isequal(tableColumn(c.SensorsTable), sensorsBeforeAdd));
 c.DirectionDropDown.Value = '+x (left to right)';
 app.applyVehicleInputs();
 app.generateSyntheticReadings();
