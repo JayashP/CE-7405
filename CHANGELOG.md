@@ -49,6 +49,7 @@ GUI clarity, requested by the user after the user guide (DECISIONS.md D-032). No
 ### Fixed after the third independent review of M10 (round 4)
 - The round-3 order (truck positions first) could blame a truck position that has axles on the bridge: with every sensor on a support ("Truck position 1 (x_v = 5 m) gives zero readings at every sensor" instead of "Sensor 1 (x = 0 m) ... (it is on a support)"), or with missing readings. A truck position is now named only when the whole beam is still (no deflection at any element midpoint); a sensor when its predicted readings are zero for every truck position (missing ones included); otherwise the first zero reading.
 - A sensor at a Free tip is no longer said to be "on a support" (the span ends listed in the model include Free ends); + Add likewise treats only real supports as places to avoid.
+- (Round 5, after a fourth review.) A sensor typed at a support as the table shows it (39.3701 ft for a Fixed support at 39.3700787 ft) sits a few micrometres off it; its readings then straddle the zero bound, and the message said "no axle loads its span". A sensor within 1e-6 of the span length of a support is now named "on a support".
 
 ## [0.10.1-M9c] — 2026-11-19 (branch `claude/m9c-polish`)
 
