@@ -1558,3 +1558,224 @@ US damage comparison, two-span beam: minimum reaction at node 1 (lift-off)
 --- PASS
 
 === testUnitsDisplay / Fit profile, fit chart and readings chart in US units ===
+  PASS fit profile (x1, x2 in ft), fit chart and readings chart (x in ft, deflections in in); SI unchanged
+--- PASS
+
+=== testUnitsDisplay / Stage 3 inputs: readings and absolute noise typed in in, region sizes in ft, both returned in m ===
+  PASS expected error BridgeFE:invalidInput: Readings must be finite numbers in in (leave a cell empty if it is missing).
+  PASS expected error BridgeFE:invalidInput: Unknown candidate region size '2 m regions'.
+  PASS expected error BridgeFE:invalidInput: Unknown candidate region size '6 ft regions'.
+  PASS expected error BridgeFE:invalidInput: Absolute noise [in] must be 0 or more.
+  PASS readings and absolute noise in in -> m; region sizes 6 ft and 12 ft -> 1.8288 m and 3.6576 m
+--- PASS
+
+=== testUnitsDisplay / Node choices for the region drop-downs: labels in the display length, coordinates in m ===
+  US labels: 'node 7 (x = 24.6063 ft)', 'node 17 (x = 65.6168 ft)'
+  PASS one label per node in m or ft; coordinates always in m
+--- PASS
+
+=== testVehicleAndPositions / Axle coordinates follow the front-axle reference in both directions ===
+  +x: axles at [10 5.8 4.4] m, forces [-80000 -120000 -120000] N
+  -x: axles at [10 14.2 15.6] m
+  PASS axle coordinates and signed forces
+--- PASS
+
+=== testVehicleAndPositions / Position grid runs from first entry to full exit with an exact step ===
+  +x: 257 positions from 0 to 25.6 m, step 0.1 m
+  requested 0.3 m -> 87 positions, actual step 0.297674418605 m (= 25.6/86)
+  -x: from 20 to -5.6 m
+  PASS position grids (+x, -x, single axle)
+--- PASS
+
+=== testVehicleAndPositions / Only axles on the bridge act and an axle on a support goes into the reaction ===
+  axles on bridge: xv=0 [true false false], xv=2 [true false false], xv=25.6 [false false true], xv=15 [true true true]
+
+On-bridge axle policy, spec truck on a 20 m simple span
+  Quantity                                                     Actual               Expected   Abs error  Rel error % Criterion     Result
+  xv = 0: R_A [kN] (front axle on support A)                       80                     80   0.000e+00    0.000e+00 rel<=0.1%     PASS
+  xv = 0: R_B [kN]                                                  0                      0   0.000e+00          n/a abs<=1e-09    PASS
+  xv = 2: R_A [kN] (front axle only)                               72                     72   4.547e-13    6.316e-13 rel<=0.1%     PASS
+  xv = 25.6: R_B [kN] (rear axle on support B)                    120                    120   0.000e+00    0.000e+00 rel<=0.1%     PASS
+  xv = 15: R_A [kN] (all axles on)                              138.8                  138.8   4.633e-12    3.338e-12 rel<=0.1%     PASS
+  xv = 15: R_A + R_B [kN]                             320.00000000001                    320   1.023e-11    3.197e-12 rel<=0.1%     PASS
+--- PASS
+
+=== testVehicleAndPositions / Invalid vehicle and moving-load input is rejected ===
+  PASS expected error BridgeFE:invalidVehicle: axleLoads must be a vector of real, finite, positive magnitudes [N] (positive = downward).
+  PASS expected error BridgeFE:invalidVehicle: axleSpacings must hold 1 real, finite, positive spacing(s) [m] for 2 axle(s).
+  PASS expected error BridgeFE:invalidVehicle: axleSpacings must hold 1 real, finite, positive spacing(s) [m] for 2 axle(s).
+  PASS expected error BridgeFE:invalidVehicle: axleLoads must be a vector of real, finite, positive magnitudes [N] (positive = downward).
+  PASS expected error BridgeFE:invalidInput: direction must be +1 (toward +x) or -1 (toward -x).
+  PASS expected error BridgeFE:invalidInput: step must be a real, finite, positive numeric scalar.
+  PASS expected error BridgeFE:invalidInput: Unknown option 'Stepp'.
+  PASS expected error BridgeFE:invalidInput: Direction must be +1 or -1.
+  PASS expected error BridgeFE:offBeam: stations must lie within the beam [0, 20] m.
+--- PASS
+
+==================== TEST SUMMARY ====================
+Platform : GNU Octave 8.4.0
+Date     : 2026-11-24 02:24:41
+  PASS  testAssembly / Element DOF map is [v_i theta_i v_j theta_j] with node n owning DOFs 2n-1 and 2n
+  PASS  testAssembly / Two equal unit elements assemble to the hand-computed 6x6 matrix
+  PASS  testAssembly / Unequal lengths and EI match K = sum(A_e'*k_e*A_e) with explicit Boolean A_e
+  PASS  testAssembly / Assembled K is symmetric with exactly two rigid-body modes
+  PASS  testAssembly / Nodal load vector puts forces at v DOFs and couples at theta DOFs and sums repeats
+  PASS  testAssembly / Invalid model data are rejected
+  PASS  testBeamStiffness / Exact matrix for EI = 2e9 N*m^2 and Le = 2 m (hand-computed literals)
+  PASS  testBeamStiffness / Unit EI and unit length give the integer coefficient matrix exactly
+  PASS  testBeamStiffness / Spec mesh example Le = 1.5 m with steel E = 200 GPa and I = 0.01 m^4
+  PASS  testBeamStiffness / Element matrix is exactly symmetric for arbitrary EI and Le
+  PASS  testBeamStiffness / Rigid-body modes lie in the null space and ke is positive semi-definite of rank 2
+  PASS  testBeamStiffness / Stiffness scales linearly with EI, as later EI-reduction studies assume
+  PASS  testBeamStiffness / Invalid EI or Le inputs are rejected with BridgeFE:invalidInput
+  PASS  testCantileverTipLoad / Cantilever with a tip load and 10 elements
+  PASS  testContinuousBeam / Two equal spans with a point load at each midspan
+  PASS  testContinuousBeam / Benchmark D two equal spans with uniform load on both spans
+  PASS  testContinuousBeam / Uniform load on one span only gives uplift at the far support
+  PASS  testContinuousBeam / Unequal spans of 10 m and 15 m under uniform load (three-moment equation)
+  PASS  testDrawingGeometry / Pin, roller and fixed symbols have the conventional geometry
+  PASS  testDrawingGeometry / Beam drawing contains every support, load and label
+  PASS  testDrawingGeometry / Vehicle axles on and off the bridge and the deformed shape are drawn distinctly
+  PASS  testDrawingGeometry / Damaged elements are overdrawn in the damage colour with their EI factor
+  PASS  testDrawingGeometry / Axis limits contain every primitive and leave room for labels
+  PASS  testGuiHelpers / Numbers typed in text fields are parsed without evaluating code
+  PASS  testGuiHelpers / App model inputs build exactly the model built directly with the engine (Benchmark D)
+  PASS  testGuiHelpers / Support entries, RCC material and unit warnings are converted correctly
+  PASS  testGuiHelpers / Invalid model inputs give clear errors instead of a model
+  PASS  testGuiHelpers / Vehicle inputs in kN and m build the engine vehicle
+  PASS  testGuiHelpers / The static path used by the Matrices tab reproduces the moving-load position
+  PASS  testGuiHelpers / Diagram data list both limits at every point, sorted along the beam
+  PASS  testGuiHelpers / Table data match the moving-load results they display
+  PASS  testGuiHelpers / Damage-tab inputs and tables match the Stage 2 engine
+  PASS  testGuiHelpers / Table numbers never show a negative zero, and the findings name the determinacy
+  PASS  testGuiHelpers / Drawing and diagram labels are clipped to the axes, and peak labels face the inside of the plot
+  PASS  testGuiHelpers / Information boxes: formatted HTML keeps the engine's words, highlights numbers and colours flags
+  PASS  testGuiHelpers / Sensor and truck-position tables are read row by row, with errors that name the row
+  PASS  testGuiHelpers / The unit-slip message uses the unit the user typed in
+  PASS  testGuiHelpers / Healthy vs damaged envelopes: four solid curves, one colour each, healthy drawn on top
+  PASS  testGuiHelpers / Theme colours are valid RGB triplets
+  PASS  testIdentificationHelpers / Default sensors and truck positions follow the spec and drop positions with no axle on the beam
+  PASS  testIdentificationHelpers / Synthetic readings are the forward model of the hidden case plus reproducible noise
+  PASS  testIdentificationHelpers / Tab inputs become the documented search options, and readings come back in metres
+  PASS  testIdentificationHelpers / Fit profile, candidate table and summary describe the search result
+  PASS  testIdentificationHelpers / The summary states every limiting flag in plain words
+  PASS  testIdentificationHelpers / The drawing shows sensors, the region of uncertainty, the best fit and the hidden case
+  PASS  testInputTables / Support letters run A to Z, then AA, AB, ...; support labels map to the engine types
+  PASS  testInputTables / SI tables with equal element counts build exactly the model of buildModelFromInputs
+  PASS  testInputTables / Each span gets its own element count
+  PASS  testInputTables / US customary tables convert exactly to the SI engine model
+  PASS  testInputTables / Every invalid table entry gives an error that names its row
+  PASS  testInputTables / Vehicle tables give the engine vehicle in SI
+  PASS  testInputTables / Vehicle presets convert exactly between SI and US customary units
+  PASS  testInputTables / Drawing: bold support letters below the span ends and load texts in the display units
+  PASS  testInputTables / Drawing: close axles share one label and the uniform-load label sits at the left end of its load
+  PASS  testInputTables / Drawing with node numbers leaves out the numbers where a support letter is drawn
+  PASS  testInverseDamage / Sensor deflections equal the static engine and the closed form, vehicle only
+  PASS  testInverseDamage / Noise generator is reproducible on every platform and has the intended size
+  PASS  testInverseDamage / Blind noise-free cases are recovered exactly, including losses between the 5 % steps
+  PASS  testInverseDamage / The undamaged bridge is recognized, and the coarse scan has 241 structures for 20 elements
+  PASS  testInverseDamage / Data from a finer mesh and missing readings still give the true region
+  PASS  testInverseDamage / One noise realization (seed 7): the true E7 stays inside the reported region at 1-10 % noise
+  PASS  testInverseDamage / Symmetric data are reported as ambiguous, and a loss beyond 60 % is flagged
+  PASS  testInverseDamage / Invalid inverse input is rejected
+  PASS  testInverseUncertainty / Chi-square quantiles match the tables without a toolbox
+  PASS  testInverseUncertainty / Candidate regions of a chosen length cover every element once and end on nodes
+  PASS  testInverseUncertainty / With one constant sigma the chi-square misfit is m J^2 / sigma^2 and selects the minimum-RMSE candidate
+  PASS  testInverseUncertainty / Noise per reading comes from the healthy prediction, and S is the weighted misfit
+  PASS  testInverseUncertainty / Noise-free data with a stated noise level: exact best fit, true region inside, no misfit
+  PASS  testInverseUncertainty / Losses between the 1 % grid points with a small stated noise are not mistaken for a misfit
+  PASS  testInverseUncertainty / A noisy case (one realization): the region contains the truth and equals an exhaustive 1 % scan
+  PASS  testInverseUncertainty / A region that reaches the 60 % search limit is flagged even when the best loss is below it
+  PASS  testInverseUncertainty / An RCC baseline gives the spec's caveat
+  PASS  testInverseUncertainty / A wrong support assumption is flagged by the fit check
+  PASS  testInverseUncertainty / Larger candidate regions recover a region-sized loss exactly
+  PASS  testInverseUncertainty / The undamaged bridge with noise is not reported as certainly damaged
+  PASS  testInverseUncertainty / A different confidence level and missing readings change the thresholds as the tables say
+  PASS  testInverseUncertainty / Invalid noise input is rejected
+  PASS  testMaterials / Steel and RCC records hold E, I and EI = E*I
+  PASS  testMaterials / Equal-EI steel and RCC models give identical static results
+  PASS  testMaterials / Equal-EI steel and RCC models give identical moving-load envelopes
+  PASS  testMaterials / A uniform change of EI scales deflections but not forces
+  PASS  testMaterials / Steel and RCC spans redistribute the support moment as the three-moment equation predicts
+  PASS  testMaterials / EI cannot be edited behind a material, but materials can be reassigned
+  PASS  testMaterials / Unit slips trigger a warning but still create the material
+  PASS  testMaterials / Invalid material input is rejected
+  PASS  testMeshSpansAndLoads / Two equal spans give the hand-written coordinates with a node at every support
+  PASS  testMeshSpansAndLoads / Unequal spans with different element counts keep every support on a node
+  PASS  testMeshSpansAndLoads / Invalid span input is rejected
+  PASS  testMeshSpansAndLoads / elementsBetween selects the elements of one span and refuses off-node limits
+  PASS  testMeshSpansAndLoads / Consistent uniform-load vector matches hand-written values
+  PASS  testMeshSpansAndLoads / Consistent load vector equals Gauss integration of w*N over the element
+  PASS  testMeshSpansAndLoads / Uniform loads superpose and assemble into the hand-written global vector
+  PASS  testMeshSpansAndLoads / Assembled uniform load keeps the resultant force and moment on a nonuniform mesh
+  PASS  testMeshSpansAndLoads / Invalid uniform-load input is rejected
+  PASS  testMovingLoadEnvelopes / Single moving load envelopes on a simple span equal the influence-line maxima
+  PASS  testMovingLoadEnvelopes / Two equal axles reach the absolute maximum moment of the resultant rule
+  PASS  testMovingLoadEnvelopes / Step convergence of the maximum moment for the two-axle vehicle
+  PASS  testMovingLoadEnvelopes / Spec 3-axle truck on a 20 m simple span matches the resultant rule
+  PASS  testMovingLoadEnvelopes / Two-span continuous beam: negative moment over the support and uplift
+  PASS  testMovingLoadEnvelopes / Permanent uniform load adds its static response to every envelope
+  PASS  testMovingLoadEnvelopes / Reversed travel direction gives the mirror-image envelopes on a symmetric span
+  PASS  testMovingLoadFastPath / Fast path equals the static engine at 14 positions in both directions
+  PASS  testMovingLoadFastPath / Single-element model with no axle on the bridge returns the permanent response
+  PASS  testMovingPointLoad / Benchmark B over 88 load positions with an 8-element mesh
+  PASS  testMovingPointLoad / Results are continuous as the load crosses a node
+  PASS  testPointLoadsInElements / Two loads inside ONE simply supported element are not moved to the nodes
+  PASS  testPointLoadsInElements / Propped cantilever with a load inside an element (indeterminate)
+  PASS  testPointLoadsInElements / Deflection between nodes is exact for uniform and point loads
+  PASS  testPointLoadsInElements / Mixed loads close element equilibrium and show a jump of P at each interior load
+  PASS  testPointLoadsInElements / A point load on a support goes straight into that reaction
+  PASS  testProppedCantilever / Propped cantilever with a central point load at a node
+  PASS  testProppedCantilever / Benchmark C propped cantilever under uniform load with 16 elements
+  PASS  testProppedCantilever / Benchmark C mesh independence with 1, 2, 4 and 16 elements
+  PASS  testShapeFunctionsAndPointLoads / Shape functions take nodal values and reproduce rigid-body motion
+  PASS  testShapeFunctionsAndPointLoads / Shape functions at r = 1/3 match hand-computed fractions
+  PASS  testShapeFunctionsAndPointLoads / Shape-function slopes at the element ends select the nodal rotations
+  PASS  testShapeFunctionsAndPointLoads / Point-load vector equals the textbook fixed-end actions
+  PASS  testShapeFunctionsAndPointLoads / Point-load vector keeps the resultant force and moment for any position
+  PASS  testShapeFunctionsAndPointLoads / Point loads at nodes are nodal loads and interior loads keep their position
+  PASS  testShapeFunctionsAndPointLoads / Assembled F is the nodal load at a node and the Hermite vector inside an element
+  PASS  testShapeFunctionsAndPointLoads / Invalid shape-function and point-load input is rejected
+  PASS  testSimplySupportedBeam / Analytical references reproduce the values stated in PROJECT_SPEC.md
+  PASS  testSimplySupportedBeam / Benchmark A with 20 elements
+  PASS  testSimplySupportedBeam / Mesh independence with 2, 4, 8, 20 and 40 elements
+  PASS  testSimplySupportedBeam / Nodal deflections and rotations match the analytical elastic curve along the span
+  PASS  testSimplySupportedBeam / A load applied at a support node goes directly into that reaction
+  PASS  testStiffnessDamage / Zero loss reproduces the healthy model and results exactly
+  PASS  testStiffnessDamage / Only the chosen element changes: K_D - K_H = -d * A_j'' k_j A_j
+  PASS  testStiffnessDamage / Simply supported beam: damage changes deflection only (statically determinate)
+  PASS  testStiffnessDamage / Propped cantilever: damage redistributes the reactions (statically indeterminate)
+  PASS  testStiffnessDamage / Two-span beam with span 1 damaged follows the three-moment equation
+  PASS  testStiffnessDamage / Moving-load comparison: determinate beam keeps forces, continuous beam redistributes
+  PASS  testStiffnessDamage / Moving-load fast path equals the static engine on a damaged model
+  PASS  testStiffnessDamage / Sensitivity sweep ranks the midspan elements first for deflection and finds no change in moment
+  PASS  testStiffnessDamage / Invalid damage input is rejected and material reassignment keeps the loss
+  PASS  testSupportsAndStability / Pin and roller restrain v only and fixed restrains v and theta
+  PASS  testSupportsAndStability / Simply supported 4-element beam restrains v at the two end nodes only
+  PASS  testSupportsAndStability / Fixed end plus roller (propped-cantilever layout) restrains v1, theta1 and v5
+  PASS  testSupportsAndStability / Under-restrained models are rejected with BridgeFE:underRestrained
+  PASS  testSupportsAndStability / Stability rule agrees with the numerical rank of Kff for many support layouts
+  PASS  testSupportsAndStability / Duplicate, unknown-type and off-range supports are rejected
+  PASS  testSupportsAndStability / Coordinates map to nodes only where a node exists
+  PASS  testUniformLoadBeams / Simply supported beam under uniform load, 10 elements
+  PASS  testUniformLoadBeams / Fixed-fixed single element has no free DOF and its forces come only from -f_e0
+  PASS  testUniformLoadBeams / Fixed-fixed beam with 16 elements matches the exact moment and deflection
+  PASS  testUniformLoadBeams / Sampled diagrams close element equilibrium at both element ends
+  PASS  testUnitsDisplay / Unit factors equal independent constants, and SI is the default
+  PASS  testUnitsDisplay / quantityDisplay: SI as before, US in kip*ft, kip and in
+  PASS  testUnitsDisplay / Critical-position table: values, x, x_v and axle positions in US units
+  PASS  testUnitsDisplay / Reaction tables: forces in kip, couples in kip*ft, coordinates in ft
+  PASS  testUnitsDisplay / Damage comparison table and findings: extremes and reactions in US units, percentages unchanged
+  PASS  testUnitsDisplay / Findings: a reaction change below the last decimal shown in the chosen force unit counts as unchanged
+  PASS  testUnitsDisplay / Sensitivity table and bar chart: coordinates in ft, deflection in in
+  PASS  testUnitsDisplay / Candidate table and summary of the Stage 3 search: regions in ft, RMSE and absolute noise in in
+  PASS  testUnitsDisplay / Inches keep about the resolution of millimetres: deflection tables show one decimal more in US units
+  PASS  testUnitsDisplay / Fit profile, fit chart and readings chart in US units
+  PASS  testUnitsDisplay / Stage 3 inputs: readings and absolute noise typed in in, region sizes in ft, both returned in m
+  PASS  testUnitsDisplay / Node choices for the region drop-downs: labels in the display length, coordinates in m
+  PASS  testVehicleAndPositions / Axle coordinates follow the front-axle reference in both directions
+  PASS  testVehicleAndPositions / Position grid runs from first entry to full exit with an exact step
+  PASS  testVehicleAndPositions / Only axles on the bridge act and an axle on a support goes into the reaction
+  PASS  testVehicleAndPositions / Invalid vehicle and moving-load input is rejected
+Total: 162 passed, 0 failed, 162 tests
+======================================================
