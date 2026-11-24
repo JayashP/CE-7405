@@ -30,7 +30,7 @@ Order is fixed by the spec:
 | M8b | Cosmetic follow-ups (−0.000 in Envelopes tables, readings table width, quieter app check) | Nov 18 | **Done.** Octave 135/135, app check 48/48 (V-023); MATLAB app check all PASS (V-024). Merged to `main` |
 | M9 | Input redesign (D-031): span/support/axle tables, support letters, presets, node drop-downs, SI / US unit switch, MATLAB-style colours | Nov 19 – 20 | **Done** (Octave V-025, MATLAB V-026); merged |
 | M9c | Cosmetic follow-ups from the M9 MATLAB screenshots: round slider ticks, wider left panels, vehicle status messages | Nov 19 | Octave 158/158, app check 93/93, all M9c mutants detected (V-027); MATLAB app check and app pass (V-028); axle-label rule (`aacbc26`) not yet seen in MATLAB |
-| M10 | GUI clarity (D-032): x/x_v legends, sensor and truck-position tables, formatted information boxes, colour-coded healthy vs damaged plots, 9 fixes from the user guide | Nov 24 | Octave in progress; MATLAB **not run yet** |
+| M10 | GUI clarity (D-032): x/x_v legends, sensor and truck-position tables, formatted information boxes, colour-coded healthy vs damaged plots, 9 fixes from the user guide | Nov 24 | Octave 162/162, app check 118/118, mutants 29/29 (unit) and 89/89 (app), five review rounds (V-029); MATLAB **not run yet** |
 | S4 | Stage 4: hypothetical repaired state (user's request, 2026-11-18); steel repair categories only from sourced rules | After M9 | Next |
 | — | Stabilize, demo recording, final documentation | Nov 21 – 23 | — |
 | — | **Submission** | **Nov 24** | — |

@@ -1328,3 +1328,34 @@ Model: spans 20 m + 10 m (16 elements each), A Pin, B and C Roller, steel.
 | Identification, SI (`..._identification_SI.png`) | All five truck positions visible (7.5 15 22.5 30 37.5); hidden element 11 (12.5-13.75 m, 30 %) found: best fit element 11, d = 31.0 % (25.0-35.0), region of uncertainty elements 10-11, 661 structures | as designed |
 
 **New finding:** in the first screenshot the two rear axles of the spec truck, both off the bridge, are labelled "26.9771 k26.9771 kip": the labels overlap. Only on-bridge axles closer than 6 % of the span shared a label, and kip values have more digits than kN values. Fixed in `aacbc26`: neighbouring axles share one label when their labels would overlap (estimated from the label length), on and off the bridge. In kN every case drawn before stays the same. Not yet seen in MATLAB.
+
+## V-029 — 2026-11-24 — M10 GUI clarity in GNU Octave
+
+| Item | Value |
+|---|---|
+| Platform | **GNU Octave 8.4.0**, Ubuntu 24.04.5 cloud container |
+| MATLAB | **NOT RUN.** The user needs to run `runAllTests`, `checkBridgeConditionApp(true)` and look at the app (see "To see in MATLAB" below); record as V-030 |
+| Code version | Branch `claude/m10-gui-clarity` from M9c (`5c03671`); final code `335178a` (app and app check; later commits change only CHANGELOG and records) |
+| Changes | The user's four requests (D-032): x and x_v explained under every table that uses them and in the slider readout; sensors and truck positions in tables with + Add / - Remove; formatted information boxes (headings, bullets, highlighted numbers, orange flags, green passed checks); healthy vs damaged plots told apart by colour. The 9 problems listed in the user guide. Then four rounds of fixes after independent reviews (CHANGELOG [0.11.0-M10]) |
+| Main suite | **162 passed, 0 failed, 162 tests** (run on `3e20c92`; `src/` and `tests/*.m` are unchanged since, a rerun on the final code is in progress). Raw log: `results/verification/2026-11-24_M10_octave-8.4.0_runAllTests.log` |
+| App check (stand-ins) | **118/118 PASS** (`335178a`). Raw log: `..._M10_octave-8.4.0_gui_mock_check.log` |
+| Mutation check | Unit level (`tools/mutation_check.py`, prefix `M10`, testGuiHelpers, on `4ee9aac`; `src/` and `testGuiHelpers` are unchanged since): **29/29 detected**. App level (`tools/app_mutation_check.py`, all faults 0-88, M9 to M10 round 5, on `335178a`): **89/89 detected**. Raw output: `..._M10_mutation_check_octave-8.4.0.txt` |
+| Cross-check | `tools/crosscheck/replayV026.m` (updated for the tables and HTML boxes) reproduces the numbers of the user's V-026 MATLAB screenshots: EI = 4.83965e+06 kip*ft^2, sensors 24.6063, 49.2126, 73.8189 ft, 534 structures, best fit element 9, d = 30.8 %, RMSE 0.00155 in |
+
+**Independent reviews (agents reading the diff, each finding re-checked by a second agent asked to refute it):**
+
+| Round | Scope | Confirmed findings | Fixed |
+|---|---|---|---|
+| 1 | M10 as first written | 13 agents; medium/high: + Add put points with zero readings and went the wrong way for -x travel; removing a span with a Free far end gave an unstable model; sensitivity ties missed round-off; the critical legend was cut; the identification box hid its flags; the ratio warning was missing from the Summary. Plus lows | all (round 2) |
+| 2 | round-2 fixes | 18 of 22 (3 medium): + Add in ft could land on a support or repeat an entry (6-digit rounding); single zero readings (interior Fixed support) still reached the engine's 'NoiseAbsolute' message; the round-2 `lastwarn` assertion would fail in MATLAB (MATLAB records a warning that is turned off). Lows: determinate sensitivity on fine meshes (round-off 3e-8 at 600 elements), missing readings not skipped, a pending support edit kept the sensors on a unit switch, quiet preview errors, uihtml stand-in, 5 check-coverage gaps | all (round 3) |
+| 3 | round-3 fixes | 7 of 8 (1 medium): the new order blamed a truck position when every sensor was on a support or readings were missing; a Free tip called "on a support"; 2 mutants no row could detect | all (round 4) |
+| 4 | round-4 fixes | 2 low: a sensor typed at a Fixed support as displayed got "no axle loads its span"; + Add at an interior Free node untested | both (round 5) |
+| 5 | round-5 fix | 1 low: the on-support tolerance (1e-6 L) was below the display rounding for coordinates of 100 or more | fixed (tolerance as + Add, 40 + 40 m row) |
+
+Every review finding that survived verification was fixed and has a check row; every fault in the mutation tools is detected. Faults that went undetected at first each led to a new check row, never to a change of a reference value: fault 60 in the round-1 run; faults 44, 60, 61, 66, 70, 71 and 73 in the first run after the round-2 fixes; faults 62 and 80, which the round-3 reviewers showed no row could detect.
+
+**To see in MATLAB (V-030):** `uihtml` renders the CSS (two-column model summary, bullets, blue numbers, orange flags with the text warning sign, green tick) and scrolls; the critical-table legend on two lines; + Add scrolls the table to the new row (R2021b and later); the healthy vs damaged colours; the unit-slip message in ksi and no engine warning in the Command Window; `testGuiHelpers` "The unit-slip message uses the unit the user typed in" passes (it now reads the Command Window output with `evalc`).
+
+**Limits:** the stand-ins check property names, values and layout rules, not the look; the HTML was rendered in Chromium (Playwright) during round 1, not in MATLAB. **NOT VERIFIED IN MATLAB.**
+
+**Status of M10:** verified in Octave (V-029). MATLAB: not run yet.

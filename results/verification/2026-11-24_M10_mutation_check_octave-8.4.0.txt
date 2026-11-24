@@ -128,3 +128,376 @@ SUMMARY app: 24 / 25 detected
 NOTE: fault 60 (unit-slip message range always in GPa) is not visible to the app check, whose unit-slip row runs in SI
       (GPa is then right). It is detected at unit level by testGuiHelpers ('The unit-slip message uses the unit the
       user typed in', ksi case) - see 'M10: unit-slip range not in the display unit' above.
+
+================================================================================
+FINAL RUNS (after the independent reviews, rounds 2 to 5)
+================================================================================
+
+=== Unit level, final: tools/mutation_check.py, prefix 'M10', tests/testGuiHelpers.m
+    (run on round-3 code 4ee9aac; src/ and tests/testGuiHelpers.m are unchanged since)
+MUTATION: M10: HTML text not escaped
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Information boxes: formatted HTML keeps the engine's words, highlights numbers and colours flags
+MUTATION: M10: short labels not bold
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Information boxes: formatted HTML keeps the engine's words, highlights numbers and colours flags
+MUTATION: M10: mm not recognised as a unit
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Information boxes: formatted HTML keeps the engine's words, highlights numbers and colours flags
+MUTATION: M10: numbers inside names highlighted
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Information boxes: formatted HTML keeps the engine's words, highlights numbers and colours flags
+MUTATION: M10: warning class ignored
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Information boxes: formatted HTML keeps the engine's words, highlights numbers and colours flags
+MUTATION: M10: unknown item class accepted
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Information boxes: formatted HTML keeps the engine's words, highlights numbers and colours flags
+MUTATION: M10: emoji warning sign (no text selector)
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Information boxes: formatted HTML keeps the engine's words, highlights numbers and colours flags
+MUTATION: M10: plus sign not highlighted
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Information boxes: formatted HTML keeps the engine's words, highlights numbers and colours flags
+MUTATION: M10: identifiers highlighted as results
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Information boxes: formatted HTML keeps the engine's words, highlights numbers and colours flags
+MUTATION: M10: element(s) number highlighted
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Information boxes: formatted HTML keeps the engine's words, highlights numbers and colours flags
+MUTATION: M10: step number highlighted
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Information boxes: formatted HTML keeps the engine's words, highlights numbers and colours flags
+MUTATION: M10: bullets kept beside the signs
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Information boxes: formatted HTML keeps the engine's words, highlights numbers and colours flags
+MUTATION: M10: long words do not wrap
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Information boxes: formatted HTML keeps the engine's words, highlights numbers and colours flags
+MUTATION: M10: supports not one bullet each
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Information boxes: formatted HTML keeps the engine's words, highlights numbers and colours flags
+MUTATION: M10: Summary flags not marked
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Information boxes: formatted HTML keeps the engine's words, highlights numbers and colours flags
+MUTATION: M10: Summary sections out of order
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Information boxes: formatted HTML keeps the engine's words, highlights numbers and colours flags
+MUTATION: M10: Summary repeats a Method heading
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Information boxes: formatted HTML keeps the engine's words, highlights numbers and colours flags
+MUTATION: M10: ratio-method flag not shown in the Summary
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Information boxes: formatted HTML keeps the engine's words, highlights numbers and colours flags
+MUTATION: M10: left box shows the flags last
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Information boxes: formatted HTML keeps the engine's words, highlights numbers and colours flags
+MUTATION: M10: model summary in one column
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Information boxes: formatted HTML keeps the engine's words, highlights numbers and colours flags
+MUTATION: M10: empty table rows accepted
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Sensor and truck-position tables are read row by row, with errors that name the row
+MUTATION: M10: table coordinates not converted to m
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Sensor and truck-position tables are read row by row, with errors that name the row
+MUTATION: M10: healthy max drawn in the min colour
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Healthy vs damaged envelopes: four solid curves, one colour each, healthy drawn on top
+MUTATION: M10: healthy min dotted again
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Healthy vs damaged envelopes: four solid curves, one colour each, healthy drawn on top
+MUTATION: M10: unit-slip range not in the display unit
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / The unit-slip message uses the unit the user typed in
+MUTATION: M10: engine warning (in Pa) printed on every build
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / The unit-slip message uses the unit the user typed in
+MUTATION: M10: unit-slip message never given
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / The unit-slip message uses the unit the user typed in
+MUTATION: M10: RCC modulus range changed
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / The unit-slip message uses the unit the user typed in
+MUTATION: M10: healthy min the same blue as max
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Healthy vs damaged envelopes: four solid curves, one colour each, healthy drawn on top
+SUMMARY unit (final): 29 / 29 detected
+
+=== App level, final: tools/app_mutation_check.py, all faults 0-88 (M9 0-30, M9c 31-40, M10 41-60,
+    review round 2: 61-73, round 3: 74-81, round 4: 82-85, round 5: 86-88), run on 335178a
+    (app check tests/gui/checkBridgeConditionApp.m with the Octave stand-ins in tools/gui_mock, 118 rows)
+MUTATION 0: slider released: value not converted to m
+  exit=1 detected=yes
+  via: US: slider moved to 32.8 ft and dragged through 16.4 ft puts the front axle at 10 m and 5 m (1 = yes)
+MUTATION 1: slider dragged: value not converted to m
+  exit=1 detected=yes
+  via: US: slider moved to 32.8 ft and dragged through 16.4 ft puts the front axle at 10 m and 5 m (1 = yes)
+MUTATION 2: reaction envelope table without units
+  exit=1 detected=yes
+  via: US: reaction envelope table = reactionEnvelopeTableData(result, x, US); envelopes drawn in ft (1 = yes)
+MUTATION 3: Rmax support drop-down mapped by list position
+  exit=1 detected=yes
+  via: A Free: support drop-down B, C only; Rmax at C = damageSensitivity(..., 'Node', node at 27 m); the beam is det
+MUTATION 4: hidden region start read from the damage drop-down
+  exit=1 detected=yes
+  via: a sensor on a support, or a truck position with no axle inside a span, is named in the app's words when the se
+MUTATION 5: default sensors written in m
+  exit=1 detected=yes
+  via: US: Apply model writes the default sensors and truck positions in ft (1 = yes)                      0
+MUTATION 6: default truck positions written in m
+  exit=1 detected=yes
+  via: US: Apply model writes the default sensors and truck positions in ft (1 = yes)                      0
+MUTATION 7: sweep step not converted on a switch
+  exit=1 detected=yes
+  via: US: max relative error of the converted inputs (spans, E, I, load, axles, position and sweep steps, reading no
+MUTATION 8: reading noise not converted on a switch
+  exit=1 detected=yes
+  via: US: max relative error of the converted inputs (spans, E, I, load, axles, position and sweep steps, reading no
+MUTATION 9: position text x_v in m
+  exit=1 detected=yes
+  via: US: reaction table header and position text in kip and ft (1 = yes)                      0
+MUTATION 10: M, V, v diagrams drawn at x in m
+  exit=1 detected=yes
+  via: US: M, V and v diagrams drawn over x = 0 to 27 m in ft (1 = yes)                      0                      1
+MUTATION 11: envelopes drawn at x in m
+  exit=1 detected=yes
+  via: US: reaction envelope table = reactionEnvelopeTableData(result, x, US); envelopes drawn in ft (1 = yes)
+MUTATION 12: new axle 1.2 display units behind
+  exit=1 detected=yes
+  via: US: + Add axle puts the new axle 1.2 m (3.937 ft) behind the last one (1 = yes)                      0
+MUTATION 13: identification options without the units
+  exit=1 detected=yes
+  via: US: identification (6 ft regions, noise 1 % + 0.05 mm in in) = identifySingleDamage(...); table and summary in
+MUTATION 14: presets always in SI
+  exit=1 detected=yes
+  via: US: preset HL-93 fills 8, 32, 32 kip at 14, 14 ft; applied = vehicleFromTable(..., US) (1 = yes)
+MUTATION 15: supports table x converted twice
+  exit=1 detected=yes
+  via: US: supports table x = 0, 12, 27 m in ft (1 = yes)                      0                      1   1.000e+00
+MUTATION 16: fix: invalid input not checked before a switch
+  exit=1 detected=yes
+  via: error: drop-down Value 'node 7 (x = 29.5276 ft)' is not one of its Items.
+MUTATION 17: fix: refused switch leaves the new units in the drop-down
+  exit=1 detected=yes
+  via: switch to US with span 1 = 0: refused (units, labels and inputs stay SI), the error names 'Span 1' (1 = yes)
+MUTATION 18: fix: readings tab title not relabelled
+  exit=1 detected=yes
+  via: US: emptied result tables keep no header in SI units; readings tab 'Readings [in]'; noise tooltip in in; numer
+MUTATION 19: fix: a switch swaps the material default E again
+  exit=1 detected=yes
+  via: RCC with E = 200 GPa typed: the switch keeps E (200 GPa in ksi, model EI = 200 GPa x Ieff) and back (1 = yes)
+MUTATION 20: fix: memory dropped when a row was added
+  exit=1 detected=yes
+  via: axle added in US: back in SI the first 3 axles are exactly 80, 120, 120 kN at 4.2, 1.4 m again (1 = yes)
+MUTATION 21: fix: emptied critical table keeps its old header
+  exit=1 detected=yes
+  via: US: emptied result tables keep no header in SI units; readings tab 'Readings [in]'; noise tooltip in in; numer
+MUTATION 22: fix: emptied candidate table keeps its old header
+  exit=1 detected=yes
+  via: US: emptied result tables keep no header in SI units; readings tab 'Readings [in]'; noise tooltip in in; numer
+MUTATION 23: fix: noise tooltip not relabelled
+  exit=1 detected=yes
+  via: US: emptied result tables keep no header in SI units; readings tab 'Readings [in]'; noise tooltip in in; numer
+MUTATION 24: fix: sensor end tolerance back to 1e-9 L
+  exit=1 detected=yes
+  via: US: a sensor typed at the beam end as shown (88.5827 ft) is accepted (readings row S2 at the end) (1 = yes)
+MUTATION 25: fix: sensors at the end not clamped
+  exit=1 detected=yes
+  via: error: Sensor coordinates must lie on the beam (0 to 27 m).
+MUTATION 26: fix: app reads numeric text in table cells
+  exit=1 detected=yes
+  via: span 2 typed as text '15': supports table shows no x for C and Apply names 'Span 2' (1 = yes)
+MUTATION 27: fix: modelling notes left out of the summary
+  exit=1 detected=yes
+  via: model summary = infoPanelHtml('model', summary of buildModelFromTables): headings, one bullet per support, num
+MUTATION 28: fix: E/I fields keep the 4-digit display
+  exit=1 detected=yes
+  via: US: emptied result tables keep no header in SI units; readings tab 'Readings [in]'; noise tooltip in in; numer
+MUTATION 29: sweep: Back button throws
+  exit=1 detected=yes
+  via: 51 callbacks invoked (buttons, fields, tables, slider, tabs) without an error thrown or reported, after a vali
+MUTATION 30: sweep: Apply model reports an error (span 1 = -1 before the sweep)
+  exit=1 detected=yes
+  via: 51 callbacks invoked (buttons, fields, tables, slider, tabs) without an error thrown or reported, after a vali
+MUTATION 31: M9c: slider keeps the automatic ticks (limit labelled)
+  exit=1 detected=yes
+  via: direction or step edited: the status asks for Apply vehicle; the slider has round ticks (-x crossing, from bel
+MUTATION 32: M9c: slider ticks too coarse
+  exit=1 detected=yes
+  via: direction or step edited: the status asks for Apply vehicle; the slider has round ticks (-x crossing, from bel
+MUTATION 33: M9c: no status after a preset is chosen
+  exit=1 detected=yes
+  via: preset chosen: the status asks for Apply vehicle; after it: "Vehicle applied: HL-93 ..., 3 axle(s), total 320.
+MUTATION 34: M9c: no status after an axle edit
+  exit=1 detected=yes
+  via: + Add axle: 4 axles, the new one 1.2 m behind; - Remove last axle: 3; editing sets the preset to Custom (1 = y
+MUTATION 35: M9c: no status after Apply vehicle
+  exit=1 detected=yes
+  via: preset chosen: the status asks for Apply vehicle; after it: "Vehicle applied: HL-93 ..., 3 axle(s), total 320.
+MUTATION 36: M9c: ticks neither clamped nor -0 removed
+  exit=1 detected=yes
+  via: US: slider ticks are round (1, 2 or 5 x 10^k ft) and the non-round crossing end has no label (1 = yes)
+MUTATION 37: M9c: no status after a direction edit
+  exit=1 detected=yes
+  via: error: feval: first argument must be a string, inline function, or a function handle
+MUTATION 38: M9c: no status after a position-step edit
+  exit=1 detected=yes
+  via: error: feval: first argument must be a string, inline function, or a function handle
+MUTATION 39: M9c: drawing labels not clipped (app check)
+  exit=1 detected=yes
+  via: labels of the model, beam and M drawings are clipped to the axes (none left outside after a zoom) (1 = yes)
+MUTATION 40: M9c: reaction headers keep the sign rule
+  exit=1 detected=yes
+  via: US: reaction table header and position text in kip and ft (1 = yes)                      0
+MUTATION 41: M10: x_v not explained under the critical table
+  exit=1 detected=yes
+  via: x and x_v explained under the critical, reaction, sensitivity, readings and candidate tables and in the slider
+MUTATION 42: M10: slider readout without "measured from A"
+  exit=1 detected=yes
+  via: x and x_v explained under the critical, reaction, sensitivity, readings and candidate tables and in the slider
+MUTATION 43: M10: + Add ignores the spacing of the last two entries
+  exit=1 detected=yes
+  via: + Add never puts a point where it reads zero: sensor 23.625 m (27 m is support C), truck position 29.8 m (32.6
+MUTATION 44: M10: + Add not kept inside the range
+  exit=1 detected=yes
+  via: error: Sensor coordinates must lie on the beam (0 to 27 m).
+MUTATION 45: M10: - Remove empties the table
+  exit=1 detected=yes
+  via: + Add never puts a point where it reads zero: sensor 23.625 m (27 m is support C), truck position 29.8 m (32.6
+MUTATION 46: M10: off-beam sensor not checked
+  exit=1 detected=yes
+  via: invalid table rows are named: 'Sensor 2: x must be a number', 'Sensor 2: x = 30 m is not on the beam', 'Truck
+MUTATION 47: M10: a unit switch resets your sensors
+  exit=1 detected=yes
+  via: your sensors survive a pure unit switch: 4, 8, 12, 16 m shown in ft, and exactly 4, 8, 12, 16 m again in SI (1
+MUTATION 48: M10: sensors not converted on a switch
+  exit=1 detected=yes
+  via: US: default sensors and truck positions written in ft (L/4, L/2, 3L/4 of the 27 m beam) (1 = yes)
+MUTATION 49: M10: region order message left to the engine (m)
+  exit=1 detected=yes
+  via: US: a damaged region 'to' left of 'from' is refused with the node labels in ft (1 = yes)
+MUTATION 50: M10: node numbers replace the preview
+  exit=1 detected=yes
+  via: editing E shows a preview and asks for Apply model; ticking node numbers keeps the preview and the status line
+MUTATION 51: M10: E edit gives no preview
+  exit=1 detected=yes
+  via: error: feval: first argument must be a string, inline function, or a function handle
+MUTATION 52: M10: + Add span leaves the far-end type behind
+  exit=1 detected=yes
+  via: + then - : the far-end type (C Fixed) moves to the new end D (C becomes a roller) and back to C; model not app
+MUTATION 53: M10: - Remove span loses the far-end type
+  exit=1 detected=yes
+  via: + then - : the far-end type (C Fixed) moves to the new end D (C becomes a roller) and back to C; model not app
+MUTATION 54: M10: sensitivity names a most influential element on ties
+  exit=1 detected=yes
+  via: 12 + 15 m + 15 m overhang (indeterminate): the largest hogging moment, at C, comes from the overhang alone, so
+MUTATION 55: M10: hidden loss allowed beyond the search range
+  exit=1 detected=yes
+  via: Stage 3 defaults in the tables: sensors S1-S3 at L/4, L/2, 3L/4; positions P1-P4 at L/4..L (5L/4 has no axle o
+MUTATION 56: M10: model summary unformatted
+  exit=1 detected=yes
+  via: model summary = infoPanelHtml('model', summary of buildModelFromTables): headings, one bullet per support, num
+MUTATION 57: M10: findings unformatted
+  exit=1 detected=yes
+  via: findings = infoPanelHtml('findings', damageComparisonSummary) (indeterminate, degree 1); sub-tab shown (1 = ye
+MUTATION 58: M10: left box drops the flags
+  exit=1 detected=yes
+  via: left box: best fit, every limiting flag in orange and a pointer to the Summary tab (1 = yes)
+MUTATION 59: M10: healthy max and min in one colour
+  exit=1 detected=yes
+  via: healthy vs damaged plots: 4 solid curves per plot in 4 colours (healthy blue / lighter blue, damaged dark red
+MUTATION 60: M10: unit-slip message range always in GPa
+  exit=1 detected=yes
+  via: US unit slip: "RCC modulus E = 200 ksi is outside the usual 1450.38-10152.6 ksi" (10-70 GPa in ksi) (1 = yes)
+MUTATION 61: M10r2: + Add ignores the travel direction
+  exit=1 detected=yes
+  via: -x travel: + Add truck position continues in the travel direction (-2.8 m, inside the crossing to -5.6 m; afte
+MUTATION 62: M10r2: + Add puts a zero-reading point
+  exit=1 detected=yes
+  via: B Fixed: with S1 missing at P1, P2 the zero reading of S2 is named (not P1, which loads span 1, nor S1); + Add
+MUTATION 63: M10r2: - Remove span moves a Free tip onto the last support
+  exit=1 detected=yes
+  via: - Remove last span of a Pin-Roller-Free overhang gives Pin-Roller (the free tip is not moved onto B) (1 = yes)
+MUTATION 64: M10r2: zero response gets a most influential element
+  exit=1 detected=yes
+  via: simple span, hogging-moment sensitivity: the status says the response is zero everywhere (no "most influential
+MUTATION 65: M10r2: every sensitivity called a tie
+  exit=1 detected=yes
+  via: Sensitivity (Rmax at support B): app result = damageSensitivity(..., 'Node', node of B); the status names the
+MUTATION 66: M10r2: round-off bound far too large
+  exit=1 detected=yes
+  via: Sensitivity (Rmax at B), d = 1 %: changes of about 1e-4 of the axle loads are ranked (not called a tie or roun
+MUTATION 67: M10r2: zero-reading sensor left to the engine message
+  exit=1 detected=yes
+  via: a sensor on a support, or a truck position with no axle inside a span, is named in the app's words when the se
+MUTATION 68: M10r2: unit switch keeps sensors after pending edits
+  exit=1 detected=yes
+  via: error: quotient: nonconformant arguments (op1 is 1x2, op2 is 1x3)
+MUTATION 69: M10r2: switch ignores a pending direction edit
+  exit=1 detected=yes
+  via: a switch that applies a pending direction edit gives the default truck positions for -x (the kept ones would n
+MUTATION 70: M10r2: stale result kept after a table edit
+  exit=1 detected=yes
+  via: a sensor added after a run clears the old result (candidate table emptied) and says why (1 = yes)
+MUTATION 71: M10r2: redraw preview overwrites the status
+  exit=1 detected=yes
+  via: editing E shows a preview and asks for Apply model; ticking node numbers keeps the preview and the status line
+MUTATION 72: M10r2: Summary tab drops the ratio-method flag
+  exit=1 detected=yes
+  via: candidate table and Summary = infoPanelHtml('identSummary', identificationSummary): sections, fit check passed
+MUTATION 73: M10r2: zero-reading truck position not named
+  exit=1 detected=yes
+  via: a sensor on a support, or a truck position with no axle inside a span, is named in the app's words when the se
+MUTATION 74: M10r3: + Add ignores the 6-digit rounding
+  exit=1 detected=yes
+  via: US: + Add, shown with 6 digits, does not land on support B (39.37 ft) or repeat S2 (32.8084 ft): it takes the
+MUTATION 75: M10r3: + Add may put a sensor on a support
+  exit=1 detected=yes
+  via: US: + Add, shown with 6 digits, does not land on support B (39.37 ft) or repeat S2 (32.8084 ft): it takes the
+MUTATION 76: M10r3: single zero readings left to the engine message
+  exit=1 detected=yes
+  via: B Fixed, noise 1 % only: a single zero reading (S2 with the truck on span 1) is named in the app's words; with
+MUTATION 77: M10r3: missing readings counted as zero
+  exit=1 detected=yes
+  via: B Fixed, noise 1 % only: a single zero reading (S2 with the truck on span 1) is named in the app's words; with
+MUTATION 78: M10r3: determinacy not used for the sensitivity status
+  exit=1 detected=yes
+  via: A Free: support drop-down B, C only; Rmax at C = damageSensitivity(..., 'Node', node at 27 m); the beam is det
+MUTATION 79: M10r3: deflections called independent of EI
+  exit=1 detected=yes
+  via: A Free (determinate): the deflection sensitivity still names a most influential element (1 = yes)
+MUTATION 80: M10r3: unit switch ignores a pending support edit
+  exit=1 detected=yes
+  via: a switch that applies a pending edit of a support type only (C Roller -> Fixed) or of E only (32 -> 30 GPa) gi
+MUTATION 81: M10r3: quiet preview error overwrites the status
+  exit=1 detected=yes
+  via: editing E shows a preview and asks for Apply model; ticking node numbers keeps the preview and the status line
+MUTATION 82: M10r4: truck position blamed from the readings, not the beam
+  exit=1 detected=yes
+  via: a sensor on a support, or a truck position with no axle inside a span, is named in the app's words when the se
+MUTATION 83: M10r4: a Free end counted as a support
+  exit=1 detected=yes
+  via: B Free: + Add may put a sensor on the free node (12 m reads), a Free end is not a support (1 = yes)
+MUTATION 84: M10r4: unit switch ignores a pending E edit
+  exit=1 detected=yes
+  via: a switch that applies a pending edit of a support type only (C Roller -> Fixed) or of E only (32 -> 30 GPa) gi
+MUTATION 85: M10r4: dead sensor test ignores missing readings
+  exit=1 detected=yes
+  via: B Fixed: with S1 missing at P1, P2 the zero reading of S2 is named (not P1, which loads span 1, nor S1); + Add
+MUTATION 86: M10r5: + Add avoids Free span ends too
+  exit=1 detected=yes
+  via: B Free: + Add may put a sensor on the free node (12 m reads), a Free end is not a support (1 = yes)
+MUTATION 87: M10r5: on-support tolerance below the 6-digit display rounding
+  exit=1 detected=yes
+  via: US, B Fixed: a sensor typed at B as shown (39.3701 ft; 131.234 ft on 40 + 40 m, 123 um off) is named "on a sup
+MUTATION 88: M10r5: a sensor on a support named only when every reading is below the bound
+  exit=1 detected=yes
+  via: US, B Fixed: a sensor typed at B as shown (39.3701 ft; 131.234 ft on 40 + 40 m, 123 um off) is named "on a sup
+SUMMARY app (final): 89 / 89 detected
+
+NOTE: fault 60 (unit-slip message range always in GPa), not detected in the first run above, is now
+      detected by the app check's US unit-slip row (section 12b, 1450.38-10152.6 ksi).
+      Faults 44, 60, 61, 66, 70, 71 and 73 survived the first run after the round-2 fixes, and the round-3
+      reviewers showed that no check row could detect faults 62 and 80. Each led to a new check row and is
+      detected above. No analytical reference value was changed.
