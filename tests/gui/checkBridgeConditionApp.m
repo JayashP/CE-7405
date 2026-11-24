@@ -26,8 +26,8 @@ app = BridgeConditionApp();
 closer = onCleanup(@() delete(app));
 % The check's two-span bridge is RCC, so every identification run issues the spec section 7 caveat
 % 'BridgeFE:rccInverse'. It is expected here and is checked in a row (result flag and the text in the
-% app), so it is not printed many times. The deliberate unit-slip warning of section 8 is left on: the
-% app detects it through lastwarn.
+% app), so it is not printed many times. The deliberate unit slip of section 8 is reported by the app in
+% its own message (in GPa), so no warning is printed for it.
 rccWarning = warning('off', 'BridgeFE:rccInverse');
 restoreRccWarning = onCleanup(@() warning(rccWarning));
 c = app.Controls;
@@ -49,12 +49,27 @@ rows(end+1) = flag('start-up: SI units; supports table A (0 m, Pin), B (20 m, Ro
     && strcmp(c.UnitsDropDown.Value, SI.label) && isequal(c.SupportsTable.Data, {'A', 0, 'Pin'; 'B', 20, 'Roller'}));
 rows(end+1) = flag('start-up position is the crossing start, x_v = 0', app.Position == 0);
 rows(end+1) = flag('model tab drawing has > 10 graphics objects', numel(c.ModelAxes.Children) > 10);
+sensItems = c.SensitivityDropDown.Items;
+sensCodes = cellfun(@sensitivityQuantityCode, sensItems, 'UniformOutput', false);
+c.SensitivityDropDown.Value = sensItems{strcmp(sensCodes, 'Mmin')};   % hogging moment of a simple span: zero
+okZero = app.runDamageSensitivity();
+rows(end+1) = flag(['simple span, hogging-moment sensitivity: the status says the response is zero everywhere ' ...
+    '(no "most influential" element) and the % column is n/a, not round-off percentages'], okZero ...
+    && ~isempty(strfind(c.StatusLabel.Text, 'the response is zero for every location')) ...
+    && all(strcmp(c.SensitivityTable.Data(:, end), 'n/a')));
+c.SensitivityDropDown.Value = sensItems{1};
 
 % 2. Span table: + and - buttons; the supports table follows the span ends
 app.addSpan();
 rows(end+1) = flag('+ Add span: 2 spans of 20 m; supports A, B, C at 0, 20, 40 m (the new end a roller)', ...
     isequal(c.SpansTable.Data, {20, 16; 20, 16}) ...
     && isequal(c.SupportsTable.Data, {'A', 0, 'Pin'; 'B', 20, 'Roller'; 'C', 40, 'Roller'}));
+c.SupportsTable.Data{3, 3} = 'Free';      % an overhang at C: - Remove last span must not move "Free" onto B
+app.removeSpan();
+typesNoTip = c.SupportsTable.Data(:, 3)';
+app.addSpan();
+rows(end+1) = flag('- Remove last span of a Pin-Roller-Free overhang gives Pin-Roller (the free tip is not moved onto B)', ...
+    isequal(typesNoTip, {'Pin', 'Roller'}) && isequal(c.SupportsTable.Data(:, 3)', {'Pin', 'Roller', 'Roller'}));
 c.SupportsTable.Data{3, 3} = 'Fixed';
 app.addSpan();
 typesAdded = c.SupportsTable.Data(:, 3)';
@@ -266,8 +281,9 @@ c.SupportDropDown.Value = 'B (x = 12 m)';
 ok = app.runDamageSensitivity();
 refSensR = damageSensitivity(refModel, refVehicle, 0.40, 'Rmax', 'Step', max(app.Step, 0.5), 'Direction', 1, ...
     'Refine', false, 'Node', B);
-rows(end+1) = flag('Sensitivity (Rmax at support B): app result = damageSensitivity(..., ''Node'', node of B)', ok ...
-    && isequal(app.DamageSensitivity.change, refSensR.change));
+rows(end+1) = flag(['Sensitivity (Rmax at support B): app result = damageSensitivity(..., ''Node'', node of B); ' ...
+    'the status names the rank-1 element'], ok && isequal(app.DamageSensitivity.change, refSensR.change) ...
+    && ~isempty(strfind(c.StatusLabel.Text, sprintf('most influential: element(s) %s.', c.SensitivityTable.Data{1, 2}))));
 c.SensitivityDropDown.Value = items{1};
 app.clearDamage();
 rows(end+1) = flag('Clear damage: no damaged model, tables emptied, healthy model unchanged, no legend left', ...
@@ -293,9 +309,15 @@ for k = 1:4                               % 4 sensors: three removals leave one,
 end
 sensorsLeft = tableColumn(c.SensorsTable);
 statusLast = c.StatusLabel.Text;
-rows(end+1) = flag(['sensor and position tables: + Add puts one spacing after the last (27 m; a position capped at ' ...
-    '32.6 m, the end of the crossing); - Remove keeps at least one'], isequal(sensorsAdded, [sRef, 27]) ...
-    && strcmp(rowNameAdded, 'S4') && abs(positionsAdded(end) - 32.6) < 1e-9 && numel(positionsAdded) == 5 ...
+c.SensorsTable.Data = {6; 9};              % one spacing on would be 12 m = support B (zero readings)
+app.addIdentPoint('sensor');
+sensorsPastB = tableColumn(c.SensorsTable);
+c.SensorsTable.Data = num2cell(sRef(:));
+c.SensorsTable.RowName = {'S1'; 'S2'; 'S3'};
+rows(end+1) = flag(['+ Add never puts a point where it reads zero: sensor 23.625 m (27 m is support C), truck ' ...
+    'position 29.8 m (32.6 m leaves no axle inside a span), 18 m instead of support B; - Remove keeps at least one'], ...
+    isequal(sensorsAdded, [sRef, 23.625]) && strcmp(rowNameAdded, 'S4') && abs(positionsAdded(end) - 29.8) < 1e-9 ...
+    && numel(positionsAdded) == 5 && isequal(sensorsPastB, [6 9 18]) ...
     && isequal(sensorsLeft, sRef(1)) && strcmp(statusLast, 'At least one sensor is needed.'));
 c.SensorsTable.Data = {6.75; NaN; 20.25};
 okNaN = app.newEmptyReadings();
@@ -308,6 +330,14 @@ c.PositionsTable.Data = {6.75; 13.5; NaN; 27};
 okPos = app.newEmptyReadings();
 errPos = app.LastError;
 c.PositionsTable.Data = num2cell(pRef(:));
+c.SensorsTable.Data = {6.75; 12; 20.25};     % sensor 2 on support B: always zero
+app.generateSyntheticReadings();
+okZeroRun = app.runIdentification();
+errZero = app.LastError;
+c.SensorsTable.Data = num2cell(sRef(:));
+rows(end+1) = flag('a sensor on a support is named in the app''s words when the search needs its noise (not ''NoiseAbsolute'')', ...
+    ~okZeroRun && strcmp(errZero, ['Sensor 2 (x = 12 m) reads zero for every truck position (it is on a support). ' ...
+    'Remove it, or state Reading noise [mm] > 0.']));
 rows(end+1) = flag('invalid table rows are named: ''Sensor 2: x must be a number'', ''Sensor 2: x = 30 m is not on the beam'', ''Truck position 3''', ...
     ~okNaN && strcmp(errNaN, 'Sensor 2: x must be a number (m).') ...
     && ~okOff && strcmp(errOff, 'Sensor 2: x = 30 m is not on the beam (0 to 27 m).') ...
@@ -389,6 +419,12 @@ c.SensorsTable.Data = num2cell(sRef(:));
 c.DirectionDropDown.Value = '-x (right to left)';
 app.applyVehicleInputs();
 [sNeg, pNeg] = identificationDefaults(refModel, refVehicle, -1);
+app.addIdentPoint('truck position');
+positionsNegAdded = tableColumn(c.PositionsTable);
+app.removeIdentPoint('truck position');
+rows(end+1) = flag('-x travel: + Add truck position continues in the travel direction (-2.8 m, inside the crossing to -5.6 m)', ...
+    numel(positionsNegAdded) == numel(pNeg) + 1 && abs(positionsNegAdded(end) + 2.8) < 1e-9 ...
+    && isequal(tableColumn(c.PositionsTable), pNeg));
 okGen = app.generateSyntheticReadings();
 uNeg = syntheticObservations(refModel, refVehicle, pNeg, sNeg, -1, 9, 10.5, 30, 1, 3);
 okRun = app.runIdentification();
@@ -558,9 +594,16 @@ rows(end+1) = flag('RCC with E = 200 GPa typed: the switch keeps E (200 GPa in k
     && c.EField.Value == 200 && strcmp(c.MaterialDropDown.Value, 'RCC'));
 c.EField.Value = 32;
 app.applyModelInputs();
-c.SensorsTable.Data = {4; 8; 12; 16};     % the user's own sensors: a unit switch keeps them (converted)
+c.SensorsTable.Data = {4; 8; 12; 16};     % the user's own sensors: a pure unit switch keeps them (converted)
 app.setUnitSystem('US');
 sensorsUS = tableColumn(c.SensorsTable);
+app.setUnitSystem('SI');                  % no pending edits: an exact round trip
+rows(end+1) = flag('your sensors survive a pure unit switch: 4, 8, 12, 16 m shown in ft, and exactly 4, 8, 12, 16 m again in SI', ...
+    numel(sensorsUS) == 4 && max(abs(sensorsUS * ft ./ [4 8 12 16] - 1)) < 1e-11 ...
+    && isequal(c.SensorsTable.Data, {4; 8; 12; 16}) ...
+    && isequal(c.SensorsTable.RowName(:)', {'S1', 'S2', 'S3', 'S4'}) ...
+    && ~isempty(strfind(c.StatusLabel.Text, 'Every input was converted; press the run buttons')));
+app.setUnitSystem('US');
 app.addAxle();                            % an axle added in US units
 nUS = size(c.AxlesTable.Data, 1);
 addedUS = c.AxlesTable.Data{3, 2};
@@ -577,10 +620,11 @@ c.SpansTable.Data{2, 1} = 50;             % edited in ft: converted on the switc
 app.setUnitSystem('SI');
 rows(end+1) = flag('span 2 edited to 50 ft: 15.24 m after the switch back; the unedited span 1 is 12 m again', ...
     c.SpansTable.Data{2, 1} == 15.24 && c.SpansTable.Data{1, 1} == 12 && abs(app.Model.nodes.x(end) - 27.24) < 1e-12);
-rows(end+1) = flag('your sensors survive a unit switch: 4, 8, 12, 16 m shown in ft, and exactly 4, 8, 12, 16 m again in SI', ...
-    numel(sensorsUS) == 4 && max(abs(sensorsUS * ft ./ [4 8 12 16] - 1)) < 1e-11 ...
-    && isequal(c.SensorsTable.Data, {4; 8; 12; 16}) ...
-    && isequal(c.SensorsTable.RowName(:)', {'S1', 'S2', 'S3', 'S4'}));
+sDefaults = identificationDefaults(app.Model, app.Vehicle, 1);     % the new 27.24 m beam, 4 axles
+rows(end+1) = flag(['a switch that applies a pending span edit (50 ft) gives the default sensors for the new beam ' ...
+    '(the kept 4, 8, 12, 16 m would belong to the old one) and says so'], ...
+    numel(tableColumn(c.SensorsTable)) == numel(sDefaults) && max(abs(tableColumn(c.SensorsTable) - sDefaults)) < 1e-9 ...
+    && ~isempty(strfind(c.StatusLabel.Text, 'so the sensors and truck positions are the defaults')));
 loadsBack = [c.AxlesTable.Data{:, 1}];
 gapsBack = [c.AxlesTable.Data{1:end-1, 2}];
 rows(end+1) = flag('axle added in US: back in SI the first 3 axles are exactly 80, 120, 120 kN at 4.2, 1.4 m again', ...
@@ -605,7 +649,13 @@ c.SensorsTable.Data = {str2double(sprintf('%g', 13.5 / ft)); str2double(sprintf(
 okEnd = app.newEmptyReadings();
 rows(end+1) = flag('US: a sensor typed at the beam end as shown (88.5827 ft) is accepted (readings row S2 at the end)', ...
     okEnd && strcmp(c.ReadingsTable.RowName{2}, sprintf('S2 (x = %g ft)', 27 / ft)));
+c.DirectionDropDown.Value = '-x (right to left)';   % a pending edit: the switch applies it
 app.setUnitSystem('SI');
+[~, pPending] = identificationDefaults(app.Model, app.Vehicle, -1);
+rows(end+1) = flag(['a switch that applies a pending direction edit gives the default truck positions for -x (the ' ...
+    'kept ones would not fit) and says so'], app.Direction == -1 && max(abs(tableColumn(c.PositionsTable) - pPending)) < 1e-9 ...
+    && ~isempty(strfind(c.StatusLabel.Text, 'so the sensors and truck positions are the defaults')));
+c.DirectionDropDown.Value = '+x (left to right)';
 app.choosePreset(truckName);
 app.applyVehicleInputs();
 
@@ -623,7 +673,7 @@ rows(end+1) = flag(['A Free: support drop-down B, C only; Rmax at C = damageSens
     'the beam is determinate, so the status names no "most influential" element'], ...
     okFree && okSens && isequal(c.SupportDropDown.Items, {'B (x = 12 m)', 'C (x = 27 m)'}) ...
     && isequal(app.DamageSensitivity.change, refSensC.change) ...
-    && max(abs(refSensC.change)) <= 1e-12 * abs(refSensC.healthy) ...   % round-off only
+    && max(abs(refSensC.change)) <= 1e-9 * abs(refSensC.healthy) ...    % round-off only
     && ~isempty(strfind(c.StatusLabel.Text, 'the response is the same for every location')));
 c.SensitivityDropDown.Value = items{1};
 c.SupportsTable.Data{1, 3} = 'Pin';

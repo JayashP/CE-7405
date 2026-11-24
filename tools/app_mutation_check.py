@@ -3,7 +3,7 @@
 Usage: python3 -I tools/app_mutation_check.py <repo_root> <empty_scratch_dir> [i,j,...]
 Copies the repository once per fault (without .git and results), injects one fault, runs
 tools/gui_mock/runGuiMockCheck in GNU Octave (3 at a time) and prints one JSON line per fault
-with the first FAIL row or error. Never modifies <repo_root>. M9: faults 0-30, M9c: 31-40, M10: 41-60; see
+with the first FAIL row or error. Never modifies <repo_root>. M9: faults 0-30, M9c: 31-40, M10: 41-60, M10 review round 2: 61-73; see
 results/verification/2026-11-19_M9_mutation_check_octave-8.4.0.txt.
 """
 import shutil, subprocess, sys, pathlib, json
@@ -57,24 +57,38 @@ M = [
  # M10 (GUI clarity: legends, sensor/position tables, formatted boxes, colours, 9 fixes)
  ('M10: x_v not explained under the critical table', A, "x_v = position of the truck''s front ' ...", "x_v = the truck ' ..."),
  ('M10: slider readout without "measured from A"', A, "(front axle, measured from A); %d of %d", "(front axle); %d of %d"),
- ('M10: + Add repeats the last value', A, "next = 2 * v(end) - v(end - 1);", "next = v(end);"),
- ('M10: + Add not capped at the end of the range', A, "next = min(max(next, limits(1)), limits(2));", "next = max(next, limits(1));"),
+ ('M10: + Add ignores the spacing of the last two entries', A, "step = abs(given(end) - given(end - 1));", "step = span / 4;"),
+ ('M10: + Add not kept inside the range', A, "if x > limits(1) + tol && x < limits(2) - tol && all(abs(given - x) > tol) ...", "if all(abs(given - x) > tol) ..."),
  ('M10: - Remove empties the table', A, "            if numel(v) < 2\n                app.setStatus(sprintf('At least one %s is needed.', noun));", "            if numel(v) < 1\n                app.setStatus(sprintf('At least one %s is needed.', noun));"),
  ('M10: off-beam sensor not checked', A, "off = find(sensors < x(1) - tol | sensors > x(end) + tol, 1);", "off = [];"),
  ('M10: a unit switch resets your sensors', A, "                app.setPointTable(c.SensorsTable, after.sensors, 'S');\n", ""),
  ('M10: sensors not converted on a switch', A, "'sensors', 'length', 'positions', 'length'", "'positions', 'length'"),
  ('M10: region order message left to the engine (m)', A, "                app.checkRegionOrder(c.DamageFromDropDown, c.DamageToDropDown, 'Damaged region');\n", ""),
- ('M10: node numbers replace the preview', A, "            if app.Previewing\n                app.previewModel();", "            if false\n                app.previewModel();"),
+ ('M10: node numbers replace the preview', A, "            if app.Previewing\n                app.previewModel(true);", "            if false\n                app.previewModel(true);"),
  ('M10: E edit gives no preview', A, "'Value', 200, 'Limits', [0 Inf], 'LowerLimitInclusive', 'off', 'ValueDisplayFormat', '%.6g', ...\n                'ValueChangedFcn', @(~, ~) app.previewModel()));", "'Value', 200, 'Limits', [0 Inf], 'LowerLimitInclusive', 'off', 'ValueDisplayFormat', '%.6g'));"),
  ('M10: + Add span leaves the far-end type behind', A, "            data(end-1:end, 3) = {'Roller'; farEnd};     % the old end becomes an interior roller\n", ""),
- ('M10: - Remove span loses the far-end type', A, "            c.SupportsTable.Data{end, 3} = farEnd;       % keep the far-end support type (e.g. a Fixed end)\n", ""),
- ('M10: sensitivity names a most influential element on ties', A, "            if max(abs(s.change)) <= 1e-9 * max(abs([s.healthy; s.values(:)]))", "            if false"),
+ ('M10: - Remove span loses the far-end type', A, "                c.SupportsTable.Data{end, 3} = farEnd;   % not moved onto the last support (it would be lost)\n", ""),
+ ('M10: sensitivity names a most influential element on ties', A, "            elseif max(abs(s.change)) <= 1e-9 * scale", "            elseif false"),
  ('M10: hidden loss allowed beyond the search range', A, "'Limits', [0 60], 'Tooltip', 'The search covers", "'Limits', [0 99], 'Tooltip', 'The search covers"),
  ('M10: model summary unformatted', A, "            c.SummaryArea.HTMLSource = infoPanelHtml('model', info.summary);\n            app.Previewing = false;", "            c.SummaryArea.HTMLSource = infoPanelHtml('message', info.summary);\n            app.Previewing = false;"),
  ('M10: findings unformatted', A, "infoPanelHtml('findings', damageComparisonSummary(cmp, app.Model, U));", "infoPanelHtml('message', damageComparisonSummary(cmp, app.Model, U));"),
  ('M10: left box drops the flags', A, "infoPanelHtml('identBox', [summary(2); flags; {", "infoPanelHtml('identBox', [summary(2); {"),
  ('M10: healthy max and min in one colour', A, "healthy = [th.healthyMax; th.healthyMin];", "healthy = [th.healthyMax; th.healthyMax];"),
- ('M10: unit-slip message range always in GPa', 'src/gui/buildModelFromTables.m', "range = materialModulusRange(in.materialType) / U.modulus.toSI;", "range = materialModulusRange(in.materialType) / 1e9;"),
+ ('M10: unit-slip message range always in GPa', 'src/gui/buildModelFromTables.m', "E, U.modulus.unit, range(1) / U.modulus.toSI, ...", "E, U.modulus.unit, range(1) / 1e9, ..."),
+ # M10 review round 2 (faults 61-)
+ ('M10r2: + Add ignores the travel direction', A, "candidates = [last + dir * step,", "candidates = [last + step,"),
+ ('M10r2: + Add puts a zero-reading point', A, "                        && app.readsSomething(kind, x)\n", "                        && true\n"),
+ ('M10r2: - Remove span moves a Free tip onto the last support', A, "if ~strcmpi(farEnd, 'Free')", "if true"),
+ ('M10r2: zero response gets a most influential element', A, "            if max(abs([s.healthy; s.values(:)])) <= 1e-9 * scale", "            if false"),
+ ('M10r2: every sensitivity called a tie', A, "            elseif max(abs(s.change)) <= 1e-9 * scale", "            elseif true"),
+ ('M10r2: round-off bound far too large', A, "scale = app.responseScale(code);", "scale = 1e6 * app.responseScale(code);"),
+ ('M10r2: zero-reading sensor left to the engine message', A, "                app.checkZeroReadings(sensors, positions);\n", ""),
+ ('M10r2: unit switch keeps sensors after pending edits', A, "kept = okModel && okVehicle && app.sameSignature(applied, app.appliedSignature());", "kept = okModel && okVehicle;"),
+ ('M10r2: switch ignores a pending direction edit', A, "&& a.direction == b.direction;", ";"),
+ ('M10r2: stale result kept after a table edit', A, "                app.clearIdentificationResults();       % the old result belongs to the old sensors / positions\n", ""),
+ ('M10r2: redraw preview overwrites the status', A, "                app.previewModel(true);                 % keep showing the un-applied edits", "                app.previewModel();"),
+ ('M10r2: Summary tab drops the ratio-method flag', A, "infoPanelHtml('identSummary', summary, flags);", "infoPanelHtml('identSummary', summary);"),
+ ('M10r2: zero-reading truck position not named', A, "            p = find(max(abs(uH), [], 1) <= small, 1);", "            p = [];"),
 ]
 src = (repo / A).read_text()
 for name, f, old, new in M:

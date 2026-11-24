@@ -29,8 +29,9 @@ function [model, info] = buildModelFromTables(in, U)
 %     supportX        span-end coordinates [m] (SI, as in the engine)
 %     supportLetters  span-end names 'A', 'B', ... (SUPPORTLETTERS)
 %     supportTypes    support labels ('Pin', 'Roller', 'Fixed' or 'Free')
-%     warnings        cellstr of unit-sanity warnings (DEFINEMATERIAL's check,
-%                     worded in the display units U)
+%     warnings        cellstr of unit-sanity warnings (the MATERIALMODULUSRANGE
+%                     check, worded in the display units U; nothing is
+%                     printed to the command window)
 %     summary         cellstr of lines describing the model in units U:
 %                     spans and total length, elements per span, supports
 %                     with letters and x, material with E, I and EI
@@ -127,16 +128,19 @@ q = double(q);
 
 % SI engine model
 [x, xs] = meshSpans(spans * U.length.toSI, elements);
-lastwarn('', '');                 % clear both the message and the identifier
+% The unit-sanity check is made here, in the unit the user typed (the engine's warning speaks in Pa and
+% would print on every preview); the engine's own warning is silenced for this call.
+state = warning('off', 'BridgeFE:unusualModulus');
+restoreWarning = onCleanup(@() warning(state));
 material = defineMaterial(in.materialType, E * U.modulus.toSI, I * U.inertia.toSI, name, basis);
-[~, warnId] = lastwarn;
+clear restoreWarning
+range = materialModulusRange(material.type);
 warnings = {};
-if strcmp(warnId, 'BridgeFE:unusualModulus')
-    % The engine's warning speaks in Pa; the app's message uses the unit the user typed in.
-    range = materialModulusRange(in.materialType) / U.modulus.toSI;
+if E * U.modulus.toSI < range(1) || E * U.modulus.toSI > range(2)
     labels = struct('steel', 'Steel', 'rcc', 'RCC');
     warnings = {sprintf(['%s modulus E = %g %s is outside the usual %g-%g %s. Check the units; the model was ' ...
-        'still built.'], labels.(lower(in.materialType)), E, U.modulus.unit, range(1), range(2), U.modulus.unit)};
+        'still built.'], labels.(material.type), E, U.modulus.unit, range(1) / U.modulus.toSI, ...
+        range(2) / U.modulus.toSI, U.modulus.unit)};
 end
 model = createBeamModel(x, material);
 for k = 1:nSpans + 1

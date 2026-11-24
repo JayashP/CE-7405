@@ -7,15 +7,19 @@ function html = infoPanelHtml(kind, lines, flags)
 %   limiting flags (IDENTIFICATIONSUMMARY's second output) in orange.
 %   KIND:
 %     'model'        model summary (BUILDMODELFROMTABLES info.summary):
-%                    Model, Supports (one bullet each), Material, Permanent
-%                    load, and the modelling notes in grey; two columns
+%                    Model, Supports (one bullet each), Material and load,
+%                    and the modelling notes in grey; two columns
 %     'envelope'     moving-load run notes (vehicle, positions; last line grey)
 %     'damage'       applied damage (first line) and its caveat (grey)
 %     'findings'     DAMAGECOMPARISONSUMMARY lines (first line as the lead)
-%     'identBox'     best fit, flags in orange, pointer to the Summary tab
-%     'identSummary' IDENTIFICATIONSUMMARY lines: Method, Result, Checks
-%                    and flags (orange; a passed fit check green),
-%                    Synthetic test case, Notes (grey)
+%     'identBox'     the flags first (orange, so a small box always shows
+%                    them), then the best fit, then the pointer to the
+%                    Summary tab (grey)
+%     'identSummary' IDENTIFICATIONSUMMARY lines: the method, Result,
+%                    Checks and flags (orange; a passed fit check green;
+%                    a flag that is not one of the lines, such as the ratio
+%                    method's warning, is listed here too), Test case,
+%                    Notes (grey)
 %     'message'      instructions or a hint, one paragraph per line
 %
 %   See also HTMLPANEL, BRIDGECONDITIONAPP.
@@ -31,8 +35,7 @@ switch kind
     case 'model'
         s = section('Model', {}, 'list');
         sup = section('Supports', {}, 'list');
-        mat = section('Material', {}, 'list');
-        perm = section('Permanent load', {}, 'list');
+        mat = section('Material and load', {}, 'list');
         for k = 1:numel(lines)
             t = lines{k};
             if strncmp(t, 'Supports: ', 10)
@@ -40,7 +43,7 @@ switch kind
             elseif strncmp(t, 'Material:', 9) || strncmp(t, 'Basis:', 6)
                 mat.items{end+1} = t;
             elseif strncmp(t, 'Permanent uniform load:', 23)
-                perm.items{end+1} = t;
+                mat.items{end+1} = t;
             elseif ~isempty(t)
                 s.items{end+1} = t;
             end
@@ -50,7 +53,7 @@ switch kind
             'support, e.g. a cantilever tip.'], ...
             'Steel: EI = Es*Is. RCC: EI = Ec*Ieff, with Ieff supplied by you and held constant (no cracking model).', ...
             'Linear, quasi-static analysis. Not a load rating or design check.'}, 'note');
-        parts = [s, sup, mat, perm, notes];
+        parts = [s, sup, mat, notes];
         columns = 2;                                 % the summary box is wide and short
     case 'envelope'
         parts = [section('Moving-load run', lines(1:end-1), 'list'), section('', lines(end), 'note')];
@@ -68,8 +71,8 @@ switch kind
             note = {};
         end
         lead = items(1);
-        rest = cellfun(@(t) ['[warn] ', t], items(2:end), 'UniformOutput', false);
-        parts = [section('Best fit', lead, 'lead'), section('', rest, 'list'), section('', note, 'note')];
+        warnings = cellfun(@(t) {'warn', t}, items(2:end), 'UniformOutput', false);
+        parts = [section('', warnings, 'list'), section('', lead, 'lead'), section('', note, 'note')];
     case 'identSummary'
         method = {};
         result = {};
@@ -81,9 +84,9 @@ switch kind
             if strncmp(t, 'Method:', 7)
                 method{end+1} = t; %#ok<AGROW>
             elseif any(strcmp(t, flags)) || strncmp(t, 'FIT CHECK FAILED', 16) || strncmp(t, 'Damage cannot be ruled out', 26)
-                checks{end+1} = ['[warn] ', t]; %#ok<AGROW>
+                checks{end+1} = {'warn', t}; %#ok<AGROW>
             elseif strncmp(t, 'Fit check passed', 16)
-                checks{end+1} = ['[ok] ', t]; %#ok<AGROW>
+                checks{end+1} = {'ok', t}; %#ok<AGROW>
             elseif strncmp(t, 'Synthetic test case', 19) || strncmp(t, 'The candidate regions are longer', 32)
                 test{end+1} = t; %#ok<AGROW>
             elseif strncmp(t, 'Self-generated', 14) || strncmp(t, 'The result locates', 18)
@@ -92,8 +95,15 @@ switch kind
                 result{end+1} = t; %#ok<AGROW>
             end
         end
-        parts = [section('Method', method, 'lead'), section('Result', result, 'list'), ...
-            section('Checks and flags', checks, 'list'), section('Synthetic test case', test, 'list'), ...
+        % A flag that is not one of the lines (the ratio method's warning; the short FIT CHECK FAILED form
+        % stands for the long line) is listed with the checks, in the engine's words.
+        for k = 1:numel(flags)
+            if ~any(strcmp(flags{k}, lines)) && ~strncmp(flags{k}, 'FIT CHECK FAILED', 16)
+                checks = [{{'warn', flags{k}}}, checks]; %#ok<AGROW>
+            end
+        end
+        parts = [section('', method, 'lead'), section('Result', result, 'list'), ...
+            section('Checks and flags', checks, 'list'), section('Test case', test, 'list'), ...
             section('Notes', notes, 'note')];
     case 'message'
         parts = section('', lines, 'lead');

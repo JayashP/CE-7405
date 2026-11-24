@@ -10,9 +10,11 @@ fprintf('SI table after HL-93: loads %s kN, spacings %s m\n', mat2str([c.AxlesTa
 app.setUnitSystem('US');
 fprintf('US table: loads %s kip, spacings %s ft; step %s ft; E %.10g ksi, I %.10g in^4\n', mat2str([c.AxlesTable.Data{:,1}], 12), ...
     mat2str([c.AxlesTable.Data{1:2,2}], 12), num2str(c.StepField.Value, 12), c.EField.Value, c.IField.Value);
-fprintf('summary EI line: %s\n', c.SummaryArea.Value{4});
+summary = plainLines(c.SummaryArea.HTMLSource);        % M10: the box is formatted HTML
+fprintf('summary EI line: %s\n', summary{find(~cellfun(@isempty, strfind(summary, 'EI = ')), 1)});
 fprintf('reactions: %s\n', strjoin(c.ReactionsTable.Data(:, 4)', ' | '));
-fprintf('sensors "%s"; positions "%s"; hidden %s to %s\n', c.SensorField.Value, c.IdentPositionsField.Value, ...
+fprintf('sensors %s; positions %s; hidden %s to %s\n', mat2str([c.SensorsTable.Data{:}], 6), ...
+    mat2str([c.PositionsTable.Data{:}], 6), ...
     c.HiddenFromDropDown.Value, c.HiddenToDropDown.Value);
 ok1 = app.generateSyntheticReadings();
 ok2 = app.runIdentification();
@@ -21,7 +23,19 @@ d = c.CandidateTable.Data;
 for r = 1:size(d, 1)
     fprintf('  %s\n', strjoin(cellfun(@(v) num2str(v), d(r, :), 'UniformOutput', false), ' | '));
 end
-fprintf('%s\n', c.IdentInfo.Value{:});
+info = plainLines(c.IdentInfo.HTMLSource);
+fprintf('%s\n', info{:});
 fprintf('readings tab: %s\n', c.IdentReadingsTab.Title);
 delete(app);
+end
+
+function lines = plainLines(html)
+% The text of an information box (INFOPANELHTML), one line per heading, bullet or paragraph.
+html = regexprep(html, '<style>.*</style>', '');
+html = regexprep(html, '</(li|p|h4)>', '\n');
+text = regexprep(html, '<[^>]*>', '');
+text = strrep(strrep(strrep(strrep(text, '&lt;', '<'), '&gt;', '>'), '&#9888;&#65038;', '[!]'), '&#10004;&#65038;', '[ok]');
+text = strrep(text, '&amp;', '&');
+lines = strtrim(regexp(text, '\n', 'split'));
+lines = lines(~cellfun(@isempty, lines));
 end
