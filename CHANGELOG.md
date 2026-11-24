@@ -38,6 +38,14 @@ GUI clarity, requested by the user after the user guide (DECISIONS.md D-032). No
 - Formatted boxes: a leading "+" sign is highlighted, element/node/section/seed numbers and step numbers are not, long words wrap, the warning and tick signs use the text form (they take the colour), the colour of an item is never read from its text, and the Summary has no repeated "Method" heading.
 - GUI stand-ins: `uihtml` accepts only the properties the app uses; `scroll` for tables. `tools/crosscheck/replayV026.m` reads the new tables and boxes.
 
+### Fixed after the second independent review of M10 (round 3)
+- **+ Add** in US units: the new entry, shown with 6 digits, could sit a few micrometres off a support (65.6168 ft for a support at 65.6167979 ft: almost no reading) or repeat an entry converted from SI (32.8084 ft next to 32.8083989501 ft). Entries within 1e-5 of the range of a support or an entry are now skipped.
+- Zero readings with a reading noise in % only: a truck position is named before a sensor (when no axle is inside a span every sensor reads zero, and the sensors are not at fault); a sensor that is not on a support is said to be on a span no truck position loads; a single zero reading (spans uncoupled by an interior Fixed support) is named ("Sensor 2 (x = 13.5 m) reads zero with the truck at position 1 (x_v = 6.75 m) ... state Reading noise [mm] > 0, or leave that reading empty (missing)."). Missing readings are left out, as in the engine, so a run the engine accepts is no longer refused.
+- Sensitivity status: on a statically determinate beam (2 restrained DOFs), M, V and R are "the same for every location" by statics, whatever the mesh; the size of the changes is used only for an indeterminate beam (e.g. the hogging moment at a support from an overhang alone). With 600 elements on one span the round-off of the changes reached 3e-8 of the response, above the round-2 bound, and named a "most influential" element.
+- A unit switch that applies a pending support-type, E, I, material or uniform-load edit now gives the default sensors and truck positions too (it compared only node positions, axles and direction).
+- A redraw (node numbers, deformation scale) during an invalid pending edit no longer replaces the status with the input error.
+- GUI stand-in: `uihtml` refuses visual properties set after construction as well. `testGuiHelpers` checks what is printed (`evalc`), not `lastwarn`: MATLAB records a warning that is turned off in `lastwarn`, Octave does not, so the round-2 assertion would have failed in MATLAB.
+
 ## [0.10.1-M9c] — 2026-11-19 (branch `claude/m9c-polish`)
 
 Cosmetic follow-ups from the user's MATLAB screenshots of M9 (VERIFICATION_LOG V-026 part 2a), revised after an independent review. No change to any result; the `src/` changes are display only (plot title, label clipping and placement).
