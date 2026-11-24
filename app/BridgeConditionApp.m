@@ -1325,6 +1325,12 @@ classdef BridgeConditionApp < handle
             th = app.Theme;
             fig = uifigure('Name', 'CE 7405 Bridge Analysis (2D equivalent beam)', ...
                 'Position', [60 60 1380 860], 'Color', th.background);
+            try                                     % R2025a+: tables, fields and axes follow MATLAB's theme; the
+                if isprop(fig, 'Theme')             % app's own colours are light, so keep the whole figure light
+                    fig.Theme = 'light';            % (MATLAB Online in dark theme showed black tables and axes)
+                end
+            catch
+            end
             fig.CloseRequestFcn = @(~, ~) delete(app);
             app.UIFigure = fig;
             main = uigridlayout(fig, [2 1]);

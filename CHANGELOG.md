@@ -54,6 +54,10 @@ GUI clarity, requested by the user after the user guide (DECISIONS.md D-032). No
 ### Fixed after the MATLAB run (V-030)
 - The M, V and v diagrams on the Vehicle tab no longer label round-off as a peak: the user's MATLAB screenshot showed "-1.164e-13" at the pinned end of a simple span. `plotDiagram` now labels a maximum or minimum only when it is more than 1e-9 of the largest magnitude of the diagram (a relative bound, so the same in every unit). testGuiHelpers checks the screenshot case, a round-off maximum, a small real minimum (-1e-6 against 219.2, still labelled) and the same diagram scaled by 1e-12; 4 new mutants, all detected.
 
+### After the MATLAB Online test (presentation day)
+- `openBridgeApp.m` opens the app in one step (MATLAB Online link and QR code in the README and `docs/presentation/`).
+- The app figure is set to the light theme where MATLAB supports themes (R2025a and later): in MATLAB Online with the dark theme, tables, fields and axes followed the dark theme while the app's own panels stayed light. Octave app check 118/118 (the stand-ins have no Theme property, so the branch is skipped there); not yet seen in MATLAB.
+
 ## [0.10.1-M9c] — 2026-11-19 (branch `claude/m9c-polish`)
 
 Cosmetic follow-ups from the user's MATLAB screenshots of M9 (VERIFICATION_LOG V-026 part 2a), revised after an independent review. No change to any result; the `src/` changes are display only (plot title, label clipping and placement).
