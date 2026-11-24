@@ -1428,3 +1428,15 @@ The M9c axle-label merge (`aacbc26`) is not exercised here: HL-93 axles are 14 f
 **Status of M9c:** verified in Octave (V-027) and in MATLAB R2026b (V-028, V-030 part 5): every change seen.
 
 **Status of M10:** verified in Octave (V-029) and in MATLAB R2026b (V-030 parts 1-5): test suite 162/162, app check every row PASS, all requested screens as designed, round-off label fix (M10b) seen.
+
+## V-031 — 2026-11-24 — the app in MATLAB Online, opened from the QR code (run by the user)
+
+| Item | Value |
+|---|---|
+| Platform | MATLAB Online (browser), opened with the link `matlab.mathworks.com/open/github/v1?repo=JayashP/CE-7405&file=openBridgeApp.m` (QR code `docs/presentation/qr_open_in_matlab_online.png`), after the repository was made public |
+| Code version | `main` at `5427b37` (`openBridgeApp.m`; figure kept in the light theme) |
+| First try (`09aba9d`) | The app opened and ran, but MATLAB Online was in its dark theme: tables, fields and axes were black while the app's own panels stayed light; the lower part of the window was cut off at 100 % browser zoom. The user also saw the window close after about a minute once; not seen again and not reproduced (no timer or close path in the code; the CloseRequestFcn is the only one) |
+| After the fix (`5427b37`) | Fresh copy: the whole app in light colours; with the browser zoomed out the full window fits. Identification run ("322 structures analysed; 3 candidate region(s)", as in MATLAB desktop, V-030 part 3) and Matrices tab (element 1: L_e = 1.25 m, EI = 2e9 N*m^2, 34 DOFs, 32 free, 2 restrained, rcond(K_ff) = 1.59e-05; k_e(1,1) = 12EI/L^3 = 1.2288e10). Screenshot: `results/verification/2026-11-24_matlab_online_app_matrices_light_theme.png` |
+| Cosmetic, not changed | The Matrices tab DOF table prints U of θ1 as "-0" (a round-off negative zero; present since M6) |
+
+**Status:** the app runs in MATLAB Online from the QR code. Advice on the demo slide: a laptop or tablet, browser zoomed out if the window is cut off.
