@@ -624,7 +624,7 @@ classdef BridgeConditionApp < handle
             near = 1e-5 * max(abs(limits)) + tol;
             taken = given;
             if strcmp(kind, 'sensor')
-                taken = [taken, app.ModelInfo.supportX(:)' / app.Units.length.toSI];
+                taken = [taken, app.supportedX() / app.Units.length.toSI];
             end
             next = NaN;
             for k = 1:numel(candidates)
@@ -1974,8 +1974,9 @@ classdef BridgeConditionApp < handle
             % With a reading noise in % only, a reading predicted as zero gets no standard deviation and the engine
             % refuses the run with a message about an option the app does not show ('NoiseAbsolute'): name the
             % truck position, the sensor or the reading in the app's words. Missing readings (NaN in uObs) are
-            % left out, as in the engine. A truck position is named first: with no axle inside a span, every
-            % sensor reads zero, and the sensors are not at fault.
+            % left out, as in the engine. A truck position is named only when the whole beam is still (no axle
+            % inside a span, checked at every element midpoint); a sensor when it reads zero for every truck
+            % position; otherwise the first zero reading (e.g. spans uncoupled by an interior Fixed support).
             c = app.Controls;
             if c.SearchNoiseField.Value <= 0 || c.SearchNoiseAbsField.Value > 0
                 return
@@ -1983,20 +1984,24 @@ classdef BridgeConditionApp < handle
             U = app.Units;
             uH = predictSensorDeflections(app.Model, app.Vehicle, positions, sensors, app.Direction);
             known = ~isnan(uObs);
-            zero = known & abs(uH) <= 1e-12 * max(abs(uH(:)));
+            zeroH = abs(uH) <= 1e-12 * max(abs(uH(:)));
+            zero = known & zeroH;
             if ~any(zero(:))
                 return
             end
-            p = find(all(zero | ~known, 1) & any(known, 1), 1);
+            x = app.Model.nodes.x(:)';
+            uBeam = predictSensorDeflections(app.Model, app.Vehicle, positions, (x(1:end-1) + x(2:end)) / 2, ...
+                app.Direction);
+            still = all(abs(uBeam) <= 1e-12 * max(abs(uBeam(:))), 1);
+            p = find(still & any(zero, 1), 1);
             if ~isempty(p)
                 error('BridgeFE:invalidInput', ['Truck position %d (x_v = %g %s) gives zero readings at every sensor ' ...
                     '(no axle inside a span). Remove it, or state Reading noise [%s] > 0.'], p, ...
                     positions(p) / U.length.toSI, U.length.unit, U.deflection.unit);
             end
-            s = find(all(zero | ~known, 2) & any(known, 2), 1);
+            s = find(all(zeroH, 2) & any(zero, 2), 1);
             if ~isempty(s)
-                x = app.Model.nodes.x;
-                if any(abs(app.ModelInfo.supportX(:) - sensors(s)) <= 1e-6 * (x(end) - x(1)))
+                if any(abs(app.supportedX() - sensors(s)) <= 1e-6 * (x(end) - x(1)))
                     why = 'it is on a support';
                 else
                     why = 'no truck position loads its span';
@@ -2011,6 +2016,13 @@ classdef BridgeConditionApp < handle
                 'reading has no noise level: state Reading noise [%s] > 0, or leave that reading empty (missing).'], ...
                 s, sensors(s) / U.length.toSI, U.length.unit, p, positions(p) / U.length.toSI, U.length.unit, ...
                 U.deflection.unit);
+        end
+
+        function xs = supportedX(app)
+            % Span ends with a support (not Free), in m.
+            info = app.ModelInfo;
+            xs = info.supportX(:)';
+            xs = xs(~strcmp(info.supportTypes(:)', 'Free'));
         end
 
         function checkRegionOrder(~, fromDropDown, toDropDown, name)

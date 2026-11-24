@@ -364,12 +364,19 @@ app.generateSyntheticReadings();
 okZeroPos = app.runIdentification();
 errZeroPos = app.LastError;
 c.PositionsTable.Data = num2cell(pRef(:));
+c.SensorsTable.Data = {0; 12};               % every sensor on a support: the sensors are named, not the truck
+app.generateSyntheticReadings();
+okZeroAll = app.runIdentification();
+errZeroAll = app.LastError;
+c.SensorsTable.Data = num2cell(sRef(:));
 rows(end+1) = flag(['a sensor on a support, or a truck position with no axle inside a span, is named in the app''s words ' ...
     'when the search needs its noise (not ''NoiseAbsolute'')'], ...
     ~okZeroRun && strcmp(errZero, ['Sensor 2 (x = 12 m) reads zero for every truck position (it is on a support). ' ...
     'Remove it, or state Reading noise [mm] > 0.']) ...
     && ~okZeroPos && strcmp(errZeroPos, ['Truck position 1 (x_v = 0 m) gives zero readings at every sensor (no axle ' ...
-    'inside a span). Remove it, or state Reading noise [mm] > 0.']));
+    'inside a span). Remove it, or state Reading noise [mm] > 0.']) ...
+    && ~okZeroAll && strcmp(errZeroAll, ['Sensor 1 (x = 0 m) reads zero for every truck position (it is on a ' ...
+    'support). Remove it, or state Reading noise [mm] > 0.']));
 rows(end+1) = flag('invalid table rows are named: ''Sensor 2: x must be a number'', ''Sensor 2: x = 30 m is not on the beam'', ''Truck position 3''', ...
     ~okNaN && strcmp(errNaN, 'Sensor 2: x must be a number (m).') ...
     && ~okOff && strcmp(errOff, 'Sensor 2: x = 30 m is not on the beam (0 to 27 m).') ...
@@ -770,6 +777,34 @@ rows(end+1) = flag(['B Fixed, noise 1 % only: a single zero reading (S2 with the
     'reads zero with the truck at position 1 (x_v = 6.75 m): no axle loads its span (e.g. beyond a Fixed support). ' ...
     'With a reading noise in % only, a zero reading has no noise level: state Reading noise [mm] > 0, or leave that ' ...
     'reading empty (missing).']) && okMissing && any(isnan(readings(:))));
+c.SensorsTable.Data = {6; 20};
+app.generateSyntheticReadings();
+readings = c.ReadingsTable.Data;
+readings(1, 1:2) = NaN;                    % S1 missing where it reads: P1 still loads span 1, and S1 is not
+                                           % 'zero for every position', so S2's zero reading at P1 is named
+c.ReadingsTable.Data = readings;
+okMissingS1 = app.runIdentification();
+errMissingS1 = app.LastError;
+c.PositionsTable.Data = {3; 6; 9};         % the truck on span 1 only
+c.SensorsTable.Data = {4; 8};              % one spacing on is support B; halfway to the end (17.5 m) reads nothing
+app.addIdentPoint('sensor');
+sensorsSpan1 = tableColumn(c.SensorsTable);
+c.SupportsTable.Data{1, 3} = 'Free';       % A Free, B Fixed: the tip at A is uncoupled from span 2
+okFreeFixed = app.applyModelInputs();
+c.SensorsTable.Data = {0; 20};
+c.PositionsTable.Data = {20.25; 27};       % the truck on span 2 only
+app.generateSyntheticReadings();
+okFreeTip = app.runIdentification();
+errFreeTip = app.LastError;
+c.SupportsTable.Data{1, 3} = 'Pin';
+expectS2 = 'Sensor 2 (x = 20 m) reads zero with the truck at position 1 (x_v = 6.75 m): no axle loads its span';
+rows(end+1) = flag(['B Fixed: with S1 missing at P1, P2 the zero reading of S2 is named (not P1, which loads span 1, ' ...
+    'nor S1); + Add ' ...
+    'skips support B and span 2 (no truck position loads it) and takes 10 m; A Free: the tip is not "on a support"'], ...
+    ~okMissingS1 && strncmp(errMissingS1, expectS2, numel(expectS2)) && isequal(sensorsSpan1, [4 8 10]) ...
+    && okFreeFixed && ~okFreeTip ...
+    && strcmp(errFreeTip, ['Sensor 1 (x = 0 m) reads zero for every truck position (no truck position loads its ' ...
+    'span). Remove it, or state Reading noise [mm] > 0.']));
 c.SearchNoiseField.Value = noiseKeep(1);
 c.SearchNoiseAbsField.Value = noiseKeep(2);
 % A unit switch that applies a pending support-type edit gives the default sensors, as Apply model would
@@ -785,6 +820,28 @@ rows(end+1) = flag(['a switch that applies a pending support edit (C Free -> Rol
     && strcmp(app.ModelInfo.supportTypes{3}, 'Roller') && max(abs(tableColumn(c.SensorsTable) * ft ./ sTip - 1)) < 1e-11 ...
     && ~isempty(strfind(c.StatusLabel.Text, 'so the sensors and truck positions are the defaults')));
 app.setUnitSystem('SI');
+c.SensorsTable.Data = {5; 10; 20};
+c.SupportsTable.Data{3, 3} = 'Fixed';      % pending: C becomes a fixed end (same node, one more restraint)
+app.setUnitSystem('US');
+sFixC = identificationDefaults(app.Model, app.Vehicle, 1);
+okFixC = strcmp(app.ModelInfo.supportTypes{3}, 'Fixed') && numel(tableColumn(c.SensorsTable)) == numel(sFixC) ...
+    && max(abs(tableColumn(c.SensorsTable) * ft ./ sFixC - 1)) < 1e-11 ...
+    && ~isempty(strfind(c.StatusLabel.Text, 'so the sensors and truck positions are the defaults'));
+app.setUnitSystem('SI');
+c.SupportsTable.Data{3, 3} = 'Roller';
+app.applyModelInputs();
+c.SensorsTable.Data = {5; 10; 20};
+c.EField.Value = 30;                       % pending: E 32 -> 30 GPa
+app.setUnitSystem('US');
+sE = identificationDefaults(app.Model, app.Vehicle, 1);
+okE = abs(app.Model.elements.EI(1) / (30e9 * 0.0625) - 1) < 1e-11 && numel(tableColumn(c.SensorsTable)) == numel(sE) ...
+    && max(abs(tableColumn(c.SensorsTable) * ft ./ sE - 1)) < 1e-11 ...
+    && ~isempty(strfind(c.StatusLabel.Text, 'so the sensors and truck positions are the defaults'));
+app.setUnitSystem('SI');
+c.EField.Value = 32;
+app.applyModelInputs();
+rows(end+1) = flag(['a switch that applies a pending edit of a support type only (C Roller -> Fixed) or of E only ' ...
+    '(32 -> 30 GPa) gives the default sensors (yours were 5, 10, 20 m) and says so'], okFixC && okE);
 % Indeterminate, yet the largest hogging moment does not depend on EI: it is at C, from the overhang loads alone
 app.addSpan();                             % 12 + 15 + 15 m (C stays a roller)
 c.SupportsTable.Data{4, 3} = 'Free';       % a 15 m overhang beyond C
