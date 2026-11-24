@@ -1614,7 +1614,7 @@ On-bridge axle policy, spec truck on a 20 m simple span
 
 ==================== TEST SUMMARY ====================
 Platform : GNU Octave 8.4.0
-Date     : 2026-11-24 03:44:06
+Date     : 2026-11-24 05:36:38
   PASS  testAssembly / Element DOF map is [v_i theta_i v_j theta_j] with node n owning DOFs 2n-1 and 2n
   PASS  testAssembly / Two equal unit elements assemble to the hand-computed 6x6 matrix
   PASS  testAssembly / Unequal lengths and EI match K = sum(A_e'*k_e*A_e) with explicit Boolean A_e
