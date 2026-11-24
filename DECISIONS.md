@@ -567,3 +567,14 @@ The user found the text-list inputs confusing. They chose the following after se
   - A switch changes only the Is/Ieff label; it never swaps E between the steel and RCC defaults (that swap is for the material drop-down only).
   - Result tables emptied by a switch lose their headers until the next run, so no header shows the old units.
 - **Layout** (M9 review): the modelling notes (beam model, pin = roller, steel/RCC EI, not a load rating) moved from the left panel to the summary box under the drawing, because the left panel had no room left on the user's maximised window (1917 x 1008 at 125 %). The left panels scroll on smaller windows. The vehicle preset drop-down spans the panel, so the long preset names are not cut. Numeric fields show 6 significant digits (`%.6g`).
+
+## D-032 — GUI clarity: x/x_v legends, coordinate tables, formatted boxes, colour-coded comparison (2026-11-24, M10) — ACCEPTED (user's request and choices)
+
+After the user guide, the user asked for four changes and approved the proposals (2026-11-24):
+
+- **x and x_v** stay short in table headers; a grey line under each table that uses them says what they are (x = location on the bridge, x_v = the truck's front-axle position, both measured from support A).
+- **Sensors and truck positions** are entered in tables like the span table, with + Add / - Remove. Choice (user approved the recommendation): Apply model resets them to the defaults (the geometry may have changed); a pure unit switch keeps and converts them.
+- **Information boxes** are formatted HTML (`uihtml`, MATLAB R2019b+): headings, one bullet per fact, numbers highlighted, flags orange, passed checks green, standing notes grey. The engine helpers still write the sentences (`damageComparisonSummary`, `identificationSummary`, `buildModelFromTables` info.summary); `infoPanelHtml` only groups and colours them, so the wording that the tests and the records quote stays the same.
+- **Healthy vs damaged plots** use colour, not dash styles (user's choice of the proposed scheme): healthy blue / lighter blue, damaged dark red / orange; healthy drawn thin on top so coinciding curves stay visible. The lighter blue keeps about 3.3:1 contrast on white.
+- The nine problems listed in the user guide were fixed in the same batch (user: "fix all the problems").
+

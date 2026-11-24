@@ -2,6 +2,30 @@
 
 This file records every notable change to the source, tests and project records. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Dates are ISO 8601.
 
+## [0.11.0-M10] — 2026-11-24 (branch `claude/m10-gui-clarity`, from M9c)
+
+GUI clarity, requested by the user after the user guide (DECISIONS.md D-032). No change to any analysis result.
+
+### Added
+- x and x_v explained in a grey line under the Envelopes critical and reaction tables, the Damage sensitivity table, the Identification readings and candidate tables; the slider readout says "front axle, measured from A".
+- Identification tab: sensors and truck positions in two tables (rows S1, S2, ... and P1, P2, ...) with **+ Add** (one spacing after the last, capped at the beam end or the end of the crossing) and **- Remove** (at least one stays). Errors name the row ("Sensor 2: x = 30 m is not on the beam (0 to 27 m).", "Truck position 3: x_v must be a number (m)."). Defaults after Apply model; a unit switch keeps and converts them, with the exact restore on switching back. `coordinatesFromTable`.
+- Formatted information boxes (MATLAB `uihtml`): model summary (two columns: model, supports one per bullet, material, permanent load, modelling notes in grey), moving-load notes, applied damage, findings, identification box and Summary (Method, Result, Checks and flags, Synthetic test case, Notes). Numbers highlighted in blue, limiting flags orange with a warning sign, a passed fit check green with a tick. The engine's wording is unchanged. `htmlPanel`, `infoPanelHtml`; GUI stand-in `uihtml`.
+- `materialModulusRange` (the plausible-E range, shared by `defineMaterial` and `buildModelFromTables`); test helper `errorMessage`.
+
+### Changed
+- Healthy vs damaged plots: four solid curves told apart by colour: healthy max blue, healthy min lighter blue (thin, on top), damaged max dark red, damaged min orange (thick). `plotEnvelopeComparison` takes [max; min] colour rows; theme fields `healthyMax`, `healthyMin`, `damagedMax`, `damagedMin`.
+
+### Fixed (the 9 problems listed in the user guide)
+- Ticking "Show node and element numbers" during a preview redrew the applied model; the preview is kept, and the Damage drawing is redrawn too.
+- The damaged / hidden region "to left of from" message quoted metres in US units; it now quotes the node labels as shown.
+- The unit-slip alert spoke of Pa; it now uses the unit typed (e.g. "E = 200 ksi is outside the usual 21755.7-36259.4 ksi").
+- The sensor tooltip "e.g. L/4 L/2 3L/4" (text fields replaced by tables).
+- Hidden loss limited to 0-60 %, the range the search covers.
+- The sensitivity status no longer names a "most influential" element when no location changes the response (M, V, R of a determinate beam).
+- E, I, material, material name, basis and uniform-load edits now show a preview and "Model edited: press Apply model".
+- + Add span / - Remove last span keep the far-end support type (e.g. a Fixed end moves to the new end).
+- The app help text (no longer "sage green", support "none").
+
 ## [0.10.1-M9c] — 2026-11-19 (branch `claude/m9c-polish`)
 
 Cosmetic follow-ups from the user's MATLAB screenshots of M9 (VERIFICATION_LOG V-026 part 2a), revised after an independent review. No change to any result; the `src/` changes are display only (plot title, label clipping and placement).
