@@ -426,9 +426,16 @@ app.applyVehicleInputs();
 app.addIdentPoint('truck position');
 positionsNegAdded = tableColumn(c.PositionsTable);
 app.removeIdentPoint('truck position');
-rows(end+1) = flag('-x travel: + Add truck position continues in the travel direction (-2.8 m, inside the crossing to -5.6 m)', ...
+positionsNegBack = tableColumn(c.PositionsTable);
+c.PositionsTable.Data = {20; 15};          % -x: one spacing on is 10 m (25 m would be against the travel)
+app.addIdentPoint('truck position');
+positionsNegStep = tableColumn(c.PositionsTable);
+c.PositionsTable.Data = num2cell(pNeg(:));
+c.PositionsTable.RowName = arrayfun(@(k) sprintf('P%d', k), (1:numel(pNeg))', 'UniformOutput', false);
+rows(end+1) = flag(['-x travel: + Add truck position continues in the travel direction (-2.8 m, inside the crossing ' ...
+    'to -5.6 m; after 20, 15 m: 10 m)'], ...
     numel(positionsNegAdded) == numel(pNeg) + 1 && abs(positionsNegAdded(end) + 2.8) < 1e-9 ...
-    && isequal(tableColumn(c.PositionsTable), pNeg));
+    && isequal(positionsNegBack, pNeg) && isequal(positionsNegStep, [20 15 10]));
 okGen = app.generateSyntheticReadings();
 uNeg = syntheticObservations(refModel, refVehicle, pNeg, sNeg, -1, 9, 10.5, 30, 1, 3);
 okRun = app.runIdentification();
@@ -644,6 +651,16 @@ okApply = app.applyModelInputs();          % pressed in US units: the defaults a
 rows(end+1) = flag('US: Apply model writes the default sensors and truck positions in ft', okApply ...
     && max(abs(tableColumn(c.SensorsTable) * ft ./ sNow - 1)) < 1e-11 ...
     && max(abs(tableColumn(c.PositionsTable) * ft ./ pNow - 1)) < 1e-11);
+eKeep = c.EField.Value;
+c.EField.Value = 200;                      % RCC, 200 ksi typed (1.38 GPa): the message speaks in ksi
+okSlip = app.applyModelInputs();
+slipUS = app.ModelInfo.warnings;
+c.EField.Value = eKeep;
+okKeep = app.applyModelInputs();
+rows(end+1) = flag('US unit slip: "RCC modulus E = 200 ksi is outside the usual 1450.38-10152.6 ksi" (10-70 GPa in ksi)', ...
+    okSlip && okKeep && strcmp(c.MaterialDropDown.Value, 'RCC') && numel(slipUS) == 1 ...
+    && ~isempty(strfind(slipUS{1}, 'RCC modulus E = 200 ksi is outside the usual 1450.38-10152.6 ksi')) ...
+    && isempty(app.ModelInfo.warnings));
 app.choosePreset(hl.name);
 okHL = app.applyVehicleInputs();
 rows(end+1) = flag('US: preset HL-93 fills 8, 32, 32 kip at 14, 14 ft; applied = vehicleFromTable(..., US)', okHL ...
