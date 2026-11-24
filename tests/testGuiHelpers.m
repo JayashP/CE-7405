@@ -243,6 +243,91 @@ assert(strcmp(opt(labels(2), 'String'), ' -3') && strcmp(opt(labels(2), 'Horizon
 assert(all(arrayfun(@(t) strcmp(opt(t, 'Clipping'), 'on'), labels)), 'diagram peak labels are clipped to the axes');
 fprintf('  PASS %d drawing labels and the diagram peak labels are clipped to the axes; peak labels face inwards\n', numel(texts));
 
+%% Information boxes: formatted HTML keeps the engine's words, highlights numbers and colours flags
+h = htmlPanel(struct('title', 'T & <x>', 'items', {{'Spans: 20 m (total 40 m)', ...
+    'S1 HL-93 2D 3-axle x_v 5-6.25 m; -7.5 mm; 1e-05 m; seed 1.', '[warn] FIT CHECK FAILED: S = 39.5 > 22.4', ...
+    '[ok] Fit check passed: S = 10.6 <= 22.4'}}, 'kind', 'list'));
+assert(~isempty(strfind(h, '<h4>T &amp; &lt;x&gt;</h4>')), 'headings are escaped');
+assert(~isempty(strfind(h, '<b>Spans</b>: <span class="num">20 m</span> (total <span class="num">40 m</span>)')), ...
+    'short label in bold, numbers with their unit highlighted');
+assert(~isempty(strfind(h, 'S1 HL-93 2D 3-axle x_v <span class="num">5-6.25 m</span>; <span class="num">-7.5 mm</span>; ')) ...
+    && ~isempty(strfind(h, '<span class="num">1e-05 m</span>; seed <span class="num">1</span>.')), ...
+    'names (S1, HL-93, 2D, 3-axle, x_v) left alone; ranges, signs, exponents and a sentence-end number highlighted');
+assert(~isempty(strfind(h, '<li class="warn">&#9888; <b>FIT CHECK FAILED</b>: S = <span class="num">39.5</span> &gt; ')) ...
+    && ~isempty(strfind(h, '<li class="ok">&#10004; <b>Fit check passed</b>')), 'warning and pass tags coloured');
+summary = {'Spans: 12 + 15 m (total 27 m)'; 'Mesh: 8 + 8 elements per span'; ...
+    'Supports: A Pin (x = 0 m), B Roller (x = 12 m), C Roller (x = 27 m)'; 'Material: RCC (rcc): E = 32 GPa'; ...
+    'Basis: EI = Ec*Ieff'; 'Permanent uniform load: 10 kN/m downward'};
+m = infoPanelHtml('model', summary);
+plain = regexprep(regexprep(m, '<style>.*</style>', ''), '<[^>]*>', '');
+assert(~isempty(strfind(m, '<h4>Supports</h4><ul><li>A Pin (x = <span class="num">0 m</span>)</li><li>B Roller')), ...
+    'one bullet per support');
+assert(~isempty(strfind(plain, 'Not a load rating or design check.')) && ~isempty(strfind(m, 'class="note"')), ...
+    'modelling notes in grey');
+for k = [1 2 4 5 6]
+    assert(~isempty(strfind(plain, regexprep(summary{k}, '^[^:]*: ', ''))), 'summary line %d kept word for word', k);
+end
+lines = {'Method: noise-based region'; 'Best fit (smallest noise-weighted misfit S): element 5'; ...
+    'No damage cannot be ruled out: the healthy model is also inside the region.'; 'Fit check passed: S = 9.8 <= 22.4'; ...
+    'Synthetic test case (hidden from the search): NO damage'; 'Self-generated readings: algorithm check.'};
+flagsIn = lines(3);
+r = infoPanelHtml('identSummary', lines, flagsIn);
+order = cellfun(@(t) strfind(r, t), {'<h4>Method</h4>', '<h4>Result</h4>', '<h4>Checks and flags</h4>', ...
+    '<h4>Synthetic test case</h4>', '<h4>Notes</h4>'});
+assert(all(diff(order) > 0), 'Summary sections in order');
+assert(~isempty(strfind(r, '<li class="warn">&#9888; <b>No damage cannot be ruled out</b>')) ...
+    && ~isempty(strfind(r, '<li class="ok">&#10004; <b>Fit check passed</b>')), 'flag orange, passed check green');
+b = infoPanelHtml('identBox', [lines(2); flagsIn; {'Full result: "Summary" tab.'}], flagsIn);
+assert(numel(strfind(b, 'class="warn"')) == 1 && ~isempty(strfind(b, '<li class="note"><b>Full result</b>')), ...
+    'left box: flag orange, pointer grey');
+assert(isempty(strfind(infoPanelHtml('message', {'Press a button.'}), '<h4>')), 'messages have no heading');
+assertThrows(@() infoPanelHtml('unknown', {'x'}), 'BridgeFE:invalidInput');
+fprintf('  PASS formatted boxes: words kept, names untouched, numbers and flags highlighted, sections in order\n');
+
+%% Sensor and truck-position tables are read row by row, with errors that name the row
+SIu = unitSystem('SI');
+USu = unitSystem('US');
+assert(isequal(coordinatesFromTable({5; 10; 15}, 'Sensor', 'x', SIu), [5 10 15]), 'cell column in m');
+assert(isequal(coordinatesFromTable([10 20], 'Sensor', 'x', USu), [10 20] * 0.3048), 'numeric column in ft');
+cases = {@() coordinatesFromTable({5; NaN}, 'Sensor', 'x', SIu), 'Sensor 2: x must be a number (m).'; ...
+    @() coordinatesFromTable({5; 'a'}, 'Sensor', 'x', SIu), 'Sensor 2: x must be a number (m).'; ...
+    @() coordinatesFromTable({1; 2; Inf}, 'Truck position', 'x_v', USu), 'Truck position 3: x_v must be a number (ft).'; ...
+    @() coordinatesFromTable(cell(0, 1), 'Sensor', 'x', SIu), 'Add at least one sensor.'};
+for k = 1:size(cases, 1)
+    [msg, id] = errorMessage(cases{k, 1});
+    assert(strcmp(id, 'BridgeFE:invalidInput') && strcmp(msg, cases{k, 2}), 'case %d: %s', k, msg);
+end
+fprintf('  PASS coordinate tables: m and ft, row-named errors, empty table refused\n');
+
+%% The unit-slip message uses the unit the user typed in
+[~, infoUS] = buildModelFromTables(struct('spanLengths', 66, 'elementsPerSpan', 8, 'supportTypes', {{'Pin', 'Roller'}}, ...
+    'materialType', 'steel', 'E', 200, 'I', 24000), USu);           % 200 typed as if GPa, in a ksi field
+range = materialModulusRange('steel') / USu.modulus.toSI;
+assert(numel(infoUS.warnings) == 1 && strcmp(infoUS.warnings{1}, sprintf(['Steel modulus E = 200 ksi is outside the ' ...
+    'usual %g-%g ksi. Check the units; the model was still built.'], range(1), range(2))), 'ksi message');
+assert(isequal(materialModulusRange('rcc'), [10e9 70e9]) && isequal(materialModulusRange('Steel'), [150e9 250e9]), 'ranges');
+assertThrows(@() materialModulusRange('timber'), 'BridgeFE:invalidMaterial');
+fprintf('  PASS unit-slip message in ksi: %s\n', infoUS.warnings{1});
+
+%% Healthy vs damaged envelopes: four solid curves, one colour each, healthy drawn on top
+th = appTheme();
+ax = RecordingAxes();
+xs = [0; 5; 10];
+plotEnvelopeComparison(ax, xs, [1; 3; 1], [-1; -2; -1], [1; 4; 1], [-1; -3; -1], [th.healthyMax; th.healthyMin], ...
+    [th.damagedMax; th.damagedMin], 'M [kN*m]', 'Moment envelope');
+rec = recorded(ax);
+curves = rec.Objects(arrayfun(@(o) numel(o.x) == 3, rec.Objects));
+opt = @(o, name) o.options{find(strcmp(o.options, name), 1) + 1};
+cols = cell2mat(arrayfun(@(o) opt(o, 'Color'), curves(:), 'UniformOutput', false));
+assert(numel(curves) == 4 && isequal(cols, [th.damagedMax; th.damagedMin; th.healthyMax; th.healthyMin]), ...
+    'damaged drawn first, healthy on top, one colour per curve');
+assert(~any(arrayfun(@(o) any(strcmp(o.options, 'LineStyle')), curves)), 'all solid: no dash styles');
+assert(all(arrayfun(@(o) opt(o, 'LineWidth'), curves(1:2)) > arrayfun(@(o) opt(o, 'LineWidth'), curves(3:4))), ...
+    'damaged thick, healthy thin');
+assert(isequal(rec.Legend, {'damaged max', 'damaged min', 'healthy max', 'healthy min'}), 'legend');
+assert(size(unique([th.healthyMax; th.healthyMin; th.damagedMax; th.damagedMin], 'rows'), 1) == 4, 'four distinct colours');
+fprintf('  PASS healthy vs damaged: 4 solid curves in 4 colours, healthy thin on top\n');
+
 %% Theme colours are valid RGB triplets
 th = appTheme();
 names = fieldnames(th);

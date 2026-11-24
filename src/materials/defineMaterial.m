@@ -42,13 +42,12 @@ if strcmp(type, 'steel')
     defaultName = 'Steel';
     inertiaLabel = 'Is';
     defaultBasis = 'EI = Es*Is (steel section)';
-    range = [150e9, 250e9];
 else
     defaultName = 'RCC';
     inertiaLabel = 'Ieff';
     defaultBasis = 'EI = Ec*Ieff, Ieff user-supplied and constant (no cracking analysis in this tool)';
-    range = [10e9, 70e9];
 end
+range = materialModulusRange(type);
 if nargin < 4 || isempty(name)
     name = defaultName;
 end

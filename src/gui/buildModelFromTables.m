@@ -29,7 +29,8 @@ function [model, info] = buildModelFromTables(in, U)
 %     supportX        span-end coordinates [m] (SI, as in the engine)
 %     supportLetters  span-end names 'A', 'B', ... (SUPPORTLETTERS)
 %     supportTypes    support labels ('Pin', 'Roller', 'Fixed' or 'Free')
-%     warnings        cellstr of unit-sanity warnings from DEFINEMATERIAL
+%     warnings        cellstr of unit-sanity warnings (DEFINEMATERIAL's check,
+%                     worded in the display units U)
 %     summary         cellstr of lines describing the model in units U:
 %                     spans and total length, elements per span, supports
 %                     with letters and x, material with E, I and EI
@@ -128,10 +129,14 @@ q = double(q);
 [x, xs] = meshSpans(spans * U.length.toSI, elements);
 lastwarn('', '');                 % clear both the message and the identifier
 material = defineMaterial(in.materialType, E * U.modulus.toSI, I * U.inertia.toSI, name, basis);
-[warnMessage, warnId] = lastwarn;
+[~, warnId] = lastwarn;
 warnings = {};
 if strcmp(warnId, 'BridgeFE:unusualModulus')
-    warnings = {warnMessage};
+    % The engine's warning speaks in Pa; the app's message uses the unit the user typed in.
+    range = materialModulusRange(in.materialType) / U.modulus.toSI;
+    labels = struct('steel', 'Steel', 'rcc', 'RCC');
+    warnings = {sprintf(['%s modulus E = %g %s is outside the usual %g-%g %s. Check the units; the model was ' ...
+        'still built.'], labels.(lower(in.materialType)), E, U.modulus.unit, range(1), range(2), U.modulus.unit)};
 end
 model = createBeamModel(x, material);
 for k = 1:nSpans + 1

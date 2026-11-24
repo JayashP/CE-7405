@@ -37,6 +37,12 @@ t.deflection = orange;
 t.envelopeMax = blue;
 t.envelopeMin = orange;
 t.damage     = purple;                % elements with a prescribed stiffness loss (Stage 2)
+% Healthy vs damaged envelopes (Stage 2): one colour per curve, all solid; healthy in blues, damaged in
+% dark red / orange. The lighter healthy blue still reads on white (contrast about 3.3:1 for a thin line).
+t.healthyMax = blue;
+t.healthyMin = [0.200 0.580 0.860];   % lighter blue
+t.damagedMax = darkRed;
+t.damagedMin = orange;
 t.sensor     = [0.000 0.500 0.500];   % deflection sensors (Stage 3), dark teal
 t.region     = [0.980 0.902 0.706];   % region of uncertainty (Stage 3), light MATLAB yellow fill
 t.regionBest = [0.749 0.392 0.000];   % best-fit region (Stage 3), dark amber

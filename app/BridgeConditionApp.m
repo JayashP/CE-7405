@@ -1,16 +1,17 @@
 classdef BridgeConditionApp < handle
-    %BRIDGECONDITIONAPP Sage-green MATLAB app for the CE 7405 equivalent-beam bridge analysis (M6).
+    %BRIDGECONDITIONAPP MATLAB app for the CE 7405 equivalent-beam bridge analysis (MATLAB-style colours).
     %   APP = BRIDGECONDITIONAPP() opens the app window. It is a code-built
     %   app: the same components App Designer uses (UIFIGURE, UIGRIDLAYOUT,
     %   UITAB, UIAXES, ...) written as plain text (DECISIONS.md D-023).
     %   There are no calculations in the app. Every number comes from the
-    %   verified engine in src/ (buildModelFromInputs, prepareMovingLoad,
+    %   verified engine in src/ (buildModelFromTables, prepareMovingLoad,
     %   analyzeVehiclePosition, runMovingLoad, solveStaticModel), and every
     %   drawing from the tested bridgeDrawing and responseDiagramData.
     %
     %   Tabs:
-    %     Bridge model         spans, mesh, supports (pin / roller / fixed /
-    %                          none), steel Es*Is or RCC Ec*Ieff, permanent
+    %     Bridge model         unit system (SI or US customary), span table,
+    %                          supports A, B, C ... (Pin / Roller / Fixed /
+    %                          Free), steel Es*Is or RCC Ec*Ieff, permanent
     %                          uniform load; drawing with conventional supports
     %     Vehicle & moving load axles and spacings, position slider; truck
     %                          schematic, deformed shape (stated magnification),
@@ -20,7 +21,7 @@ classdef BridgeConditionApp < handle
     %     Damage (Stage 2)     prescribed EI loss EI_D = (1 - d) EI on a region;
     %                          healthy vs damaged envelopes and reactions; a
     %                          sensitivity sweep moving the same loss along the beam
-    %     Identification (Stage 3) sensors, truck positions and deflection
+    %     Identification (Stage 3) sensor and truck-position tables and deflection
     %                          readings (synthetic test case or entered); single-
     %                          region inverse search with a noise-based region of
     %                          uncertainty; fit by location, candidates, residuals
@@ -37,7 +38,9 @@ classdef BridgeConditionApp < handle
     %     addProjectPaths;
     %     app = BridgeConditionApp;
     %
-    %   See also BUILDMODELFROMINPUTS, RUNMOVINGLOAD, BRIDGEDRAWING.
+    %   Information boxes are formatted HTML (UIHTML, INFOPANELHTML).
+    %
+    %   See also BUILDMODELFROMTABLES, RUNMOVINGLOAD, BRIDGEDRAWING, INFOPANELHTML.
 
     properties (SetAccess = private)
         UIFigure                  % app window
@@ -69,6 +72,7 @@ classdef BridgeConditionApp < handle
         NodeX = []                % node coordinates [m] behind the region drop-downs
         SupportNodes = []         % node index of each entry of the support drop-down (Damage tab)
         UnitMemory = []           % inputs before and after the last unit switch (exact switch back)
+        Previewing = false        % the Bridge model tab shows a preview of un-applied table edits
     end
 
     methods
@@ -107,7 +111,8 @@ classdef BridgeConditionApp < handle
             app.MovingLoad = [];
             app.StaticResult = [];
             app.LastError = '';
-            c.SummaryArea.Value = app.summaryText(info);
+            c.SummaryArea.HTMLSource = infoPanelHtml('model', info.summary);
+            app.Previewing = false;
             app.drawModelTab();
             if ~isempty(info.warnings)
                 uialert(app.UIFigure, strjoin(info.warnings, ' '), 'Check units', 'Icon', 'warning');
@@ -148,7 +153,7 @@ classdef BridgeConditionApp < handle
                 % Truck positions and readings depend on the vehicle and direction; sensors and the
                 % hidden-case inputs are the user's and stay.
                 [~, positions] = identificationDefaults(app.Model, app.Vehicle, app.Direction);
-                c.IdentPositionsField.Value = numberListText(positions / U.length.toSI);
+                app.setPointTable(c.PositionsTable, positions / U.length.toSI, 'P');
                 app.clearIdentificationReadings();
             end
             ok = true;
@@ -178,7 +183,7 @@ classdef BridgeConditionApp < handle
             c = app.Controls;
             U = app.Units;
             c.PositionSlider.Value = min(max(xv / U.length.toSI, c.PositionSlider.Limits(1)), c.PositionSlider.Limits(2));
-            c.PositionLabel.Text = sprintf('x_v = %.3f %s (front axle), %d of %d axles on the bridge', ...
+            c.PositionLabel.Text = sprintf('x_v = %.3f %s (front axle, measured from A); %d of %d axles on the bridge', ...
                 xv / U.length.toSI, U.length.unit, nnz(res.axles.onBridge), numel(res.axles.x));
             app.drawPositionView();
             [data, columns] = currentReactionTableData(res, app.Model, U);
@@ -272,6 +277,7 @@ classdef BridgeConditionApp < handle
             %APPLYDAMAGEINPUTS Apply the Damage tab's loss to the healthy model (button "Apply damage").
             c = app.Controls;
             try
+                app.checkRegionOrder(c.DamageFromDropDown, c.DamageToDropDown, 'Damaged region');
                 [damaged, elements] = damageModelFromInputs(app.Model, app.selectedNodeX(c.DamageFromDropDown), ...
                     app.selectedNodeX(c.DamageToDropDown), c.LossField.Value);
             catch err
@@ -285,8 +291,8 @@ classdef BridgeConditionApp < handle
             d = c.LossField.Value / 100;
             summary = sprintf('Elements %d-%d, %s to %s: EI_D = (1 - %.4g) EI = %.4g EI', min(elements), max(elements), ...
                 c.DamageFromDropDown.Value, c.DamageToDropDown.Value, d, 1 - d);
-            c.DamageInfo.Value = {summary; ...
-                'd reduces MODEL flexural rigidity; it is not a percentage of corrosion, section loss or capacity.'};
+            c.DamageInfo.HTMLSource = infoPanelHtml('damage', {summary; ...
+                'd reduces MODEL flexural rigidity; it is not a percentage of corrosion, section loss or capacity.'});
             app.setStatus(['Damage applied: ' summary]);
             ok = true;
         end
@@ -298,7 +304,8 @@ classdef BridgeConditionApp < handle
             if ~isempty(app.Model)
                 app.drawDamageModel();
             end
-            app.Controls.DamageInfo.Value = {'No damage applied. Choose a region on nodes and a loss d, then press Apply damage.'};
+            app.Controls.DamageInfo.HTMLSource = infoPanelHtml('message', ...
+                {'No damage applied. Choose a region on nodes and a loss d, then press Apply damage.'});
         end
 
         function ok = runDamageComparison(app)
@@ -333,18 +340,21 @@ classdef BridgeConditionApp < handle
             m = U.moment.toSI;
             f = U.force.toSI;
             v = U.deflection.toSI;
+            healthy = [th.healthyMax; th.healthyMin];   % colours: max, min
+            damaged = [th.damagedMax; th.damagedMin];
             plotEnvelopeComparison(c.DamageMomentAxes, x, h.Mmax / m, h.Mmin / m, d.Mmax / m, d.Mmin / m, ...
-                th.text, th.damage, sprintf('M [%s]', U.moment.unit), 'Moment envelope', xl);
+                healthy, damaged, sprintf('M [%s]', U.moment.unit), 'Moment envelope', xl);
             plotEnvelopeComparison(c.DamageShearAxes, x, h.Vmax / f, h.Vmin / f, d.Vmax / f, d.Vmin / f, ...
-                th.text, th.damage, sprintf('V [%s]', U.force.unit), 'Shear envelope', xl);
+                healthy, damaged, sprintf('V [%s]', U.force.unit), 'Shear envelope', xl);
             plotEnvelopeComparison(c.DamageDeflectionAxes, x, h.vmax / v, h.vmin / v, d.vmax / v, d.vmin / v, ...
-                th.text, th.damage, sprintf('v [%s]', U.deflection.unit), 'Deflection envelope', xl);
+                healthy, damaged, sprintf('v [%s]', U.deflection.unit), 'Deflection envelope', xl);
             [data, columns] = damageComparisonTableData(cmp, U);
             c.DamageTable.Data = data;
             c.DamageTable.ColumnName = columns;
-            c.DamageFindings.Value = damageComparisonSummary(cmp, app.Model, U);
+            c.DamageFindings.HTMLSource = infoPanelHtml('findings', damageComparisonSummary(cmp, app.Model, U));
             c.DamageResultTabs.SelectedTab = c.DamageCompareTab;
-            app.setStatus(sprintf('Healthy vs damaged: %d positions per model. Healthy dashed, damaged solid.', ...
+            app.setStatus(sprintf(['Healthy vs damaged: %d positions per model. Healthy: blue (max), light blue (min); ' ...
+                'damaged: dark red (max), orange (min).'], ...
                 numel(cmp.healthy.positions)));
             ok = true;
         end
@@ -379,8 +389,15 @@ classdef BridgeConditionApp < handle
             c.SensitivityTable.Data = data;
             c.SensitivityTable.ColumnName = columns;
             c.DamageResultTabs.SelectedTab = c.DamageSensitivityTab;
-            app.setStatus(sprintf('Sensitivity: d = %g %% moved over %d locations; most influential: element(s) %s.', ...
-                100 * d, numel(s.groups), data{1, 2}));
+            if max(abs(s.change)) <= 1e-9 * max(abs([s.healthy; s.values(:)]))
+                % e.g. M, V or R of a statically determinate beam: no location is "most influential"
+                app.setStatus(sprintf(['Sensitivity: d = %g %% moved over %d locations; the response is the same for every ' ...
+                    'location (it does not depend on EI here, e.g. M, V and R of a statically determinate beam).'], ...
+                    100 * d, numel(s.groups)));
+            else
+                app.setStatus(sprintf('Sensitivity: d = %g %% moved over %d locations; most influential: element(s) %s.', ...
+                    100 * d, numel(s.groups), data{1, 2}));
+            end
             ok = true;
         end
 
@@ -389,6 +406,7 @@ classdef BridgeConditionApp < handle
             c = app.Controls;
             try
                 [sensors, positions] = app.identificationSetup();
+                app.checkRegionOrder(c.HiddenFromDropDown, c.HiddenToDropDown, 'Hidden region');
                 [uObs, truth] = syntheticObservations(app.Model, app.Vehicle, positions, sensors, app.Direction, ...
                     app.selectedNodeX(c.HiddenFromDropDown), app.selectedNodeX(c.HiddenToDropDown), ...
                     c.HiddenLossField.Value, c.SyntheticNoiseField.Value, round(c.SeedField.Value));
@@ -399,8 +417,9 @@ classdef BridgeConditionApp < handle
             app.setReadingsTable(uObs, sensors, positions);
             app.IdentTruth = truth;
             app.LastError = '';
-            c.IdentInfo.Value = {'Synthetic readings generated. The hidden case is kept from the search and shown only afterwards.'; ...
-                'Press "Run identification".'};
+            c.IdentInfo.HTMLSource = infoPanelHtml('message', ...
+                {'Synthetic readings generated. The hidden case is kept from the search and shown only afterwards.'; ...
+                'Press "Run identification".'});
             app.setStatus(sprintf('%d synthetic readings (%d sensors x %d truck positions).', numel(uObs), ...
                 numel(sensors), numel(positions)));
             ok = true;
@@ -417,9 +436,10 @@ classdef BridgeConditionApp < handle
             app.setReadingsTable(NaN(numel(sensors), numel(positions)), sensors, positions);
             app.IdentTruth = [];
             app.LastError = '';
-            app.Controls.IdentInfo.Value = {sprintf(['Type the measured vehicle-only deflections [%s] (downward negative), ' ...
+            app.Controls.IdentInfo.HTMLSource = infoPanelHtml('message', ...
+                {sprintf(['Type the measured vehicle-only deflections [%s] (downward negative), ' ...
                 'one row per sensor and one column per truck position. A cell left at NaN is a missing reading.'], ...
-                app.Units.deflection.unit)};
+                app.Units.deflection.unit)});
             ok = true;
         end
 
@@ -466,8 +486,8 @@ classdef BridgeConditionApp < handle
             c.CandidateTable.ColumnName = columns;
             plotReadings(c.ReadingsAxes, positions, sensors, uObs, result.uHealthy, result.best.u, th, U);
             [summary, flags] = identificationSummary(result, app.IdentTruth, U);
-            c.IdentResultText.Value = summary;
-            c.IdentInfo.Value = [summary(2); flags; {'Full result: "Summary" tab.'}];
+            c.IdentResultText.HTMLSource = infoPanelHtml('identSummary', summary, flags);
+            c.IdentInfo.HTMLSource = infoPanelHtml('identBox', [summary(2); flags; {'Full result: "Summary" tab.'}], flags);
             app.drawIdentification();
             c.IdentResultTabs.SelectedTab = c.IdentFitTab;
             app.setStatus(sprintf('Identification: %d structures analysed; %d candidate region(s) in the region of uncertainty.', ...
@@ -484,8 +504,13 @@ classdef BridgeConditionApp < handle
             %ADDSPAN Append a span like the last one (button "+ Add span").
             c = app.Controls;
             spans = c.SpansTable.Data;
+            farEnd = c.SupportsTable.Data{end, 3};
             c.SpansTable.Data = [spans; spans(end, :)];
-            app.onSpansEdited();
+            app.refreshSupportsTable();
+            data = c.SupportsTable.Data;                 % the far-end support moves to the new far end;
+            data(end-1:end, 3) = {'Roller'; farEnd};     % the old end becomes an interior roller
+            c.SupportsTable.Data = data;
+            app.previewModel();
         end
 
         function removeSpan(app)
@@ -496,8 +521,11 @@ classdef BridgeConditionApp < handle
                 app.setStatus('A bridge needs at least one span.');
                 return
             end
+            farEnd = c.SupportsTable.Data{end, 3};
             c.SpansTable.Data = spans(1:end-1, :);
-            app.onSpansEdited();
+            app.refreshSupportsTable();
+            c.SupportsTable.Data{end, 3} = farEnd;       % keep the far-end support type (e.g. a Fixed end)
+            app.previewModel();
         end
 
         function onAxlesEdited(app)
@@ -535,6 +563,36 @@ classdef BridgeConditionApp < handle
             spacings = app.tableNumbers(data(1:end-1, :), 2);
             app.setAxleTable(loads(1:end-1), spacings(1:end-1));
             app.onAxlesEdited();
+        end
+
+        function addIdentPoint(app, kind)
+            %ADDIDENTPOINT Add a sensor ('sensor') or truck position ('truck position') after the last one
+            %   (buttons "+ Add" on the Identification tab): one spacing further, capped at the end of its range.
+            [tbl, prefix, limits] = app.identPointTable(kind);
+            v = app.tableNumbers(tbl.Data, 1);
+            span = limits(2) - limits(1);
+            if isempty(v) || isnan(v(end))
+                next = limits(1) + span / 2;
+            elseif numel(v) >= 2 && ~isnan(v(end - 1)) && v(end) > v(end - 1)
+                next = 2 * v(end) - v(end - 1);
+            else
+                next = v(end) + span / 4;
+            end
+            next = min(max(next, limits(1)), limits(2));
+            app.setPointTable(tbl, [v, str2double(sprintf('%.6g', next))], prefix);
+            app.onIdentPointsEdited();
+        end
+
+        function removeIdentPoint(app, kind)
+            %REMOVEIDENTPOINT Remove the last sensor or truck position (buttons "- Remove"); at least one stays.
+            [tbl, prefix, ~, noun] = app.identPointTable(kind);
+            v = app.tableNumbers(tbl.Data, 1);
+            if numel(v) < 2
+                app.setStatus(sprintf('At least one %s is needed.', noun));
+                return
+            end
+            app.setPointTable(tbl, v(1:end-1), prefix);
+            app.onIdentPointsEdited();
         end
 
         function setUnitSystem(app, name)
@@ -678,13 +736,13 @@ classdef BridgeConditionApp < handle
             c.EnvReactionsTable.Data = data;
             c.EnvReactionsTable.ColumnName = columns;
             veh = ml.vehicle;
-            c.EnvelopeInfo.Value = { ...
+            c.EnvelopeInfo.HTMLSource = infoPanelHtml('envelope', { ...
                 sprintf('%s: axle loads %s %s, spacings %s %s (front axle = x_v).', veh.name, ...
                     numberListText(veh.axleLoads.' / f), U.force.unit, numberListText(veh.axleSpacings.' / U.length.toSI), ...
                     U.length.unit); ...
                 sprintf('%d positions at step %.4g %s plus %d refined positions; travel %s.', ...
                     ml.nCoarse, ml.step / U.length.toSI, U.length.unit, ml.nRefined, app.DirectionItems{(3 - ml.direction) / 2}); ...
-                'Permanent model loads are included at every position. Quasi-static: no impact or dynamic effects.'};
+                'Permanent model loads are included at every position. Quasi-static: no impact or dynamic effects.'});
         end
 
         function clearDamageResults(app)
@@ -694,7 +752,8 @@ classdef BridgeConditionApp < handle
             c.DamageTable.Data = cell(0, 5);
             c.SensitivityTable.Data = cell(0, 6);
             c.SensitivityTable.ColumnName = {};         % headers (with units) come with the results
-            c.DamageFindings.Value = {'Press "Compare healthy vs damaged" to fill the plots, the table and these findings.'};
+            c.DamageFindings.HTMLSource = infoPanelHtml('message', ...
+                {'Press "Compare healthy vs damaged" to fill the plots, the table and these findings.'});
             names = {'DamageMomentAxes', 'DamageShearAxes', 'DamageDeflectionAxes', 'SensitivityAxes'};
             hints = {'Moment envelope', 'Shear envelope', 'Deflection envelope', 'Sensitivity'};
             for k = 1:numel(names)
@@ -723,7 +782,8 @@ classdef BridgeConditionApp < handle
             c.CriticalTable.ColumnName = {};            % headers (with units) come with the results
             c.EnvReactionsTable.Data = cell(0, 7);
             c.EnvReactionsTable.ColumnName = {};
-            c.EnvelopeInfo.Value = {'Press "Run moving-load analysis" to compute envelopes for the current model and vehicle.'};
+            c.EnvelopeInfo.HTMLSource = infoPanelHtml('message', ...
+                {'Press "Run moving-load analysis" to compute envelopes for the current model and vehicle.'});
             for ax = {c.EnvMomentAxes, c.EnvShearAxes, c.EnvDeflectionAxes}
                 cla(ax{1});
                 legend(ax{1}, 'off');                   % cla keeps an existing legend box
@@ -734,8 +794,8 @@ classdef BridgeConditionApp < handle
             % New model: default sensors and truck positions, a hidden region on nodes, no readings.
             c = app.Controls;
             [sensors, positions] = identificationDefaults(app.Model, app.Vehicle, app.Direction);
-            c.SensorField.Value = numberListText(sensors / app.Units.length.toSI);
-            c.IdentPositionsField.Value = numberListText(positions / app.Units.length.toSI);
+            app.setPointTable(c.SensorsTable, sensors / app.Units.length.toSI, 'S');
+            app.setPointTable(c.PositionsTable, positions / app.Units.length.toSI, 'P');
             k = max(1, round((numel(app.NodeX) - 1) / 3));         % hidden region: one element at about L/3
             c.HiddenFromDropDown.Value = c.HiddenFromDropDown.Items{k};
             c.HiddenToDropDown.Value = c.HiddenToDropDown.Items{k + 1};
@@ -750,9 +810,10 @@ classdef BridgeConditionApp < handle
             c.ReadingsTable.ColumnName = {};
             c.ReadingsTable.RowName = {};
             app.clearIdentificationResults();
-            c.IdentInfo.Value = {'1. Check the sensors and truck positions (vehicle and direction come from the Vehicle tab).'; ...
+            c.IdentInfo.HTMLSource = infoPanelHtml('message', ...
+                {'1. Check the sensors and truck positions (vehicle and direction come from the Vehicle tab).'; ...
                 '2. Generate synthetic readings of a hidden case, or press "New empty table" and type measured deflections.'; ...
-                '3. State the reading noise and press "Run identification".'};
+                '3. State the reading noise and press "Run identification".'});
         end
 
         function clearIdentificationResults(app)
@@ -760,7 +821,7 @@ classdef BridgeConditionApp < handle
             app.IdentResult = [];
             c.CandidateTable.Data = cell(0, 7);
             c.CandidateTable.ColumnName = {};           % headers (with units) come with the results
-            c.IdentResultText.Value = {'Press "Run identification": the result appears here.'};
+            c.IdentResultText.HTMLSource = infoPanelHtml('message', {'Press "Run identification": the result appears here.'});
             cla(c.FitAxes);
             legend(c.FitAxes, 'off');
             cla(c.ReadingsAxes);
@@ -775,14 +836,14 @@ classdef BridgeConditionApp < handle
                 error('BridgeFE:invalidInput', 'Apply a model and a vehicle first.');
             end
             U = app.Units;
-            sensors = parseNumberList(c.SensorField.Value, sprintf('Sensor x [%s]', U.length.unit)) * U.length.toSI;
-            positions = parseNumberList(c.IdentPositionsField.Value, ...
-                sprintf('Truck positions x_v [%s]', U.length.unit)) * U.length.toSI;
+            sensors = coordinatesFromTable(c.SensorsTable.Data, 'Sensor', 'x', U);
+            positions = coordinatesFromTable(c.PositionsTable.Data, 'Truck position', 'x_v', U);
             x = app.Model.nodes.x;
             tol = 1e-5 * (x(end) - x(1));          % covers an end coordinate typed as shown (6 digits)
-            if any(sensors < x(1) - tol | sensors > x(end) + tol)
-                error('BridgeFE:offBeam', 'Sensor coordinates must lie on the beam (%g to %g %s).', ...
-                    x(1) / U.length.toSI, x(end) / U.length.toSI, U.length.unit);
+            off = find(sensors < x(1) - tol | sensors > x(end) + tol, 1);
+            if ~isempty(off)
+                error('BridgeFE:offBeam', 'Sensor %d: x = %g %s is not on the beam (%g to %g %s).', off, ...
+                    sensors(off) / U.length.toSI, U.length.unit, x(1) / U.length.toSI, x(end) / U.length.toSI, U.length.unit);
             end
             sensors = min(max(sensors, x(1)), x(end));
         end
@@ -808,8 +869,9 @@ classdef BridgeConditionApp < handle
             c = app.Controls;
             app.IdentTruth = [];
             app.clearIdentificationResults();
-            c.IdentInfo.Value = {'Readings edited: they are treated as measured data, so the synthetic hidden case is no longer compared.'; ...
-                'Press "Run identification".'};
+            c.IdentInfo.HTMLSource = infoPanelHtml('message', ...
+                {'Readings edited: they are treated as measured data, so the synthetic hidden case is no longer compared.'; ...
+                'Press "Run identification".'});
             try
                 s = app.ReadingsSetup;
                 uObs = readingsFromTable(c.ReadingsTable.Data, numel(s.sensors), numel(s.positions), app.Units);
@@ -921,18 +983,9 @@ classdef BridgeConditionApp < handle
             cla(c.ModelAxes);
             renderDrawing(c.ModelAxes, bridgeDrawing(model, opts), app.Units);
             title(c.ModelAxes, 'Preview: press "Apply model" to use this model');
-            c.SummaryArea.Value = app.summaryText(info);
+            c.SummaryArea.HTMLSource = infoPanelHtml('model', info.summary);
+            app.Previewing = true;
             app.setStatus('Model edited: press "Apply model" to analyse it.');
-        end
-
-        function lines = summaryText(~, info)
-            % Model summary (BUILDMODELFROMTABLES) followed by what the model is and is not.
-            lines = [info.summary; {''; ...
-                'Model: 2D equivalent Euler-Bernoulli beam, DOFs v and theta per node.'; ...
-                ['Supports: pin and roller act alike in this bending-only model (no horizontal direction); ' ...
-                'Free = no support, e.g. a cantilever tip.']; ...
-                'Steel: EI = Es*Is. RCC: EI = Ec*Ieff, with Ieff supplied by you and held constant (no cracking model).'; ...
-                'Linear, quasi-static analysis. Not a load rating or design check.'}];
         end
 
         function refreshRegionChoices(app)
@@ -1008,7 +1061,7 @@ classdef BridgeConditionApp < handle
             % had then are compared one by one.
             kinds = struct('spans', 'length', 'loads', 'force', 'spacings', 'length', 'E', 'modulus', ...
                 'I', 'inertia', 'udl', 'distributed', 'step', 'length', 'sensitivityStep', 'length', ...
-                'noiseAbs', 'deflection');
+                'noiseAbs', 'deflection', 'sensors', 'length', 'positions', 'length');
             names = fieldnames(kinds);
             before = app.unitInputs();
             after = before;
@@ -1037,6 +1090,12 @@ classdef BridgeConditionApp < handle
             app.refreshSupportsTable();
             okModel = app.applyModelInputs();
             okVehicle = app.applyVehicleInputs();
+            if okModel && okVehicle
+                % A pure unit switch keeps the user's sensors and truck positions (converted); Apply model reset them.
+                app.setPointTable(c.SensorsTable, after.sensors, 'S');
+                app.setPointTable(c.PositionsTable, after.positions, 'P');
+                app.drawIdentification();
+            end
             if okModel && okVehicle
                 app.setStatus(sprintf('Units: %s. Every input was converted; press the run buttons for results.', new.label));
             end
@@ -1071,6 +1130,8 @@ classdef BridgeConditionApp < handle
             s.step = c.StepField.Value;
             s.sensitivityStep = c.SensitivityStepField.Value;
             s.noiseAbs = c.SearchNoiseAbsField.Value;
+            s.sensors = app.tableNumbers(c.SensorsTable.Data, 1);
+            s.positions = app.tableNumbers(c.PositionsTable.Data, 1);
         end
 
         function setUnitInputs(app, s)
@@ -1087,6 +1148,8 @@ classdef BridgeConditionApp < handle
             c.StepField.Value = s.step;
             c.SensitivityStepField.Value = s.sensitivityStep;
             c.SearchNoiseAbsField.Value = s.noiseAbs;
+            app.setPointTable(c.SensorsTable, s.sensors, 'S');
+            app.setPointTable(c.PositionsTable, s.positions, 'P');
         end
 
         function updateUnitLabels(app)
@@ -1099,8 +1162,8 @@ classdef BridgeConditionApp < handle
             c.AxlesTable.ColumnName = {sprintf('Load [%s]', U.force.unit), sprintf('Spacing to next axle [%s]', U.length.unit)};
             c.StepLabel.Text = sprintf('Position step [%s]', U.length.unit);
             c.SensitivityStepLabel.Text = sprintf('Sweep position step [%s]', U.length.unit);
-            c.SensorLabel.Text = sprintf('Sensor x [%s]', U.length.unit);
-            c.IdentPositionsLabel.Text = sprintf('Truck positions x_v [%s]', U.length.unit);
+            c.SensorsTable.ColumnName = {sprintf('x [%s]', U.length.unit)};
+            c.PositionsTable.ColumnName = {sprintf('x_v [%s]', U.length.unit)};
             c.SearchNoiseAbsLabel.Text = sprintf('Reading noise [%s]', U.deflection.unit);
             c.SearchNoiseField.Tooltip = app.noiseTooltip();
             c.IdentReadingsTab.Title = sprintf('Readings [%s]', U.deflection.unit);
@@ -1229,14 +1292,20 @@ classdef BridgeConditionApp < handle
             c.MaterialDropDown = app.labeled(f1, 7, 'Material (all spans)', uidropdown(f1, 'Items', {'Steel', 'RCC'}, ...
                 'Value', 'Steel', 'ValueChangedFcn', @(~, ~) app.onMaterialChanged()));
             [c.EField, c.ELabel] = app.labeled(f1, 8, sprintf('E [%s]', U.modulus.unit), uieditfield(f1, 'numeric', ...
-                'Value', 200, 'Limits', [0 Inf], 'LowerLimitInclusive', 'off', 'ValueDisplayFormat', '%.6g'));
+                'Value', 200, 'Limits', [0 Inf], 'LowerLimitInclusive', 'off', 'ValueDisplayFormat', '%.6g', ...
+                'ValueChangedFcn', @(~, ~) app.previewModel()));
             [c.IField, c.ILabel] = app.labeled(f1, 9, sprintf('Is [%s]', U.inertia.unit), uieditfield(f1, 'numeric', ...
-                'Value', 0.01, 'Limits', [0 Inf], 'LowerLimitInclusive', 'off', 'ValueDisplayFormat', '%.6g'));
-            c.MaterialNameField = app.labeled(f1, 10, 'Material name', uieditfield(f1, 'text', 'Value', ''));
+                'Value', 0.01, 'Limits', [0 Inf], 'LowerLimitInclusive', 'off', 'ValueDisplayFormat', '%.6g', ...
+                'ValueChangedFcn', @(~, ~) app.previewModel()));
+            c.MaterialNameField = app.labeled(f1, 10, 'Material name', uieditfield(f1, 'text', 'Value', '', ...
+                'Tooltip', 'A label for your records, shown in the summary; it does not change any result', ...
+                'ValueChangedFcn', @(~, ~) app.previewModel()));
             c.BasisField = app.labeled(f1, 11, 'Basis of E and I', uieditfield(f1, 'text', 'Value', '', ...
-                'Tooltip', 'Where E and I (or Ieff) come from; kept with the results'));
+                'Tooltip', 'Where E and I (or Ieff) come from; shown in the summary, no effect on results', ...
+                'ValueChangedFcn', @(~, ~) app.previewModel()));
             [c.UDLField, c.UDLLabel] = app.labeled(f1, 12, sprintf('Uniform load, down [%s]', U.distributed.unit), ...
-                uieditfield(f1, 'numeric', 'Value', 0, 'Limits', [0 Inf], 'ValueDisplayFormat', '%.6g'));
+                uieditfield(f1, 'numeric', 'Value', 0, 'Limits', [0 Inf], 'ValueDisplayFormat', '%.6g', ...
+                'ValueChangedFcn', @(~, ~) app.previewModel()));
             c.NumbersCheckBox = uicheckbox(f1, 'Text', 'Show node and element numbers', 'Value', false, ...
                 'ValueChangedFcn', @(~, ~) app.redrawAll());
             c.NumbersCheckBox.Layout.Row = 13;
@@ -1253,7 +1322,7 @@ classdef BridgeConditionApp < handle
             c.ModelAxes = uiaxes(r1);
             c.ModelAxes.Layout.Row = 1;
             c.ModelAxes.Layout.Column = 1;
-            c.SummaryArea = uitextarea(r1, 'Editable', 'off', 'BackgroundColor', th.panel, 'FontColor', th.text);
+            c.SummaryArea = uihtml(r1, 'HTMLSource', infoPanelHtml('message', {'Press "Apply model".'}));
             c.SummaryArea.Layout.Row = 2;
             c.SummaryArea.Layout.Column = 1;
 
@@ -1352,7 +1421,7 @@ classdef BridgeConditionApp < handle
             b = uibutton(s2, 'push', 'Text', 'Forward', 'ButtonPushedFcn', @(~, ~) app.stepVehicle(1));
             b.Layout.Row = 1;
             b.Layout.Column = 4;
-            c.PositionLabel = uilabel(s2, 'Text', 'x_v = -', 'FontColor', th.text);
+            c.PositionLabel = uilabel(s2, 'Text', 'x_v = -', 'FontColor', th.text, 'WordWrap', 'on');
             c.PositionLabel.Layout.Row = 1;
             c.PositionLabel.Layout.Column = 5;
             c.MomentAxes = uiaxes(r2);
@@ -1380,16 +1449,16 @@ classdef BridgeConditionApp < handle
             c.EnvDeflectionAxes = uiaxes(g3);
             c.EnvDeflectionAxes.Layout.Row = 3;
             c.EnvDeflectionAxes.Layout.Column = 1;
-            r3 = uigridlayout(g3, [6 1]);
+            r3 = uigridlayout(g3, [8 1]);
             r3.Layout.Row = [1 3];
             r3.Layout.Column = 2;
-            r3.RowHeight = {34, 70, 22, '1x', 22, '1x'};
+            r3.RowHeight = {34, 100, 22, '1x', 18, 22, '1x', 18};
             r3.BackgroundColor = th.background;
             b = uibutton(r3, 'push', 'Text', 'Run moving-load analysis', 'BackgroundColor', th.sage, ...
                 'FontColor', th.buttonText, 'FontWeight', 'bold', 'ButtonPushedFcn', @(~, ~) app.runEnvelopes());
             b.Layout.Row = 1;
             b.Layout.Column = 1;
-            c.EnvelopeInfo = uitextarea(r3, 'Editable', 'off', 'BackgroundColor', th.panel, 'FontColor', th.text);
+            c.EnvelopeInfo = uihtml(r3, 'HTMLSource', infoPanelHtml('message', {'Press "Run moving-load analysis".'}));
             c.EnvelopeInfo.Layout.Row = 2;
             c.EnvelopeInfo.Layout.Column = 1;
             lbl = uilabel(r3, 'Text', 'Critical vehicle positions (global extremes)', 'FontWeight', 'bold', ...
@@ -1399,12 +1468,14 @@ classdef BridgeConditionApp < handle
             c.CriticalTable = uitable(r3, 'Data', cell(0, 7), 'ColumnName', {}, 'ColumnWidth', 'fit');
             c.CriticalTable.Layout.Row = 4;
             c.CriticalTable.Layout.Column = 1;
+            c.CriticalLegend = app.legendLabel(r3, 5, 1, app.xLegendText('critical'));
             lbl = uilabel(r3, 'Text', 'Reaction envelopes', 'FontWeight', 'bold', 'FontColor', th.sageDark);
-            lbl.Layout.Row = 5;
+            lbl.Layout.Row = 6;
             lbl.Layout.Column = 1;
             c.EnvReactionsTable = uitable(r3, 'Data', cell(0, 7), 'ColumnName', {}, 'ColumnWidth', 'fit');
-            c.EnvReactionsTable.Layout.Row = 6;
+            c.EnvReactionsTable.Layout.Row = 7;
             c.EnvReactionsTable.Layout.Column = 1;
+            c.ReactionLegend = app.legendLabel(r3, 8, 1, app.xLegendText('reaction'));
 
             % ---- Tab: Damage (Stage 2)
             t6 = uitab(tabs, 'Title', 'Damage (Stage 2)', 'BackgroundColor', th.background);
@@ -1451,8 +1522,7 @@ classdef BridgeConditionApp < handle
                 'FontWeight', 'bold', 'ButtonPushedFcn', @(~, ~) app.runDamageSensitivity());
             b.Layout.Row = 10;
             b.Layout.Column = [1 2];
-            c.DamageInfo = uitextarea(f6, 'Editable', 'off', 'BackgroundColor', th.panel, 'FontColor', th.text, ...
-                'Value', {'No damage applied.'});
+            c.DamageInfo = uihtml(f6, 'HTMLSource', infoPanelHtml('message', {'No damage applied.'}));
             c.DamageInfo.Layout.Row = [11 12];
             c.DamageInfo.Layout.Column = [1 2];
             r6 = uigridlayout(g6, [2 1]);
@@ -1485,8 +1555,7 @@ classdef BridgeConditionApp < handle
                 {'Quantity', 'Healthy', 'Damaged', 'Change', 'Change [%]'}, 'RowName', {}, 'ColumnWidth', 'fit');
             c.DamageTable.Layout.Row = [1 2];
             c.DamageTable.Layout.Column = 2;
-            c.DamageFindings = uitextarea(gA, 'Editable', 'off', 'BackgroundColor', th.panel, 'FontColor', th.text, ...
-                'FontSize', 13);
+            c.DamageFindings = uihtml(gA, 'HTMLSource', infoPanelHtml('message', {'Press "Compare healthy vs damaged".'}));
             c.DamageFindings.Layout.Row = 3;
             c.DamageFindings.Layout.Column = 2;
             % Sub-tab "Sensitivity along the beam": bar chart | ranking table
@@ -1498,9 +1567,16 @@ classdef BridgeConditionApp < handle
             c.SensitivityAxes = uiaxes(gB);
             c.SensitivityAxes.Layout.Row = 1;
             c.SensitivityAxes.Layout.Column = 1;
-            c.SensitivityTable = uitable(gB, 'Data', cell(0, 6), 'ColumnName', {}, 'RowName', {}, 'ColumnWidth', 'fit');
+            gB2 = uigridlayout(gB, [2 1]);
+            gB2.Layout.Row = 1;
+            gB2.Layout.Column = 2;
+            gB2.RowHeight = {'1x', 32};
+            gB2.Padding = [0 0 0 0];
+            gB2.BackgroundColor = th.background;
+            c.SensitivityTable = uitable(gB2, 'Data', cell(0, 6), 'ColumnName', {}, 'RowName', {}, 'ColumnWidth', 'fit');
             c.SensitivityTable.Layout.Row = 1;
-            c.SensitivityTable.Layout.Column = 2;
+            c.SensitivityTable.Layout.Column = 1;
+            c.SensitivityLegend = app.legendLabel(gB2, 2, 1, app.xLegendText('sensitivity'));
 
             % ---- Tab: Identification (Stage 3)
             t7 = uitab(tabs, 'Title', 'Identification (Stage 3)', 'BackgroundColor', th.background);
@@ -1511,54 +1587,54 @@ classdef BridgeConditionApp < handle
                 'ForegroundColor', th.sageDark);
             p7.Layout.Row = 1;
             p7.Layout.Column = 1;
-            f7 = uigridlayout(p7, [15 2]);
-            f7.RowHeight = [repmat({26}, 1, 14), {'1x'}];
+            f7 = uigridlayout(p7, [16 2]);
+            f7.RowHeight = {18, 112, 26, 18, 26, 26, 26, 26, 26, 26, 18, 26, 26, 26, 30, '1x'};
+            f7.RowSpacing = 6;
             f7.ColumnWidth = {170, '1x'};
             f7.BackgroundColor = th.panel;
             f7.Scrollable = 'on';
-            [c.SensorField, c.SensorLabel] = app.labeled(f7, 1, sprintf('Sensor x [%s]', U.length.unit), ...
-                uieditfield(f7, 'text', 'Tooltip', 'Sensor coordinates on the beam, e.g. L/4 L/2 3L/4'));
-            [c.IdentPositionsField, c.IdentPositionsLabel] = app.labeled(f7, 2, sprintf('Truck positions x_v [%s]', ...
-                U.length.unit), uieditfield(f7, 'text', 'Tooltip', 'Front-axle positions of the known load cases'));
+            c.SensorsTable = app.pointTable(f7, 1, 'Sensors (x on the bridge)', sprintf('x [%s]', U.length.unit), 'sensor');
+            c.PositionsTable = app.pointTable(f7, 2, 'Truck positions (front axle)', sprintf('x_v [%s]', U.length.unit), ...
+                'truck position');
             lbl = uilabel(f7, 'Text', 'Synthetic test case (hidden from the search)', 'FontWeight', 'bold', ...
                 'FontColor', th.sageDark);
-            lbl.Layout.Row = 3;
+            lbl.Layout.Row = 4;
             lbl.Layout.Column = [1 2];
-            c.HiddenFromDropDown = app.labeled(f7, 4, 'Hidden region from', uidropdown(f7, 'Items', {'node 1'}, ...
+            c.HiddenFromDropDown = app.labeled(f7, 5, 'Hidden region from', uidropdown(f7, 'Items', {'node 1'}, ...
                 'Value', 'node 1'));
-            c.HiddenToDropDown = app.labeled(f7, 5, 'Hidden region to', uidropdown(f7, 'Items', {'node 1'}, ...
+            c.HiddenToDropDown = app.labeled(f7, 6, 'Hidden region to', uidropdown(f7, 'Items', {'node 1'}, ...
                 'Value', 'node 1'));
-            c.HiddenLossField = app.labeled(f7, 6, 'Hidden loss d [%]', uieditfield(f7, 'numeric', 'Value', 30, ...
-                'Limits', [0 99], 'Tooltip', '0 gives an undamaged case'));
-            c.SyntheticNoiseField = app.labeled(f7, 7, 'Noise added [% of reading]', uieditfield(f7, 'numeric', ...
+            c.HiddenLossField = app.labeled(f7, 7, 'Hidden loss d [%]', uieditfield(f7, 'numeric', 'Value', 30, ...
+                'Limits', [0 60], 'Tooltip', 'The search covers losses of 5 to 60 %; 0 gives an undamaged case'));
+            c.SyntheticNoiseField = app.labeled(f7, 8, 'Noise added [% of reading]', uieditfield(f7, 'numeric', ...
                 'Value', 1, 'Limits', [0 50]));
-            c.SeedField = app.labeled(f7, 8, 'Noise seed', uieditfield(f7, 'numeric', 'Value', 1, ...
+            c.SeedField = app.labeled(f7, 9, 'Noise seed', uieditfield(f7, 'numeric', 'Value', 1, ...
                 'Limits', [0 1e9], 'RoundFractionalValues', 'on'));
             b = uibutton(f7, 'push', 'Text', 'Generate synthetic readings', 'BackgroundColor', th.sage, ...
                 'FontColor', th.buttonText, 'FontWeight', 'bold', 'ButtonPushedFcn', @(~, ~) app.generateSyntheticReadings());
-            b.Layout.Row = 9;
+            b.Layout.Row = 10;
             b.Layout.Column = 1;
             b = uibutton(f7, 'push', 'Text', 'New empty table', 'Tooltip', 'For measured readings', ...
                 'ButtonPushedFcn', @(~, ~) app.newEmptyReadings());
-            b.Layout.Row = 9;
+            b.Layout.Row = 10;
             b.Layout.Column = 2;
             lbl = uilabel(f7, 'Text', 'Search', 'FontWeight', 'bold', 'FontColor', th.sageDark);
-            lbl.Layout.Row = 10;
+            lbl.Layout.Row = 11;
             lbl.Layout.Column = [1 2];
-            c.SearchNoiseField = app.labeled(f7, 11, 'Reading noise [% of reading]', uieditfield(f7, 'numeric', ...
+            c.SearchNoiseField = app.labeled(f7, 12, 'Reading noise [% of reading]', uieditfield(f7, 'numeric', ...
                 'Value', 1, 'Limits', [0 50], 'Tooltip', app.noiseTooltip()));
-            [c.SearchNoiseAbsField, c.SearchNoiseAbsLabel] = app.labeled(f7, 12, sprintf('Reading noise [%s]', ...
+            [c.SearchNoiseAbsField, c.SearchNoiseAbsLabel] = app.labeled(f7, 13, sprintf('Reading noise [%s]', ...
                 U.deflection.unit), uieditfield(f7, 'numeric', 'Value', 0, 'Limits', [0 Inf], ...
                 'ValueDisplayFormat', '%.6g', 'Tooltip', 'Absolute part of the standard deviation (sensor resolution)'));
             [~, regionItems] = candidateRegionLength([], U);
-            c.RegionSizeDropDown = app.labeled(f7, 13, 'Candidate regions', uidropdown(f7, 'Items', regionItems, ...
+            c.RegionSizeDropDown = app.labeled(f7, 14, 'Candidate regions', uidropdown(f7, 'Items', regionItems, ...
                 'Value', regionItems{1}));
             b = uibutton(f7, 'push', 'Text', 'Run identification', 'BackgroundColor', th.sage, 'FontColor', th.buttonText, ...
                 'FontWeight', 'bold', 'ButtonPushedFcn', @(~, ~) app.runIdentification());
-            b.Layout.Row = 14;
+            b.Layout.Row = 15;
             b.Layout.Column = [1 2];
-            c.IdentInfo = uitextarea(f7, 'Editable', 'off', 'BackgroundColor', th.panel, 'FontColor', th.text);
-            c.IdentInfo.Layout.Row = 15;
+            c.IdentInfo = uihtml(f7, 'HTMLSource', infoPanelHtml('message', {'Press "Run identification".'}));
+            c.IdentInfo.Layout.Row = 16;
             c.IdentInfo.Layout.Column = [1 2];
             r7 = uigridlayout(g7, [2 1]);
             r7.Layout.Row = 1;
@@ -1573,9 +1649,11 @@ classdef BridgeConditionApp < handle
             c.IdentResultTabs.Layout.Column = 1;
             c.IdentReadingsTab = uitab(c.IdentResultTabs, 'Title', sprintf('Readings [%s]', U.deflection.unit), ...
                 'BackgroundColor', th.background);
-            gR = uigridlayout(c.IdentReadingsTab, [1 2]);
+            gR = uigridlayout(c.IdentReadingsTab, [2 2]);
             gR.ColumnWidth = {640, '1x'};        % room for five truck-position columns without scrolling
+            gR.RowHeight = {'1x', 18};
             gR.BackgroundColor = th.background;
+            c.ReadingsLegend = app.legendLabel(gR, 2, [1 2], app.xLegendText('readings'));
             c.ReadingsTable = uitable(gR, 'Data', zeros(0, 0), 'ColumnWidth', 'fit', ...
                 'CellEditCallback', @(~, ~) app.onReadingsEdited());
             c.ReadingsTable.Layout.Row = 1;
@@ -1584,8 +1662,8 @@ classdef BridgeConditionApp < handle
             c.ReadingsAxes.Layout.Row = 1;
             c.ReadingsAxes.Layout.Column = 2;
             c.IdentFitTab = uitab(c.IdentResultTabs, 'Title', 'Fit by location', 'BackgroundColor', th.background);
-            gF = uigridlayout(c.IdentFitTab, [2 1]);
-            gF.RowHeight = {'1x', 210};
+            gF = uigridlayout(c.IdentFitTab, [3 1]);
+            gF.RowHeight = {'1x', 210, 18};
             gF.BackgroundColor = th.background;
             c.FitAxes = uiaxes(gF);
             c.FitAxes.Layout.Row = 1;
@@ -1593,12 +1671,13 @@ classdef BridgeConditionApp < handle
             c.CandidateTable = uitable(gF, 'Data', cell(0, 7), 'RowName', {}, 'ColumnWidth', 'fit', 'ColumnName', {});
             c.CandidateTable.Layout.Row = 2;
             c.CandidateTable.Layout.Column = 1;
+            c.CandidateLegend = app.legendLabel(gF, 3, 1, app.xLegendText('candidates'));
             % Sub-tab "Summary": the full plain-language result at full width
             c.IdentSummaryTab = uitab(c.IdentResultTabs, 'Title', 'Summary', 'BackgroundColor', th.background);
             gS = uigridlayout(c.IdentSummaryTab, [1 1]);
             gS.BackgroundColor = th.background;
-            c.IdentResultText = uitextarea(gS, 'Editable', 'off', 'BackgroundColor', th.panel, 'FontColor', th.text, ...
-                'Value', {'Press "Run identification": the result appears here.'});
+            c.IdentResultText = uihtml(gS, 'HTMLSource', ...
+                infoPanelHtml('message', {'Press "Run identification": the result appears here.'}));
             c.IdentResultText.Layout.Row = 1;
             c.IdentResultText.Layout.Column = 1;
 
@@ -1647,6 +1726,101 @@ classdef BridgeConditionApp < handle
             app.Controls = c;
         end
 
+        function lbl = legendLabel(app, grid, row, column, text)
+            % Small grey line under a table that says what x and x_v mean.
+            lbl = uilabel(grid, 'Text', text, 'FontSize', 11, 'FontColor', [0.40 0.40 0.40], 'WordWrap', 'on', ...
+                'BackgroundColor', app.Theme.background);
+            lbl.Layout.Row = row;
+            lbl.Layout.Column = column;
+        end
+
+        function text = xLegendText(~, which)
+            % What x and x_v mean, next to the tables that use them.
+            switch which
+                case 'critical'
+                    text = ['x = location on the bridge where the extreme occurs; x_v = position of the truck''s front ' ...
+                        'axle that causes it. Both measured from support A.'];
+                case 'reaction'
+                    text = 'x = location of the support; at x_v = front-axle position of the truck that gives the extreme.';
+                case 'sensitivity'
+                    text = ['x = location of the weakened element(s) on the bridge, measured from support A. Change = ' ...
+                        'damaged - healthy value of the response, in its unit.'];
+                case 'readings'
+                    text = ['Rows: sensors S1, S2, ... at x on the bridge. Columns: truck front-axle positions x_v. ' ...
+                        'Both measured from support A.'];
+                case 'candidates'
+                    text = 'Region x = start-end of the candidate region on the bridge, measured from support A.';
+            end
+        end
+
+        function tbl = pointTable(app, grid, column, titleText, header, kind)
+            % Table of coordinates (sensors or truck positions) with "+ Add" and "- Remove" under it.
+            th = app.Theme;
+            lbl = uilabel(grid, 'Text', titleText, 'FontWeight', 'bold', 'FontColor', th.sageDark);
+            lbl.Layout.Row = 1;
+            lbl.Layout.Column = column;
+            tbl = uitable(grid, 'Data', cell(0, 1), 'ColumnName', {header}, 'ColumnEditable', true, ...
+                'ColumnFormat', {'numeric'}, 'CellEditCallback', @(~, ~) app.onIdentPointsEdited());
+            tbl.Layout.Row = 2;
+            tbl.Layout.Column = column;
+            buttons = uigridlayout(grid, [1 2]);
+            buttons.Layout.Row = 3;
+            buttons.Layout.Column = column;
+            buttons.Padding = [0 0 0 0];
+            buttons.ColumnSpacing = 4;
+            buttons.BackgroundColor = th.panel;
+            b = uibutton(buttons, 'push', 'Text', '+ Add', 'FontColor', th.sage, 'FontWeight', 'bold', ...
+                'Tooltip', sprintf('Add a %s after the last one (edit its value in the table)', kind), ...
+                'ButtonPushedFcn', @(~, ~) app.addIdentPoint(kind));
+            b.Layout.Row = 1;
+            b.Layout.Column = 1;
+            b = uibutton(buttons, 'push', 'Text', '- Remove', 'Tooltip', sprintf('Remove the last %s', kind), ...
+                'ButtonPushedFcn', @(~, ~) app.removeIdentPoint(kind));
+            b.Layout.Row = 1;
+            b.Layout.Column = 2;
+        end
+
+        function setPointTable(~, tbl, values, prefix)
+            % Write coordinates (display units) into a one-column table with rows PREFIX1, PREFIX2, ...
+            values = values(:)';
+            data = cell(numel(values), 1);
+            for k = 1:numel(values)
+                data{k} = values(k);
+            end
+            tbl.Data = data;
+            tbl.RowName = arrayfun(@(k) sprintf('%s%d', prefix, k), 1:numel(values), 'UniformOutput', false);
+        end
+
+        function [tbl, prefix, limits, noun] = identPointTable(app, kind)
+            % The sensor or the truck-position table, its row prefix and the range of a new entry (display units).
+            c = app.Controls;
+            if strcmp(kind, 'sensor')
+                tbl = c.SensorsTable;
+                prefix = 'S';
+                limits = [app.Model.nodes.x(1), app.Model.nodes.x(end)] / app.Units.length.toSI;
+                noun = 'sensor';
+            else
+                tbl = c.PositionsTable;
+                prefix = 'P';
+                limits = app.PositionRange / app.Units.length.toSI;
+                noun = 'truck position';
+            end
+        end
+
+        function onIdentPointsEdited(app)
+            app.drawIdentification();
+            app.setStatus(['Sensors or truck positions edited: press "Generate synthetic readings" or "New empty table" ' ...
+                'for a readings table that matches them.']);
+        end
+
+        function checkRegionOrder(~, fromDropDown, toDropDown, name)
+            % A region runs from a node to a node on its right; the message quotes the drop-downs (display units).
+            if find(strcmp(toDropDown.Items, toDropDown.Value)) <= find(strcmp(fromDropDown.Items, fromDropDown.Value))
+                error('BridgeFE:invalidInput', '%s: choose a "to" node to the right of the "from" node (now from %s to %s).', ...
+                    name, fromDropDown.Value, toDropDown.Value);
+            end
+        end
+
         function [ctrl, lbl] = labeled(app, grid, row, text, ctrl)
             lbl = uilabel(grid, 'Text', text, 'FontColor', app.Theme.text);
             lbl.Layout.Row = row;
@@ -1681,6 +1855,7 @@ classdef BridgeConditionApp < handle
             elseif same(c.EField.Value, rccE)
                 c.EField.Value = steelE;
             end
+            app.previewModel();                         % the material is a model input: show it before Apply
         end
 
         function updateInertiaLabel(app)
@@ -1707,8 +1882,13 @@ classdef BridgeConditionApp < handle
         end
 
         function redrawAll(app)
-            if ~isempty(app.Model)
+            if app.Previewing
+                app.previewModel();                     % keep showing the un-applied edits
+            elseif ~isempty(app.Model)
                 app.drawModelTab();
+            end
+            if ~isempty(app.Model)
+                app.drawDamageModel();                  % node numbers on the Damage drawing too
             end
             if ~isempty(app.PositionResult)
                 app.drawPositionView();
