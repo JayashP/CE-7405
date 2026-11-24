@@ -1359,3 +1359,15 @@ Every review finding that survived verification was fixed and has a check row; e
 **Limits:** the stand-ins check property names, values and layout rules, not the look; the HTML was rendered in Chromium (Playwright) during round 1, not in MATLAB. **NOT VERIFIED IN MATLAB.**
 
 **Status of M10:** verified in Octave (V-029). MATLAB: not run yet.
+
+## V-030 — 2026-11-24 — M10 in MATLAB, part 1: test suite (run by the user)
+
+| Item | Value |
+|---|---|
+| Platform | MATLAB R2026b on the user's computer (as V-002) |
+| Code version | Branch `claude/m10-gui-clarity`, pulled after V-029 (head `392d6cc`, pull request JayashP/CE-7405#1). `src/` and `tests/*.m` are the same from `4ee9aac` on |
+| Main suite | `runAllTests`: **Total: 162 passed, 0 failed, 162 tests**, the same count as Octave (V-029). This includes testGuiHelpers "The unit-slip message uses the unit the user typed in", which reads the Command Window output with `evalc` since review round 3 (the earlier `lastwarn` version would have failed in MATLAB, which records a warning that is turned off). Screenshot: `results/verification/2026-11-24_M10_matlab_runAllTests_summary.png` |
+| Warnings printed | Three, all raised on purpose by a test that reads them back and passes: testGuiHelpers line 50 (Pa typed into the GPa field of `buildModelFromInputs`, steel E = 2e+20 Pa; the section checks that the message reaches the app; on `main` before M10); testInverseUncertainty line 146 (`BridgeFE:rccInverse`, the PROJECT_SPEC section 7 RCC caveat); testMaterials lines 139 and 142 (`BridgeFE:unusualModulus` for steel E = 200 Pa and RCC E = 30 MPa, as in V-009). Screenshots: `..._M10_matlab_runAllTests_warning_testGuiHelpers.png`, `..._warning_rccInverse.png`, `..._warning_testMaterials.png` |
+| Still to do | `checkBridgeConditionApp(true)` and the app screenshots listed under "To see in MATLAB" in V-029 |
+
+**Status of M10:** verified in Octave (V-029); MATLAB test suite passes (V-030 part 1); MATLAB app check and app not seen yet.
