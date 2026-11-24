@@ -1381,4 +1381,22 @@ Every review finding that survived verification was fixed and has a check row; e
 | Warnings printed | **None.** M10 no longer lets the engine print the deliberate unit-slip warning (row "E = 32e9 "GPa": ... a unit warning reported in GPa"), which V-028 still showed; the message reaches the app only. The RCC caveat is shown in the left box, not printed, as in V-028 |
 | Still to see | The look of the app (V-029 "To see in MATLAB"): `uihtml` styling and scrolling, critical-table legend on two lines, + Add scrolling to the new row, plot colours, zoom on the beam drawing (M9c label clipping and axle labels) |
 
-**Status of M10:** verified in Octave (V-029); in MATLAB the test suite (V-030 part 1) and the app check (V-030 part 2) pass; the app screens are not seen yet.
+### V-030 part 3 (2026-11-24): the M10 app in MATLAB (screenshots by the user)
+
+Model: one 20 m span (16 elements), A Pin, B Roller, steel E = 200 GPa, Is = 0.01 m^4; the illustrative 3-axle truck (80, 120, 120 kN at 4.2, 1.4 m). Files `results/verification/2026-11-24_M10_matlab_app_*.png`.
+
+| Screen | Seen in MATLAB | Result |
+|---|---|---|
+| Bridge model, SI (`..._bridge_model_SI.png`) | Formatted summary in two columns: headings Model, Supports, Material and load, Modelling notes; one bullet per support; numbers in blue; modelling notes in grey; fits without scrolling | as designed |
+| Envelopes, SI (`..._envelopes_SI.png`) | Moving-load box formatted; under the critical table "x = location on the bridge where the extreme occurs; x_v = position of the truck's front axle that causes it (both measured from support A)." on two lines; legend under the reaction envelopes. M max 1349.102 kN*m at x = 9.740 m (x_v = 13.940 m), v min -24.925 mm | as designed |
+| Damage, SI (`..._damage_SI.png`) | Elements 7-10 (7.5-12.5 m), d = 30 %. Comparison plots in solid lines: healthy blue / light blue, damaged dark red / orange, named in the legends and the status line. Findings box: "Statically determinate beam ...", v min -24.925 -> -30.839 mm (-23.73 %), reactions unchanged | as designed |
+| Identification, SI (`..._identification_SI.png`, `..._identification_summary_SI.png`) | Sensor table S1-S3 and truck-position table P1-P5 (scroll bar) with + Add / - Remove; readings table with x and x_v explained under it; hidden element 5, d = 30 %, noise 1 %: best fit element 5 (5-6.25 m), d = 30.2 %, region of uncertainty 3.75-7.5 m (3 candidates), 322 structures. Summary sub-tab: Method, Result, Checks and flags (green "Fit check passed: S = 10.6 <= 22.4"), Test case, Notes in grey | as designed |
+| US unit slip (`..._unit_slip_US.png`) | Steel, E = 200 ksi typed: "Check units" dialog "Steel modulus E = 200 ksi is outside the usual 21755.7-36259.4 ksi" (= 150-250 GPa); model still built, EI = 200 x 24025.1 / 144 = 33368.2 kip*ft^2 | as designed |
+| Zoom on the drawings (`..._zoom_bridge_model.png`, `..._zoom_vehicle.png`) | Node and element numbers stay inside the axes after a zoom (M9c label clipping, `3ac60ac`) | as designed |
+| Vehicle, SI (`..._vehicle_SI.png`) | x_v = 3.277 m, 1 of 3 axles on the bridge; the rear axle out of view has no label outside the axes; R_A = 66.893, R_B = 13.107 kN | as designed, but see below |
+
+**New finding (cosmetic, from M6):** the bending-moment diagram on the Vehicle tab labels a minimum of "-1.164e-13" at x = 20 m. `plotDiagram` labels any value below zero, so round-off at a pinned end gets a label. Fix below.
+
+Not seen: the M9c axle-label merge (`aacbc26`, two off-bridge HL-93 axles in US units sharing a label), because the screenshot uses the SI 3-axle truck.
+
+**Status of M10:** verified in Octave (V-029) and in MATLAB R2026b (V-030 parts 1-3): test suite 162/162, app check every row PASS, all requested screens as designed.
