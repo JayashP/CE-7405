@@ -302,6 +302,7 @@ end
 fprintf('  PASS coordinate tables: m and ft, row-named errors, empty table refused\n');
 
 %% The unit-slip message uses the unit the user typed in
+USu = unitSystem('US');                   % each section runs on its own in runAllTests
 [~, infoUS] = buildModelFromTables(struct('spanLengths', 66, 'elementsPerSpan', 8, 'supportTypes', {{'Pin', 'Roller'}}, ...
     'materialType', 'steel', 'E', 200, 'I', 24000), USu);           % 200 typed as if GPa, in a ksi field
 range = materialModulusRange('steel') / USu.modulus.toSI;
