@@ -107,15 +107,18 @@ rows(end+1) = flag(['model summary = infoPanelHtml(''model'', summary of buildMo
 feval(c.EField.ValueChangedFcn, c.EField, struct('Value', 32, 'PreviousValue', 32));   % E typed: a preview, nothing applied
 titleAfterE = axTitle(c.ModelAxes);
 statusAfterE = c.StatusLabel.Text;
+c.StatusLabel.Text = 'Another message.';  % e.g. a run finished meanwhile: a redraw must leave it
 c.NumbersCheckBox.Value = true;
 feval(c.NumbersCheckBox.ValueChangedFcn, c.NumbersCheckBox, struct('Value', true, 'PreviousValue', false));
 titleWithNumbers = axTitle(c.ModelAxes);
+statusWithNumbers = c.StatusLabel.Text;
 c.NumbersCheckBox.Value = false;
 feval(c.NumbersCheckBox.ValueChangedFcn, c.NumbersCheckBox, struct('Value', false, 'PreviousValue', true));
 app.applyModelInputs();
-rows(end+1) = flag(['editing E shows a preview and asks for Apply model; ticking node numbers keeps the preview; ' ...
-    'Apply model shows the model again'], strncmp(titleAfterE, 'Preview', 7) ...
+rows(end+1) = flag(['editing E shows a preview and asks for Apply model; ticking node numbers keeps the preview and ' ...
+    'the status line; Apply model shows the model again'], strncmp(titleAfterE, 'Preview', 7) ...
     && strncmp(statusAfterE, 'Model edited', 12) && strncmp(titleWithNumbers, 'Preview', 7) ...
+    && strcmp(statusWithNumbers, 'Another message.') ...
     && strncmp(axTitle(c.ModelAxes), 'Bridge model', 12) && isequal(app.Model, refModel));
 prep = prepareMovingLoad(refModel, defaultEnvelopeStations(refModel.nodes.x, 4));
 
@@ -454,6 +457,12 @@ refNeg = identifySingleDamage(refModel, refVehicle, pNeg, sNeg, uNeg, optsNeg{:}
 rows(end+1) = flag('-x travel: mirrored positions, readings and result = direct calls with direction -1', okGen && okRun ...
     && isequal(tableColumn(c.PositionsTable), pNeg) && isequal(c.ReadingsTable.Data, 1e3 * uNeg) ...
     && isequal([app.IdentResult.competing.group], [refNeg.competing.group]) && app.IdentResult.best.d == refNeg.best.d);
+app.addIdentPoint('sensor');               % the result belongs to the old sensors: it is cleared
+staleCleared = isempty(app.IdentResult) && isempty(c.CandidateTable.Data) ...
+    && strncmp(c.StatusLabel.Text, 'Sensors or truck positions edited', 33);
+app.removeIdentPoint('sensor');
+rows(end+1) = flag('a sensor added after a run clears the old result (candidate table emptied) and says why', ...
+    okRun && staleCleared && isequal(tableColumn(c.SensorsTable), sNeg));
 c.DirectionDropDown.Value = '+x (left to right)';
 app.applyVehicleInputs();
 app.generateSyntheticReadings();
