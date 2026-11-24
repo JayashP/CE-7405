@@ -264,6 +264,8 @@ assert(~isempty(strfind(m, '<h4>Supports</h4><ul><li>A Pin (x = <span class="num
     'one bullet per support');
 assert(~isempty(strfind(plain, 'Not a load rating or design check.')) && ~isempty(strfind(m, 'class="note"')), ...
     'modelling notes in grey');
+assert(~isempty(strfind(m, 'column-count:2')) && isempty(strfind(infoPanelHtml('findings', {'a'; 'b'}), 'column-count')), ...
+    'the wide model summary flows into two columns, other boxes do not');
 for k = [1 2 4 5 6]
     assert(~isempty(strfind(plain, regexprep(summary{k}, '^[^:]*: ', ''))), 'summary line %d kept word for word', k);
 end

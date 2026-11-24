@@ -8,7 +8,7 @@ function html = infoPanelHtml(kind, lines, flags)
 %   KIND:
 %     'model'        model summary (BUILDMODELFROMTABLES info.summary):
 %                    Model, Supports (one bullet each), Material, Permanent
-%                    load, and the modelling notes in grey
+%                    load, and the modelling notes in grey; two columns
 %     'envelope'     moving-load run notes (vehicle, positions; last line grey)
 %     'damage'       applied damage (first line) and its caveat (grey)
 %     'findings'     DAMAGECOMPARISONSUMMARY lines (first line as the lead)
@@ -23,6 +23,7 @@ function html = infoPanelHtml(kind, lines, flags)
 if nargin < 3
     flags = {};
 end
+columns = 1;
 lines = cellstr(lines);
 lines = lines(:)';
 flags = cellstr(flags);
@@ -50,6 +51,7 @@ switch kind
             'Steel: EI = Es*Is. RCC: EI = Ec*Ieff, with Ieff supplied by you and held constant (no cracking model).', ...
             'Linear, quasi-static analysis. Not a load rating or design check.'}, 'note');
         parts = [s, sup, mat, perm, notes];
+        columns = 2;                                 % the summary box is wide and short
     case 'envelope'
         parts = [section('Moving-load run', lines(1:end-1), 'list'), section('', lines(end), 'note')];
     case 'damage'
@@ -99,7 +101,7 @@ switch kind
         error('BridgeFE:invalidInput', 'Unknown information box ''%s''.', kind);
 end
 parts = parts(~cellfun(@isempty, {parts.items}));      % no empty headings
-html = htmlPanel(parts);
+html = htmlPanel(parts, columns);
 end
 
 function s = section(title, items, kind)

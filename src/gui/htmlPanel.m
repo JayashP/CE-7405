@@ -1,4 +1,4 @@
-function html = htmlPanel(sections)
+function html = htmlPanel(sections, columns)
 %HTMLPANEL Formatted HTML for the app's information boxes (headings, bullets, highlighted numbers).
 %   HTML = HTMLPANEL(SECTIONS) returns one HTML document for a MATLAB
 %   UIHTML component. SECTIONS is a struct array with fields
@@ -17,6 +17,8 @@ function html = htmlPanel(sections)
 %   part of a name ('S1', 'HL-93', '2D', '3-axle') are left alone.
 %   The wording is never changed, so a box shows the same text as the
 %   engine helper that wrote it.
+%   HTML = HTMLPANEL(SECTIONS, COLUMNS) flows the sections into COLUMNS
+%   newspaper columns (for wide, short boxes); a section is not split.
 %
 %   Example:
 %     html = htmlPanel(struct('title', 'Model', 'items', {{'Spans: 20 m (total 20 m)'}}, 'kind', 'list'));
@@ -32,6 +34,10 @@ style = ['<style>' ...
     '.ok{color:#2e7d32;}.ok .num{color:#2e7d32;}' ...
     '.note{color:#6b6b6b;font-size:11px;}.note .num{color:#6b6b6b;font-weight:normal;}' ...
     '</style>'];
+if nargin > 1 && columns > 1
+    style = strrep(style, '</style>', sprintf(['body{column-count:%d;column-gap:28px;}' ...
+        '.sec{break-inside:avoid;page-break-inside:avoid;display:inline-block;width:100%%;}</style>'], columns));
+end
 body = '';
 for s = 1:numel(sections)
     sec = sections(s);
@@ -39,6 +45,7 @@ for s = 1:numel(sections)
     if isfield(sec, 'kind') && ~isempty(sec.kind)
         kind = sec.kind;
     end
+    body = [body, '<div class="sec">']; %#ok<AGROW>
     if ~isempty(sec.title)
         body = [body, '<h4>', escapeHtml(sec.title), '</h4>']; %#ok<AGROW>
     end
@@ -73,6 +80,7 @@ for s = 1:numel(sections)
     elseif ~isempty(parts)
         body = [body, '<ul>', strjoin(parts, ''), '</ul>']; %#ok<AGROW>
     end
+    body = [body, '</div>']; %#ok<AGROW>
 end
 html = ['<!DOCTYPE html><html><head><meta charset="utf-8">', style, '</head><body>', body, '</body></html>'];
 end

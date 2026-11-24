@@ -1317,7 +1317,7 @@ classdef BridgeConditionApp < handle
             r1 = uigridlayout(g1, [2 1]);
             r1.Layout.Row = 1;
             r1.Layout.Column = 2;
-            r1.RowHeight = {'1x', 210};                 % model summary and the modelling notes
+            r1.RowHeight = {'1x', 240};                 % model summary and the modelling notes (two columns)
             r1.BackgroundColor = th.background;
             c.ModelAxes = uiaxes(r1);
             c.ModelAxes.Layout.Row = 1;
