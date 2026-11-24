@@ -323,11 +323,17 @@ USu = unitSystem('US');                   % each section runs on its own in runA
 range = materialModulusRange('steel') / USu.modulus.toSI;
 assert(numel(infoUS.warnings) == 1 && strcmp(infoUS.warnings{1}, sprintf(['Steel modulus E = 200 ksi is outside the ' ...
     'usual %g-%g ksi. Check the units; the model was still built.'], range(1), range(2))), 'ksi message');
-lastwarn('', '');
-buildModelFromTables(struct('spanLengths', 20, 'elementsPerSpan', 4, 'supportTypes', {{'Pin', 'Roller'}}, ...
-    'materialType', 'rcc', 'E', 3e10, 'I', 0.01));
-[~, lastId] = lastwarn;
-assert(isempty(lastId), 'no engine warning (in Pa) printed: the app shows its own message');
+slip = struct('spanLengths', 20, 'elementsPerSpan', 4, 'supportTypes', {{'Pin', 'Roller'}}, ...
+    'materialType', 'rcc', 'E', 3e10, 'I', 0.01);   % 3e10 GPa: the engine would warn (in Pa)
+before = warning('query', 'BridgeFE:unusualModulus');
+warning('on', 'BridgeFE:unusualModulus');
+printed = evalc('[~, slipInfo] = buildModelFromTables(slip);');   % what reaches the Command Window
+after = warning('query', 'BridgeFE:unusualModulus');
+warning(before.state, 'BridgeFE:unusualModulus');
+% lastwarn cannot tell: MATLAB records a warning that is turned off, Octave does not.
+assert(isempty(strfind(lower(printed), 'warning')) && numel(slipInfo.warnings) == 1, ...
+    'no engine warning (in Pa) printed: the app shows its own message');
+assert(strcmp(after.state, 'on'), 'the warning is turned on again after the build');
 assert(isequal(materialModulusRange('rcc'), [10e9 70e9]) && isequal(materialModulusRange('Steel'), [150e9 250e9]), 'ranges');
 assertThrows(@() materialModulusRange('timber'), 'BridgeFE:invalidMaterial');
 fprintf('  PASS unit-slip message in ksi: %s\n', infoUS.warnings{1});

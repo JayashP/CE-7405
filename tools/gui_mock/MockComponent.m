@@ -61,19 +61,48 @@ classdef MockComponent < handle
             end
             obj.Layout = value;
         end
+        function set.Enable(obj, value)
+            obj.refuseOnHTML('Enable');
+            obj.Enable = value;
+        end
+        function set.Tooltip(obj, value)
+            obj.refuseOnHTML('Tooltip');
+            obj.Tooltip = value;
+        end
+        function set.FontSize(obj, value)
+            obj.refuseOnHTML('FontSize');
+            obj.FontSize = value;
+        end
+        function set.FontName(obj, value)
+            obj.refuseOnHTML('FontName');
+            obj.FontName = value;
+        end
+        function set.FontAngle(obj, value)
+            obj.refuseOnHTML('FontAngle');
+            obj.FontAngle = value;
+        end
         function set.BackgroundColor(obj, value)
+            obj.refuseOnHTML('BackgroundColor');
             mockCheckColor(value, [obj.Type '.BackgroundColor']);
             obj.BackgroundColor = value;
         end
         function set.FontColor(obj, value)
+            obj.refuseOnHTML('FontColor');
             mockCheckColor(value, [obj.Type '.FontColor']);
             obj.FontColor = value;
         end
         function set.FontWeight(obj, value)
+            obj.refuseOnHTML('FontWeight');
             if ~any(strcmp(value, {'normal', 'bold'}))
                 error('Mock:value', '%s.FontWeight must be ''normal'' or ''bold''.', obj.Type);
             end
             obj.FontWeight = value;
+        end
+        function refuseOnHTML(obj, name)
+            % MATLAB's uihtml has no visual properties: setting one (in the constructor or later) is an error there.
+            if strcmp(obj.Type, 'uihtml')
+                error('Mock:unknownProperty', 'uihtml has no settable property ''%s''.', name);
+            end
         end
     end
 end

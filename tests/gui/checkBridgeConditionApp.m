@@ -112,13 +112,20 @@ c.NumbersCheckBox.Value = true;
 feval(c.NumbersCheckBox.ValueChangedFcn, c.NumbersCheckBox, struct('Value', true, 'PreviousValue', false));
 titleWithNumbers = axTitle(c.ModelAxes);
 statusWithNumbers = c.StatusLabel.Text;
+c.SpansTable.Data{1, 1} = -5;             % an invalid edit: the preview says so ...
+app.onSpansEdited();
+statusInvalid = c.StatusLabel.Text;
+c.StatusLabel.Text = 'Another message.';  % ... and a later redraw leaves the status alone
 c.NumbersCheckBox.Value = false;
 feval(c.NumbersCheckBox.ValueChangedFcn, c.NumbersCheckBox, struct('Value', false, 'PreviousValue', true));
+statusInvalidRedraw = c.StatusLabel.Text;
+c.SpansTable.Data{1, 1} = 12;
 app.applyModelInputs();
 rows(end+1) = flag(['editing E shows a preview and asks for Apply model; ticking node numbers keeps the preview and ' ...
     'the status line; Apply model shows the model again'], strncmp(titleAfterE, 'Preview', 7) ...
     && strncmp(statusAfterE, 'Model edited', 12) && strncmp(titleWithNumbers, 'Preview', 7) ...
-    && strcmp(statusWithNumbers, 'Another message.') ...
+    && strcmp(statusWithNumbers, 'Another message.') && strncmp(statusInvalid, 'Model input: Span 1', 19) ...
+    && strcmp(statusInvalidRedraw, 'Another message.') ...
     && strncmp(axTitle(c.ModelAxes), 'Bridge model', 12) && isequal(app.Model, refModel));
 prep = prepareMovingLoad(refModel, defaultEnvelopeStations(refModel.nodes.x, 4));
 
@@ -689,6 +696,18 @@ rows(end+1) = flag('US unit slip: "RCC modulus E = 200 ksi is outside the usual 
     okSlip && okKeep && strcmp(c.MaterialDropDown.Value, 'RCC') && numel(slipUS) == 1 ...
     && ~isempty(strfind(slipUS{1}, 'RCC modulus E = 200 ksi is outside the usual 1450.38-10152.6 ksi')) ...
     && isempty(app.ModelInfo.warnings));
+sensorsKeep = c.SensorsTable.Data;
+c.SensorsTable.Data = {13.1234; 26.2467};  % one spacing on is 39.37 ft, 0.024 mm from support B (39.3701 ft)
+app.addIdentPoint('sensor');
+sensorsNearB = tableColumn(c.SensorsTable);
+c.SensorsTable.Data = {5 / ft; 10 / ft; 7.5 / ft};   % 5, 10, 7.5 m converted: one spacing on rounds to 32.8084 ft = S2
+app.addIdentPoint('sensor');
+sensorsNearS2 = tableColumn(c.SensorsTable);
+c.SensorsTable.Data = sensorsKeep;
+rows(end+1) = flag(['US: + Add, shown with 6 digits, does not land on support B (39.37 ft) or repeat S2 (32.8084 ft): ' ...
+    'it takes the next place (57.4147 and 56.5945 ft, halfway to the end)'], ...
+    isequal(sensorsNearB, [13.1234 26.2467 57.4147]) ...
+    && numel(sensorsNearS2) == 4 && isequal(sensorsNearS2(1:3), [5 10 7.5] / ft) && sensorsNearS2(4) == 56.5945);
 app.choosePreset(hl.name);
 okHL = app.applyVehicleInputs();
 rows(end+1) = flag('US: preset HL-93 fills 8, 32, 32 kip at 14, 14 ft; applied = vehicleFromTable(..., US)', okHL ...
@@ -723,8 +742,49 @@ rows(end+1) = flag(['A Free: support drop-down B, C only; Rmax at C = damageSens
     okFree && okSens && isequal(c.SupportDropDown.Items, {'B (x = 12 m)', 'C (x = 27 m)'}) ...
     && isequal(app.DamageSensitivity.change, refSensC.change) ...
     && max(abs(refSensC.change)) <= 1e-9 * abs(refSensC.healthy) ...    % round-off only
-    && ~isempty(strfind(c.StatusLabel.Text, 'the response is the same for every location')));
-c.SensitivityDropDown.Value = items{1};
+    && ~isempty(strfind(c.StatusLabel.Text, ['the response is the same for every location (M, V and R of a ' ...
+    'statically determinate beam do not depend on EI'])));
+c.SensitivityDropDown.Value = items{1};    % largest downward deflection: it depends on EI on any beam
+okSensV = app.runDamageSensitivity();
+rows(end+1) = flag('A Free (determinate): the deflection sensitivity still names a most influential element', okSensV ...
+    && ~isempty(strfind(c.StatusLabel.Text, sprintf('most influential: element(s) %s.', c.SensitivityTable.Data{1, 2}))));
+% An interior Fixed support uncouples the spans: single readings are zero, not whole rows or columns
+noiseKeep = [c.SearchNoiseField.Value, c.SearchNoiseAbsField.Value];
+c.SearchNoiseField.Value = 1;
+c.SearchNoiseAbsField.Value = 0;
+c.SupportsTable.Data{1, 3} = 'Pin';
+c.SupportsTable.Data{2, 3} = 'Fixed';
+okFixed = app.applyModelInputs();
+[sFixed, pFixed] = identificationDefaults(app.Model, app.Vehicle, 1);
+okFixedGen = app.generateSyntheticReadings();
+okZeroOne = app.runIdentification();
+errZeroOne = app.LastError;
+uHFixed = predictSensorDeflections(app.Model, app.Vehicle, pFixed, sFixed, 1);
+readings = c.ReadingsTable.Data;
+readings(abs(uHFixed) <= 1e-12 * max(abs(uHFixed(:)))) = NaN;   % the zero readings left empty (missing)
+c.ReadingsTable.Data = readings;
+okMissing = app.runIdentification();
+rows(end+1) = flag(['B Fixed, noise 1 % only: a single zero reading (S2 with the truck on span 1) is named in the app''s ' ...
+    'words; with those readings left empty the run goes ahead, as in the engine'], okFixed && okFixedGen ...
+    && isequal(sFixed, sRef) && isequal(pFixed(1), 6.75) && ~okZeroOne && strcmp(errZeroOne, ['Sensor 2 (x = 13.5 m) ' ...
+    'reads zero with the truck at position 1 (x_v = 6.75 m): no axle loads its span (e.g. beyond a Fixed support). ' ...
+    'With a reading noise in % only, a zero reading has no noise level: state Reading noise [mm] > 0, or leave that ' ...
+    'reading empty (missing).']) && okMissing && any(isnan(readings(:))));
+c.SearchNoiseField.Value = noiseKeep(1);
+c.SearchNoiseAbsField.Value = noiseKeep(2);
+% A unit switch that applies a pending support-type edit gives the default sensors, as Apply model would
+c.SupportsTable.Data{2, 3} = 'Roller';
+c.SupportsTable.Data{3, 3} = 'Free';      % 15 m overhang beyond B
+okTip = app.applyModelInputs();
+c.SensorsTable.Data = {6; 27};             % yours: one at the free tip
+c.SupportsTable.Data{3, 3} = 'Roller';     % pending: the tip becomes a support
+app.setUnitSystem('US');
+sTip = identificationDefaults(app.Model, app.Vehicle, 1);
+rows(end+1) = flag(['a switch that applies a pending support edit (C Free -> Roller) gives the default sensors for the ' ...
+    'new model (yours had one at the old tip, now a support) and says so'], okTip ...
+    && strcmp(app.ModelInfo.supportTypes{3}, 'Roller') && max(abs(tableColumn(c.SensorsTable) * ft ./ sTip - 1)) < 1e-11 ...
+    && ~isempty(strfind(c.StatusLabel.Text, 'so the sensors and truck positions are the defaults')));
+app.setUnitSystem('SI');
 c.SupportsTable.Data{1, 3} = 'Pin';
 c.SupportsTable.Data{2, 3} = 'Roller';
 okSweep = app.applyModelInputs() && isequal(app.Model, refModel);

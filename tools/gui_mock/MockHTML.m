@@ -14,7 +14,8 @@ classdef MockHTML < MockComponent
         end
         function applyArgs(obj, args)
             % MATLAB's uihtml has no visual properties (BackgroundColor, FontColor, FontSize, Tooltip, Enable):
-            % the stand-in refuses them, so a later edit cannot pass here and fail in MATLAB.
+            % the stand-in refuses them here and, when set later, in MockComponent's set methods, so such an
+            % edit cannot pass here and fail in MATLAB.
             allowed = {'HTMLSource', 'Data', 'DataChangedFcn', 'HTMLEventReceivedFcn', 'Visible', 'Layout', ...
                 'Position', 'Tag', 'UserData'};
             for k = 1:2:numel(args)

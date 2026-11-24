@@ -390,17 +390,24 @@ classdef BridgeConditionApp < handle
             c.SensitivityTable.ColumnName = columns;
             c.DamageResultTabs.SelectedTab = c.DamageSensitivityTab;
             scale = app.responseScale(code);              % a physical size: round-off is far below it
+            [~, restrained] = partitionDofs(app.Model);
+            determinate = numel(restrained) == 2 && code(1) ~= 'v';   % M, V, R from equilibrium alone
             if max(abs([s.healthy; s.values(:)])) <= 1e-9 * scale
                 % e.g. the hogging moment of a simple span: the response is zero, its changes are round-off
                 data(:, end) = {'n/a'};
                 c.SensitivityTable.Data = data;
                 app.setStatus(sprintf(['Sensitivity: d = %g %% moved over %d locations; the response is zero for every ' ...
                     'location (e.g. no hogging moment on a simply supported span).'], 100 * d, numel(s.groups)));
-            elseif max(abs(s.change)) <= 1e-9 * scale
-                % e.g. M, V or R of a statically determinate beam: no location is "most influential"
+            elseif determinate
+                % Decided from the supports, not from the size of the changes: their round-off grows with the
+                % number of elements (about 3e-8 of the response with 600 elements on one span).
                 app.setStatus(sprintf(['Sensitivity: d = %g %% moved over %d locations; the response is the same for every ' ...
-                    'location (it does not depend on EI here, e.g. M, V and R of a statically determinate beam).'], ...
-                    100 * d, numel(s.groups)));
+                    'location (M, V and R of a statically determinate beam do not depend on EI; any change shown ' ...
+                    'is round-off).'], 100 * d, numel(s.groups)));
+            elseif max(abs(s.change)) <= 1e-9 * scale
+                % an indeterminate beam whose extreme happens not to depend on EI (e.g. it lies on an overhang)
+                app.setStatus(sprintf(['Sensitivity: d = %g %% moved over %d locations; the response is the same for every ' ...
+                    'location (it does not depend on EI here).'], 100 * d, numel(s.groups)));
             else
                 app.setStatus(sprintf('Sensitivity: d = %g %% moved over %d locations; most influential: element(s) %s.', ...
                     100 * d, numel(s.groups), data{1, 2}));
@@ -473,7 +480,7 @@ classdef BridgeConditionApp < handle
                 return
             end
             try
-                app.checkZeroReadings(sensors, positions);
+                app.checkZeroReadings(sensors, positions, uObs);
                 opts = identificationOptions(app.Model, candidateRegionLength(c.RegionSizeDropDown.Value, app.Units), ...
                     c.SearchNoiseField.Value, c.SearchNoiseAbsField.Value, app.Direction, app.Units);
                 dlg = uiprogressdlg(app.UIFigure, 'Title', 'Identification', ...
@@ -611,10 +618,18 @@ classdef BridgeConditionApp < handle
             [~, order] = sort(gaps + 1e-9 * (1:numel(gaps)) / numel(gaps), 'descend');   % ties: the rightmost gap
             candidates = [candidates, (marks(order) + marks(order + 1)) / 2];
             tol = 1e-9 * max(span, 1);
+            % The new entry is shown with 6 digits, which may move it by up to 5e-6 of its value: an entry
+            % that close to a table entry repeats it, and a sensor that close to a support (e.g. 65.6168 ft
+            % for a support at 65.6167979 ft) reads almost nothing.
+            near = 1e-5 * max(abs(limits)) + tol;
+            taken = given;
+            if strcmp(kind, 'sensor')
+                taken = [taken, app.ModelInfo.supportX(:)' / app.Units.length.toSI];
+            end
             next = NaN;
             for k = 1:numel(candidates)
                 x = str2double(sprintf('%.6g', candidates(k)));
-                if x > limits(1) + tol && x < limits(2) - tol && all(abs(given - x) > tol) ...
+                if x > limits(1) + tol && x < limits(2) - tol && all(abs(taken - x) > near) ...
                         && app.readsSomething(kind, x)
                     next = x;
                     break
@@ -1028,7 +1043,9 @@ classdef BridgeConditionApp < handle
             try
                 [model, info] = buildModelFromTables(app.modelTableInputs(), app.Units);
             catch err
-                app.setStatus(['Model input: ' err.message]);
+                if ~quiet                                % a redraw keeps the status (e.g. a run's summary)
+                    app.setStatus(['Model input: ' err.message]);
+                end
                 return
             end
             opts = app.drawingOptions(struct('ShowNumbers', c.NumbersCheckBox.Value), info);
@@ -1162,15 +1179,20 @@ classdef BridgeConditionApp < handle
         end
 
         function sig = appliedSignature(app)
-            % What the sensors and truck positions depend on: the applied beam, vehicle and travel direction (SI).
-            sig = struct('x', app.Model.nodes.x(:)', 'loads', app.Vehicle.axleLoads(:)', ...
-                'spacings', app.Vehicle.axleSpacings(:)', 'direction', app.Direction);
+            % The applied model and vehicle in SI: a switch that changes any of them applied pending edits, as
+            % "Apply model" or "Apply vehicle" would (supports decide where a sensor reads zero).
+            m = app.Model;
+            sig = struct('x', m.nodes.x(:)', 'supportNodes', m.supports.node(:)', ...
+                'restraint', double(m.supports.restraint), 'EI', m.elements.EI(:)', 'udl', m.loads.elementUDL(:)', ...
+                'loads', app.Vehicle.axleLoads(:)', 'spacings', app.Vehicle.axleSpacings(:)', 'direction', app.Direction);
         end
 
         function same = sameSignature(~, a, b)
             % Equal up to the 12-digit unit conversion.
-            near = @(p, q) numel(p) == numel(q) && all(abs(p - q) <= 1e-9 * max(abs(q), 1));
-            same = near(a.x, b.x) && near(a.loads, b.loads) && near(a.spacings, b.spacings) && a.direction == b.direction;
+            near = @(p, q) isequal(size(p), size(q)) && all(abs(p(:) - q(:)) <= 1e-9 * max(abs(q(:)), 1));
+            same = near(a.x, b.x) && isequal(a.supportNodes, b.supportNodes) && isequal(a.restraint, b.restraint) ...
+                && near(a.EI, b.EI) && near(a.udl, b.udl) && near(a.loads, b.loads) && near(a.spacings, b.spacings) ...
+                && a.direction == b.direction;
         end
 
         function checkModelAndVehicleInputs(app, U)
@@ -1948,28 +1970,47 @@ classdef BridgeConditionApp < handle
                 'for a readings table that matches them.']);
         end
 
-        function checkZeroReadings(app, sensors, positions)
-            % With a reading noise in % only, a reading that is always zero gets no standard deviation: say which
-            % sensor or truck position causes it (the engine's message names an option the app does not show).
+        function checkZeroReadings(app, sensors, positions, uObs)
+            % With a reading noise in % only, a reading predicted as zero gets no standard deviation and the engine
+            % refuses the run with a message about an option the app does not show ('NoiseAbsolute'): name the
+            % truck position, the sensor or the reading in the app's words. Missing readings (NaN in uObs) are
+            % left out, as in the engine. A truck position is named first: with no axle inside a span, every
+            % sensor reads zero, and the sensors are not at fault.
             c = app.Controls;
             if c.SearchNoiseField.Value <= 0 || c.SearchNoiseAbsField.Value > 0
                 return
             end
             U = app.Units;
             uH = predictSensorDeflections(app.Model, app.Vehicle, positions, sensors, app.Direction);
-            small = 1e-12 * max(abs(uH(:)));
-            s = find(max(abs(uH), [], 2) <= small, 1);
-            if ~isempty(s)
-                error('BridgeFE:invalidInput', ['Sensor %d (x = %g %s) reads zero for every truck position (it is on ' ...
-                    'a support). Remove it, or state Reading noise [%s] > 0.'], s, sensors(s) / U.length.toSI, ...
-                    U.length.unit, U.deflection.unit);
+            known = ~isnan(uObs);
+            zero = known & abs(uH) <= 1e-12 * max(abs(uH(:)));
+            if ~any(zero(:))
+                return
             end
-            p = find(max(abs(uH), [], 1) <= small, 1);
+            p = find(all(zero | ~known, 1) & any(known, 1), 1);
             if ~isempty(p)
                 error('BridgeFE:invalidInput', ['Truck position %d (x_v = %g %s) gives zero readings at every sensor ' ...
                     '(no axle inside a span). Remove it, or state Reading noise [%s] > 0.'], p, ...
                     positions(p) / U.length.toSI, U.length.unit, U.deflection.unit);
             end
+            s = find(all(zero | ~known, 2) & any(known, 2), 1);
+            if ~isempty(s)
+                x = app.Model.nodes.x;
+                if any(abs(app.ModelInfo.supportX(:) - sensors(s)) <= 1e-6 * (x(end) - x(1)))
+                    why = 'it is on a support';
+                else
+                    why = 'no truck position loads its span';
+                end
+                error('BridgeFE:invalidInput', ['Sensor %d (x = %g %s) reads zero for every truck position (%s). ' ...
+                    'Remove it, or state Reading noise [%s] > 0.'], s, sensors(s) / U.length.toSI, U.length.unit, ...
+                    why, U.deflection.unit);
+            end
+            [s, p] = find(zero, 1);
+            error('BridgeFE:invalidInput', ['Sensor %d (x = %g %s) reads zero with the truck at position %d (x_v = %g ' ...
+                '%s): no axle loads its span (e.g. beyond a Fixed support). With a reading noise in %% only, a zero ' ...
+                'reading has no noise level: state Reading noise [%s] > 0, or leave that reading empty (missing).'], ...
+                s, sensors(s) / U.length.toSI, U.length.unit, p, positions(p) / U.length.toSI, U.length.unit, ...
+                U.deflection.unit);
         end
 
         function checkRegionOrder(~, fromDropDown, toDropDown, name)
