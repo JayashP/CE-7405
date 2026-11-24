@@ -251,18 +251,7 @@ classdef BridgeConditionApp < handle
             c.KTable.ColumnName = labels;
             c.KTable.RowName = labels;
             nDof = 2 * nn;
-            dofData = cell(nDof, 7);
-            isRestrained = false(nDof, 1);
-            isRestrained(res.restrainedDofs) = true;
-            for k = 1:nDof
-                status = 'free';
-                if isRestrained(k)
-                    status = 'restrained';
-                end
-                dofData(k, :) = {labels{k}, sprintf('%d', ceil(k/2)), sprintf('%.4g', model.nodes.x(ceil(k/2))), status, ...
-                    sprintf('%.6g', res.F(k)), sprintf('%.6g', res.U(k)), sprintf('%.6g', res.R(k))};
-            end
-            c.DofTable.Data = dofData;
+            c.DofTable.Data = dofTableData(model.nodes.x, res);   % exact zeros, also -0 from the solver, shown as 0
             c.DofTable.ColumnName = {'DOF', 'Node', 'x [m]', 'Status', 'F [N or N*m]', 'U [m or rad]', 'R [N or N*m]'};
             Le = model.nodes.x(e + 1) - model.nodes.x(e);
             EIeff = effectiveEI(model);       % includes any prescribed stiffness loss

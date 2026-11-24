@@ -210,6 +210,11 @@ mutations = [
   ('M9b: Inf span length not rejected with its row', 'src/gui/buildModelFromTables.m', '    v(~isfinite(v)) = NaN;\n', ''),
   ('M9b: Inf axle load not rejected with its row', 'src/gui/vehicleFromTable.m', '    v(~isfinite(v)) = NaN;\n', ''),
   ('M9b: off-bridge axle labels always in kN', 'src/visualization/bridgeDrawing.m', 'th.vehicleOff, ext, U.force)', "th.vehicleOff, ext, unitSystem('SI').force)"),
+  # M10c (no -0 in the Matrices tab DOF table, after MATLAB Online V-031; tests/testGuiHelpers.m)
+  ('M10c: DOF table U printed with sprintf', 'src/gui/dofTableData.m', "U = formatMatrixCells(res.U(:), '%.6g');", "U = arrayfun(@(v) sprintf('%.6g', v), res.U(:), 'UniformOutput', false);"),
+  ('M10c: DOF table F printed with sprintf', 'src/gui/dofTableData.m', "F = formatMatrixCells(res.F(:), '%.6g');", "F = arrayfun(@(v) sprintf('%.6g', v), res.F(:), 'UniformOutput', false);"),
+  ('M10c: DOF table R printed with sprintf', 'src/gui/dofTableData.m', "R = formatMatrixCells(res.R(:), '%.6g');", "R = arrayfun(@(v) sprintf('%.6g', v), res.R(:), 'UniformOutput', false);"),
+  ('M10c: restrained status lost', 'src/gui/dofTableData.m', "isRestrained(res.restrainedDofs) = true;", ""),
   # M10b (round-off peak labels, after the user's MATLAB Vehicle tab in V-030; tests/testGuiHelpers.m)
   ('M10b: round-off minimum labelled', 'src/visualization/plotDiagram.m', 'if yMin < -tol', 'if yMin < 0'),
   ('M10b: round-off maximum labelled', 'src/visualization/plotDiagram.m', 'if yMax > tol', 'if yMax > 0'),

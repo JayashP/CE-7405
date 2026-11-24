@@ -217,7 +217,17 @@ assert(~isempty(strfind(lines{1}, '(degree 2)')) && strcmp(lines{2}, 'Largest ch
 crit = criticalTableData(runMovingLoad(simple, truck, 'Step', 0.5));
 reac = reactionEnvelopeTableData(runMovingLoad(simple, truck, 'Step', 0.5), simple.nodes.x);
 assert(~any(strcmp([crit(:); reac(:)], '-0.000')), 'Envelopes tables: round-off is 0.000, never -0.000');
-fprintf('  PASS formatNumber (no -0.000, also in the Envelopes tables); findings: simple span determinate, propped degree 1, fixed-fixed degree 2\n');
+% Matrices tab: MATLAB's solver returned U = -0 for theta1 with the truck at the start (V-031); '%.6g' printed "-0".
+res = solveStaticModel(simple);
+res.F(2) = -0; res.U(2) = -0; res.R(3) = -0;            % negative zeros as the solver can return them
+dofRows = dofTableData(simple.nodes.x, res);
+assert(isequal(size(dofRows), [18 7]) && ~any(strcmp(dofRows(:), '-0')) ...
+    && strcmp(dofRows{2, 5}, '0') && strcmp(dofRows{2, 6}, '0') && strcmp(dofRows{3, 7}, '0'), ...
+    'Matrices tab DOF table: a negative zero in F, U or R is shown as 0, never -0');
+assert(strcmp(dofRows{1, 4}, 'restrained') && strcmp(dofRows{3, 4}, 'free') && strcmp(dofRows{17, 3}, '20') ...
+    && strcmp(dofRows{1, 7}, sprintf('%.6g', res.R(1))) && strcmp(dofRows{5, 6}, sprintf('%.6g', res.U(5))), ...
+    'Matrices tab DOF table: status, node x and nonzero F, U, R as before (%.6g)');
+fprintf('  PASS formatNumber (no -0.000, also in the Envelopes tables); no -0 in the Matrices tab DOF table; findings: simple span determinate, propped degree 1, fixed-fixed degree 2\n');
 
 %% Drawing and diagram labels are clipped to the axes, and peak labels face the inside of the plot
 % MATLAB draws text outside the axes unless Clipping is on, so after a zoom the labels of the hidden part
