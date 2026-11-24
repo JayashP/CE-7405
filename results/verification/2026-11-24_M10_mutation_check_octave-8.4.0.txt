@@ -1,0 +1,130 @@
+M10 mutation check, GNU Octave 8.4.0 (2026-11-24).
+
+=== Unit level: tools/mutation_check.py, prefix 'M10', tests/testGuiHelpers.m (run on 14a44dd)
+MUTATION: M10: HTML text not escaped
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Information boxes: formatted HTML keeps the engine's words, highlights numbers and colours flags
+MUTATION: M10: short labels not bold
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Information boxes: formatted HTML keeps the engine's words, highlights numbers and colours flags
+MUTATION: M10: mm not recognised as a unit
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Information boxes: formatted HTML keeps the engine's words, highlights numbers and colours flags
+MUTATION: M10: numbers inside names highlighted
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Information boxes: formatted HTML keeps the engine's words, highlights numbers and colours flags
+MUTATION: M10: warning tag ignored
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Information boxes: formatted HTML keeps the engine's words, highlights numbers and colours flags
+MUTATION: M10: supports not one bullet each
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Information boxes: formatted HTML keeps the engine's words, highlights numbers and colours flags
+MUTATION: M10: Summary flags not marked
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Information boxes: formatted HTML keeps the engine's words, highlights numbers and colours flags
+MUTATION: M10: Summary sections out of order
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Information boxes: formatted HTML keeps the engine's words, highlights numbers and colours flags
+MUTATION: M10: empty table rows accepted
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Sensor and truck-position tables are read row by row, with errors that name the row
+MUTATION: M10: table coordinates not converted to m
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Sensor and truck-position tables are read row by row, with errors that name the row
+MUTATION: M10: healthy max drawn in the min colour
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Healthy vs damaged envelopes: four solid curves, one colour each, healthy drawn on top
+MUTATION: M10: healthy min dotted again
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Healthy vs damaged envelopes: four solid curves, one colour each, healthy drawn on top
+MUTATION: M10: unit-slip range not in the display unit
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / The unit-slip message uses the unit the user typed in
+MUTATION: M10: RCC modulus range changed
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / The unit-slip message uses the unit the user typed in
+MUTATION: M10: healthy min the same blue as max
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Healthy vs damaged envelopes: four solid curves, one colour each, healthy drawn on top
+
+=== App level: tools/app_mutation_check.py, faults 5, 6, 8, 27, 28 (M9 faults moved to the new code) and 41-60 (M10),
+    each run with runGuiMockCheck (tests/gui/checkBridgeConditionApp.m, Octave stand-ins) on 204b859.
+MUTATION 5: default sensors written in m
+  exit=1 detected=yes
+  via: US: Apply model writes the default sensors and truck positions in ft (1 = yes)
+MUTATION 6: default truck positions written in m
+  exit=1 detected=yes
+  via: US: Apply model writes the default sensors and truck positions in ft (1 = yes)
+MUTATION 8: reading noise not converted on a switch
+  exit=1 detected=yes
+  via: US: max relative error of the converted inputs (spans, E, I, load, axles, position and sweep steps, reading no
+MUTATION 27: fix: modelling notes left out of the summary
+  exit=1 detected=yes
+  via: model summary = infoPanelHtml('model', summary of buildModelFromTables): headings, one bullet per support, num
+MUTATION 28: fix: E/I fields keep the 4-digit display
+  exit=1 detected=yes
+  via: US: emptied result tables keep no header in SI units; readings tab 'Readings [in]'; noise tooltip in in; numer
+MUTATION 41: M10: x_v not explained under the critical table
+  exit=1 detected=yes
+  via: x and x_v explained under the critical, reaction, sensitivity, readings and candidate tables and in the slider
+MUTATION 42: M10: slider readout without "measured from A"
+  exit=1 detected=yes
+  via: x and x_v explained under the critical, reaction, sensitivity, readings and candidate tables and in the slider
+MUTATION 43: M10: + Add repeats the last value
+  exit=1 detected=yes
+  via: sensor and position tables: + Add puts one spacing after the last (27 m; a position capped at 32.6 m, the end 
+MUTATION 44: M10: + Add not capped at the end of the range
+  exit=1 detected=yes
+  via: sensor and position tables: + Add puts one spacing after the last (27 m; a position capped at 32.6 m, the end 
+MUTATION 45: M10: - Remove empties the table
+  exit=1 detected=yes
+  via: sensor and position tables: + Add puts one spacing after the last (27 m; a position capped at 32.6 m, the end 
+MUTATION 46: M10: off-beam sensor not checked
+  exit=1 detected=yes
+  via: invalid table rows are named: 'Sensor 2: x must be a number', 'Sensor 2: x = 30 m is not on the beam', 'Truck 
+MUTATION 47: M10: a unit switch resets your sensors
+  exit=1 detected=yes
+  via: error: quotient: nonconformant arguments (op1 is 1x3, op2 is 1x4)
+MUTATION 48: M10: sensors not converted on a switch
+  exit=1 detected=yes
+  via: US: default sensors and truck positions written in ft (L/4, L/2, 3L/4 of the 27 m beam) (1 = yes)
+MUTATION 49: M10: region order message left to the engine (m)
+  exit=1 detected=yes
+  via: US: a damaged region 'to' left of 'from' is refused with the node labels in ft (1 = yes)
+MUTATION 50: M10: node numbers replace the preview
+  exit=1 detected=yes
+  via: editing E shows a preview and asks for Apply model; ticking node numbers keeps the preview; Apply model shows 
+MUTATION 51: M10: E edit gives no preview
+  exit=1 detected=yes
+  via: error: feval: first argument must be a string, inline function, or a function handle
+MUTATION 52: M10: + Add span leaves the far-end type behind
+  exit=1 detected=yes
+  via: + then - : the far-end type (C Fixed) moves to the new end D (C becomes a roller) and back to C; model not app
+MUTATION 53: M10: - Remove span loses the far-end type
+  exit=1 detected=yes
+  via: + then - : the far-end type (C Fixed) moves to the new end D (C becomes a roller) and back to C; model not app
+MUTATION 54: M10: sensitivity names a most influential element on ties
+  exit=1 detected=yes
+  via: A Free: support drop-down B, C only; Rmax at C = damageSensitivity(..., 'Node', node at 27 m); the beam is det
+MUTATION 55: M10: hidden loss allowed beyond the search range
+  exit=1 detected=yes
+  via: Stage 3 defaults in the tables: sensors S1-S3 at L/4, L/2, 3L/4; positions P1-P4 at L/4..L (5L/4 has no axle o
+MUTATION 56: M10: model summary unformatted
+  exit=1 detected=yes
+  via: model summary = infoPanelHtml('model', summary of buildModelFromTables): headings, one bullet per support, num
+MUTATION 57: M10: findings unformatted
+  exit=1 detected=yes
+  via: findings = infoPanelHtml('findings', damageComparisonSummary) (indeterminate, degree 1); sub-tab shown (1 = ye
+MUTATION 58: M10: left box drops the flags
+  exit=1 detected=yes
+  via: left box: best fit, every limiting flag in orange and a pointer to the Summary tab (1 = yes)
+MUTATION 59: M10: healthy max and min in one colour
+  exit=1 detected=yes
+  via: healthy vs damaged plots: 4 solid curves per plot in 4 colours (healthy blue / lighter blue, damaged dark red 
+MUTATION 60: M10: unit-slip message range always in GPa
+  exit=0 detected=NO
+  via: 
+SUMMARY app: 24 / 25 detected
+NOTE: fault 60 (unit-slip message range always in GPa) is not visible to the app check, whose unit-slip row runs in SI
+      (GPa is then right). It is detected at unit level by testGuiHelpers ('The unit-slip message uses the unit the
+      user typed in', ksi case) - see 'M10: unit-slip range not in the display unit' above.
