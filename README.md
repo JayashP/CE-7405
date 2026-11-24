@@ -17,7 +17,7 @@ The app opens with a built-in example (one 20 m steel span, pin and roller, the 
 
 1. **Envelopes** tab → **Run moving-load analysis**: M max = 1349.102 kN·m at x = 9.740 m (truck front axle at x_v = 13.940 m).
 2. **Damage (Stage 2)** tab → **Apply damage** (30 % EI loss, 7.5–12.5 m) → **Compare healthy vs damaged**: largest deflection −24.925 → −30.839 mm; moments and reactions unchanged (statically determinate).
-3. **Identification (Stage 3)** tab → **Generate synthetic readings** → **Run identification**: the hidden 30 % loss at 5–6.25 m is found as element 5, d ≈ 30 %.
+3. **Identification (Stage 3)** tab → **Generate synthetic readings** → **Run identification**: the hidden 30 % loss at 5–6.25 m gives best fit element 5, d = 30.2 %, with a region of uncertainty of 3.75–7.5 m (the truth is inside it).
 
 ## Current status (2026-11-24, milestone M10)
 
