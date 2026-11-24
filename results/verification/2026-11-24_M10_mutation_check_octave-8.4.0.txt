@@ -516,3 +516,18 @@ MUTATION: M10b: round-off bound absolute
   exit=1 summary=[('15', '1')]
   detected by: testGuiHelpers / Drawing and diagram labels are clipped to the axes, and peak labels face the inside of the plot
 SUMMARY M10b: 4 / 4 detected
+
+=== M10c (no -0 in the Matrices tab DOF table, after V-031): tools/mutation_check.py, prefix 'M10c', tests/testGuiHelpers.m
+MUTATION: M10c: DOF table U printed with sprintf
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Table numbers never show a negative zero, and the findings name the determinacy
+MUTATION: M10c: DOF table F printed with sprintf
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Table numbers never show a negative zero, and the findings name the determinacy
+MUTATION: M10c: DOF table R printed with sprintf
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Table numbers never show a negative zero, and the findings name the determinacy
+MUTATION: M10c: restrained status lost
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Table numbers never show a negative zero, and the findings name the determinacy
+SUMMARY M10c: 4 / 4 detected

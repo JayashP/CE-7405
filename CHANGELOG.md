@@ -57,6 +57,7 @@ GUI clarity, requested by the user after the user guide (DECISIONS.md D-032). No
 ### After the MATLAB Online test (presentation day)
 - `openBridgeApp.m` opens the app in one step (MATLAB Online link and QR code in the README and `docs/presentation/`).
 - The app figure is set to the light theme where MATLAB supports themes (R2025a and later): in MATLAB Online with the dark theme, tables, fields and axes followed the dark theme while the app's own panels stayed light. Octave app check 118/118 (the stand-ins have no Theme property, so the branch is skipped there); not yet seen in MATLAB.
+- The Matrices tab DOF table shows an exact zero as 0: MATLAB Online printed U of theta1 as "-0" (a negative zero from the solver). New helper `dofTableData` (F, U, R through `formatMatrixCells`); testGuiHelpers checks it with injected negative zeros; 4 mutants detected.
 
 ## [0.10.1-M9c] — 2026-11-19 (branch `claude/m9c-polish`)
 
