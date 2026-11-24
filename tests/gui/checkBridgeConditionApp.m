@@ -755,6 +755,14 @@ c.SensitivityDropDown.Value = items{1};    % largest downward deflection: it dep
 okSensV = app.runDamageSensitivity();
 rows(end+1) = flag('A Free (determinate): the deflection sensitivity still names a most influential element', okSensV ...
     && ~isempty(strfind(c.StatusLabel.Text, sprintf('most influential: element(s) %s.', c.SensitivityTable.Data{1, 2}))));
+c.SupportsTable.Data{1, 3} = 'Pin';
+c.SupportsTable.Data{2, 3} = 'Free';       % B Free: one 27 m span with a node at 12 m, which deflects
+okFreeB = app.applyModelInputs();
+c.SensorsTable.Data = {6; 9};
+app.addIdentPoint('sensor');
+sensorsFreeB = tableColumn(c.SensorsTable);
+rows(end+1) = flag('B Free: + Add may put a sensor on the free node (12 m reads), a Free end is not a support', ...
+    okFreeB && isequal(sensorsFreeB, [6 9 12]));
 % An interior Fixed support uncouples the spans: single readings are zero, not whole rows or columns
 noiseKeep = [c.SearchNoiseField.Value, c.SearchNoiseAbsField.Value];
 c.SearchNoiseField.Value = 1;
@@ -789,6 +797,19 @@ c.PositionsTable.Data = {3; 6; 9};         % the truck on span 1 only
 c.SensorsTable.Data = {4; 8};              % one spacing on is support B; halfway to the end (17.5 m) reads nothing
 app.addIdentPoint('sensor');
 sensorsSpan1 = tableColumn(c.SensorsTable);
+app.setUnitSystem('US');                   % S2 typed at B as shown (39.3701 ft = 12.0000065 m): its readings
+c.SensorsTable.Data = {19.685; 39.3701; 66.437};   % straddle the zero bound, and it is named "on a support"
+c.PositionsTable.Data = {44.2913; 66.437; 88.5827};
+app.generateSyntheticReadings();
+readings = c.ReadingsTable.Data;
+readings(1, 2:3) = NaN;                    % S1's exact zeros (the truck on span 2) left empty
+c.ReadingsTable.Data = readings;
+okNearB = app.runIdentification();
+errNearB = app.LastError;
+app.setUnitSystem('SI');
+rows(end+1) = flag('US, B Fixed: a sensor typed at B as shown (39.3701 ft) is named "on a support", not "no axle loads its span"', ...
+    ~okNearB && strcmp(errNearB, ['Sensor 2 (x = 39.3701 ft) reads zero for every truck position (it is on a ' ...
+    'support). Remove it, or state Reading noise [in] > 0.']));
 c.SupportsTable.Data{1, 3} = 'Free';       % A Free, B Fixed: the tip at A is uncoupled from span 2
 okFreeFixed = app.applyModelInputs();
 c.SensorsTable.Data = {0; 20};
