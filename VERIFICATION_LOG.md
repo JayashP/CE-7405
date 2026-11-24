@@ -1370,4 +1370,15 @@ Every review finding that survived verification was fixed and has a check row; e
 | Warnings printed | Three, all raised on purpose by a test that reads them back and passes: testGuiHelpers line 50 (Pa typed into the GPa field of `buildModelFromInputs`, steel E = 2e+20 Pa; the section checks that the message reaches the app; on `main` before M10); testInverseUncertainty line 146 (`BridgeFE:rccInverse`, the PROJECT_SPEC section 7 RCC caveat); testMaterials lines 139 and 142 (`BridgeFE:unusualModulus` for steel E = 200 Pa and RCC E = 30 MPa, as in V-009). Screenshots: `..._M10_matlab_runAllTests_warning_testGuiHelpers.png`, `..._warning_rccInverse.png`, `..._warning_testMaterials.png` |
 | Still to do | `checkBridgeConditionApp(true)` and the app screenshots listed under "To see in MATLAB" in V-029 |
 
-**Status of M10:** verified in Octave (V-029); MATLAB test suite passes (V-030 part 1); MATLAB app check and app not seen yet.
+### V-030 part 2 (2026-11-24): app check in MATLAB (run by the user)
+
+| Item | Value |
+|---|---|
+| Command | `checkBridgeConditionApp(true)` (same code as part 1) |
+| Result | **Every row PASS and no error at the end** (the check throws if any row fails, so rows whose Result column is cut off in the screenshots also passed). The rows are the 118 of the Octave run (V-029) plus "Verification tab: test suite reports 0 failed", which only the MATLAB run with `true` makes. "52 callbacks invoked ... without an error thrown or reported" = the 51 of Octave plus the in-app "Run all tests" button, as in V-026 and V-028. Screenshots: `results/verification/2026-11-24_M10_matlab_checkBridgeConditionApp_part1.png` to `..._part6.png` |
+| Same digits as Octave | US converted inputs 2.0961010704923e-12; US vehicle 3.2571723096453e-12; US critical values 1.2656188225899e-12; US R_B at x_v = 16.4 m: 108.184 shown vs 108.18428230105; Forward step error 1.416e-15. US model under the permanent load: 2.2496275385475e-12 in MATLAB, 2.2750950201159e-12 in Octave (solver round-off; limit 1e-9) |
+| M10 rows seen passing in MATLAB | x and x_v explained under every table and in the slider readout; model summary, damage findings, identification Summary and left box as formatted HTML (`infoPanelHtml`); 4 solid curves per comparison plot in 4 colours, no dash styles; + Add never on a support, a repeated entry or a zero-reading point (also in ft and for -x travel); zero readings named in the app's words; sensitivity ties and determinate beams; unit switch keeps your sensors, or gives the defaults after a pending edit and says so; US unit slip in ksi (1450.38-10152.6 ksi) |
+| Warnings printed | **None.** M10 no longer lets the engine print the deliberate unit-slip warning (row "E = 32e9 "GPa": ... a unit warning reported in GPa"), which V-028 still showed; the message reaches the app only. The RCC caveat is shown in the left box, not printed, as in V-028 |
+| Still to see | The look of the app (V-029 "To see in MATLAB"): `uihtml` styling and scrolling, critical-table legend on two lines, + Add scrolling to the new row, plot colours, zoom on the beam drawing (M9c label clipping and axle labels) |
+
+**Status of M10:** verified in Octave (V-029); in MATLAB the test suite (V-030 part 1) and the app check (V-030 part 2) pass; the app screens are not seen yet.
