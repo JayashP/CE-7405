@@ -210,6 +210,11 @@ mutations = [
   ('M9b: Inf span length not rejected with its row', 'src/gui/buildModelFromTables.m', '    v(~isfinite(v)) = NaN;\n', ''),
   ('M9b: Inf axle load not rejected with its row', 'src/gui/vehicleFromTable.m', '    v(~isfinite(v)) = NaN;\n', ''),
   ('M9b: off-bridge axle labels always in kN', 'src/visualization/bridgeDrawing.m', 'th.vehicleOff, ext, U.force)', "th.vehicleOff, ext, unitSystem('SI').force)"),
+  # M10b (round-off peak labels, after the user's MATLAB Vehicle tab in V-030; tests/testGuiHelpers.m)
+  ('M10b: round-off minimum labelled', 'src/visualization/plotDiagram.m', 'if yMin < -tol', 'if yMin < 0'),
+  ('M10b: round-off maximum labelled', 'src/visualization/plotDiagram.m', 'if yMax > tol', 'if yMax > 0'),
+  ('M10b: round-off bound too large', 'src/visualization/plotDiagram.m', 'tol = 1e-9 * max(abs(y));', 'tol = 1e-5 * max(abs(y));'),
+  ('M10b: round-off bound absolute', 'src/visualization/plotDiagram.m', 'tol = 1e-9 * max(abs(y));', 'tol = 1e-9;'),
 ]
 only = sys.argv[3] if len(sys.argv) > 3 else ''   # optional name prefix, e.g. 'M7b:'
 mutations = [m for m in mutations if m[0].startswith(only)]

@@ -501,3 +501,18 @@ NOTE: fault 60 (unit-slip message range always in GPa), not detected in the firs
       Faults 44, 60, 61, 66, 70, 71 and 73 survived the first run after the round-2 fixes, and the round-3
       reviewers showed that no check row could detect faults 62 and 80. Each led to a new check row and is
       detected above. No analytical reference value was changed.
+
+=== M10b (round-off peak labels, after V-030): tools/mutation_check.py, prefix 'M10b', tests/testGuiHelpers.m
+MUTATION: M10b: round-off minimum labelled
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Drawing and diagram labels are clipped to the axes, and peak labels face the inside of the plot
+MUTATION: M10b: round-off maximum labelled
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Drawing and diagram labels are clipped to the axes, and peak labels face the inside of the plot
+MUTATION: M10b: round-off bound too large
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Drawing and diagram labels are clipped to the axes, and peak labels face the inside of the plot
+MUTATION: M10b: round-off bound absolute
+  exit=1 summary=[('15', '1')]
+  detected by: testGuiHelpers / Drawing and diagram labels are clipped to the axes, and peak labels face the inside of the plot
+SUMMARY M10b: 4 / 4 detected

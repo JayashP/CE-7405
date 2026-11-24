@@ -241,7 +241,32 @@ assert(strcmp(opt(labels(1), 'String'), '2 ') && strcmp(opt(labels(1), 'Horizont
 assert(strcmp(opt(labels(2), 'String'), ' -3') && strcmp(opt(labels(2), 'HorizontalAlignment'), 'left') ...
     && strcmp(opt(labels(2), 'VerticalAlignment'), 'top'), 'a peak in the left half is labelled on its right');
 assert(all(arrayfun(@(t) strcmp(opt(t, 'Clipping'), 'on'), labels)), 'diagram peak labels are clipped to the axes');
-fprintf('  PASS %d drawing labels and the diagram peak labels are clipped to the axes; peak labels face inwards\n', numel(texts));
+% Round-off is not a peak: the user's MATLAB Vehicle tab labelled M = -1.164e-13 kN*m at the pinned end (V-030).
+ax = RecordingAxes();
+plotDiagram(ax, [0; 3.3; 20], [0; 219.2; -1.164e-13], [0 0 1], 'M [kN*m]', 'round-off at the pinned end');
+objs = recorded(ax).Objects;
+labels = objs(strcmp({objs.kind}, 'text'));
+assert(numel(labels) == 1 && strcmp(opt(labels(1), 'String'), ' 219.2'), ...
+    'a round-off minimum (-1.164e-13 against 219.2) gets no label; the maximum keeps its label');
+ax = RecordingAxes();
+plotDiagram(ax, [0; 10; 20], [3e-15; -24.925; 0], [0 0 1], 'v [mm]', 'round-off above zero at a support');
+objs = recorded(ax).Objects;
+labels = objs(strcmp({objs.kind}, 'text'));
+assert(numel(labels) == 1 && strcmp(opt(labels(1), 'VerticalAlignment'), 'top'), ...
+    'a round-off maximum (3e-15 against -24.925) gets no label; the minimum keeps its label');
+ax = RecordingAxes();
+plotDiagram(ax, [0; 3.3; 20], [0; 2.192e-10; -1.164e-22], [0 0 1], 'M [kN*m]', 'the same diagram scaled by 1e-12');
+objs = recorded(ax).Objects;
+labels = objs(strcmp({objs.kind}, 'text'));
+assert(numel(labels) == 1 && strcmp(opt(labels(1), 'String'), ' 2.192e-10'), ...
+    'the round-off bound is relative: the diagram scaled by 1e-12 keeps its maximum label and drops the round-off one');
+ax = RecordingAxes();
+plotDiagram(ax, [0; 3.3; 20], [0; 219.2; -1e-6], [0 0 1], 'M [kN*m]', 'a small but real minimum');
+objs = recorded(ax).Objects;
+labels = objs(strcmp({objs.kind}, 'text'));
+assert(numel(labels) == 2 && strcmp(opt(labels(2), 'String'), '-1e-06 '), ...
+    'a small real minimum (-1e-6 against 219.2, above the 1e-9 round-off bound) is still labelled');
+fprintf('  PASS %d drawing labels and the diagram peak labels are clipped to the axes; peak labels face inwards; no label for round-off\n', numel(texts));
 
 %% Information boxes: formatted HTML keeps the engine's words, highlights numbers and colours flags
 h = htmlPanel(struct('title', 'T & <x>', 'items', {{'Spans: 20 m (total 40 m)', ...

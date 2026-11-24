@@ -3,7 +3,8 @@ function plotDiagram(ax, x, y, color, yLabelText, titleText, xLabelText)
 %   PLOTDIAGRAM(AX, X, Y, COLOR, YLABELTEXT, TITLETEXT) clears AX and draws
 %   Y against X [m] as a line with a light fill to the zero axis, labels the
 %   largest positive and negative values (on the side of the point that faces
-%   the inside of the plot, clipped to the axes when zoomed), and adds the
+%   the inside of the plot, clipped to the axes when zoomed; a value within
+%   1e-9 of the largest magnitude is round-off and gets no label), and adds the
 %   axis labels. X may repeat a coordinate (left and right limits), which
 %   draws jumps as vertical steps (RESPONSEDIAGRAMDATA).
 %
@@ -19,10 +20,11 @@ plot(ax, [min(x), max(x)], [0, 0], 'Color', [0.30 0.30 0.30], 'LineWidth', 0.8);
 [yMax, iMax] = max(y);
 [yMin, iMin] = min(y);
 middle = (min(x) + max(x)) / 2;
-if yMax > 0
+tol = 1e-9 * max(abs(y));                   % round-off is not a peak (MATLAB: M = -1.164e-13 kN*m at a pin, V-030)
+if yMax > tol
     peakLabel(ax, x(iMax), yMax, color, 'bottom', middle);
 end
-if yMin < 0
+if yMin < -tol
     peakLabel(ax, x(iMin), yMin, color, 'top', middle);
 end
 hold(ax, 'off');
