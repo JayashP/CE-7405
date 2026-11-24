@@ -1401,4 +1401,18 @@ Model: one 20 m span (16 elements), A Pin, B Roller, steel E = 200 GPa, Is = 0.0
 
 Not seen: the M9c axle-label merge (`aacbc26`, two off-bridge HL-93 axles in US units sharing a label), because the screenshot uses the SI 3-axle truck.
 
-**Status of M10:** verified in Octave (V-029) and in MATLAB R2026b (V-030 parts 1-3): test suite 162/162, app check every row PASS, all requested screens as designed. Open: the round-off label fix (M10b) and the M9c axle-label merge, both not yet seen in MATLAB.
+**Status of M10:** verified in Octave (V-029) and in MATLAB R2026b (V-030 parts 1-3): test suite 162/162, app check every row PASS, all requested screens as designed.
+
+### V-030 part 4 (2026-11-24): the round-off label fix in MATLAB (screenshot by the user, after pulling `ab5fe11`)
+
+`results/verification/2026-11-24_M10b_matlab_app_vehicle_HL93_US.png`: 65.6168 ft simple span, US units, HL-93 applied, x_v = 0.468 ft (1 of 3 axles on the bridge).
+
+| Item | Seen in MATLAB | Result |
+|---|---|---|
+| Peak labels | Moment: only "3.717" (no label at the pinned ends). Shear: "7.943" and "-0.05706" (both real: R_A = 7.943, R_B = 0.057 kip). Deflection: "-0.002554" in. No round-off label | as designed (M10b) |
+| Numbers | R_A = 8 x (65.617 - 0.468) / 65.617 = 7.943 kip, R_B = 0.057 kip; M max = 0.05706 x 65.149 = 3.717 kip*ft at the front axle | as computed by hand |
+| Off-bridge axles | The two rear 32 kip axles, 14 ft apart, have separate labels that do not overlap (grey, dotted arrows) | as designed |
+
+The M9c axle-label merge (`aacbc26`) is not exercised here: HL-93 axles are 14 ft apart, so their labels never overlap. The case seen in V-028 was the illustrative 3-axle truck in US units (two 26.9771 kip axles 1.4 m = 4.59 ft apart, off the bridge). That rule is verified in Octave only (V-027 addendum: testInputTables, 6 mutants detected).
+
+**Status of M10:** verified in Octave (V-029) and in MATLAB R2026b (V-030 parts 1-4): test suite 162/162, app check every row PASS, all requested screens as designed, round-off label fix (M10b) seen. Only the M9c axle-label merge is not yet seen in MATLAB.
