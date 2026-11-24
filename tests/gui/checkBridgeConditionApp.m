@@ -785,6 +785,18 @@ rows(end+1) = flag(['a switch that applies a pending support edit (C Free -> Rol
     && strcmp(app.ModelInfo.supportTypes{3}, 'Roller') && max(abs(tableColumn(c.SensorsTable) * ft ./ sTip - 1)) < 1e-11 ...
     && ~isempty(strfind(c.StatusLabel.Text, 'so the sensors and truck positions are the defaults')));
 app.setUnitSystem('SI');
+% Indeterminate, yet the largest hogging moment does not depend on EI: it is at C, from the overhang loads alone
+app.addSpan();                             % 12 + 15 + 15 m (C stays a roller)
+c.SupportsTable.Data{4, 3} = 'Free';       % a 15 m overhang beyond C
+okOverhang = app.applyModelInputs();
+c.SensitivityDropDown.Value = items{strcmp(codes, 'Mmin')};
+okSensM = app.runDamageSensitivity();
+rows(end+1) = flag(['12 + 15 m + 15 m overhang (indeterminate): the largest hogging moment, at C, comes from the ' ...
+    'overhang alone, so no element is "most influential" (decided from the size of the changes)'], ...
+    okOverhang && okSensM && max(abs(app.DamageSensitivity.change)) <= 1e-9 * abs(app.DamageSensitivity.healthy) ...
+    && ~isempty(strfind(c.StatusLabel.Text, 'the response is the same for every location (it does not depend on EI here)')));
+app.removeSpan();                          % back to 12 + 15 m; the free tip is not moved onto C
+c.SensitivityDropDown.Value = items{1};
 c.SupportsTable.Data{1, 3} = 'Pin';
 c.SupportsTable.Data{2, 3} = 'Roller';
 okSweep = app.applyModelInputs() && isequal(app.Model, refModel);

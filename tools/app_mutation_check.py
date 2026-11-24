@@ -3,7 +3,7 @@
 Usage: python3 -I tools/app_mutation_check.py <repo_root> <empty_scratch_dir> [i,j,...]
 Copies the repository once per fault (without .git and results), injects one fault, runs
 tools/gui_mock/runGuiMockCheck in GNU Octave (3 at a time) and prints one JSON line per fault
-with the first FAIL row or error. Never modifies <repo_root>. M9: faults 0-30, M9c: 31-40, M10: 41-60, M10 review round 2: 61-73; see
+with the first FAIL row or error. Never modifies <repo_root>. M9: faults 0-30, M9c: 31-40, M10: 41-60, M10 review round 2: 61-73, round 3: 74-81; see
 results/verification/2026-11-19_M9_mutation_check_octave-8.4.0.txt.
 """
 import shutil, subprocess, sys, pathlib, json
@@ -58,7 +58,7 @@ M = [
  ('M10: x_v not explained under the critical table', A, "x_v = position of the truck''s front ' ...", "x_v = the truck ' ..."),
  ('M10: slider readout without "measured from A"', A, "(front axle, measured from A); %d of %d", "(front axle); %d of %d"),
  ('M10: + Add ignores the spacing of the last two entries', A, "step = abs(given(end) - given(end - 1));", "step = span / 4;"),
- ('M10: + Add not kept inside the range', A, "if x > limits(1) + tol && x < limits(2) - tol && all(abs(given - x) > tol) ...", "if all(abs(given - x) > tol) ..."),
+ ('M10: + Add not kept inside the range', A, "if x > limits(1) + tol && x < limits(2) - tol && all(abs(taken - x) > near) ...", "if all(abs(taken - x) > near) ..."),
  ('M10: - Remove empties the table', A, "            if numel(v) < 2\n                app.setStatus(sprintf('At least one %s is needed.', noun));", "            if numel(v) < 1\n                app.setStatus(sprintf('At least one %s is needed.', noun));"),
  ('M10: off-beam sensor not checked', A, "off = find(sensors < x(1) - tol | sensors > x(end) + tol, 1);", "off = [];"),
  ('M10: a unit switch resets your sensors', A, "                app.setPointTable(c.SensorsTable, after.sensors, 'S');\n", ""),
@@ -82,13 +82,22 @@ M = [
  ('M10r2: zero response gets a most influential element', A, "            if max(abs([s.healthy; s.values(:)])) <= 1e-9 * scale", "            if false"),
  ('M10r2: every sensitivity called a tie', A, "            elseif max(abs(s.change)) <= 1e-9 * scale", "            elseif true"),
  ('M10r2: round-off bound far too large', A, "scale = app.responseScale(code);", "scale = 1e6 * app.responseScale(code);"),
- ('M10r2: zero-reading sensor left to the engine message', A, "                app.checkZeroReadings(sensors, positions);\n", ""),
+ ('M10r2: zero-reading sensor left to the engine message', A, "                app.checkZeroReadings(sensors, positions, uObs);\n", ""),
  ('M10r2: unit switch keeps sensors after pending edits', A, "kept = okModel && okVehicle && app.sameSignature(applied, app.appliedSignature());", "kept = okModel && okVehicle;"),
  ('M10r2: switch ignores a pending direction edit', A, "&& a.direction == b.direction;", ";"),
  ('M10r2: stale result kept after a table edit', A, "                app.clearIdentificationResults();       % the old result belongs to the old sensors / positions\n", ""),
  ('M10r2: redraw preview overwrites the status', A, "                app.previewModel(true);                 % keep showing the un-applied edits", "                app.previewModel();"),
  ('M10r2: Summary tab drops the ratio-method flag', A, "infoPanelHtml('identSummary', summary, flags);", "infoPanelHtml('identSummary', summary);"),
- ('M10r2: zero-reading truck position not named', A, "            p = find(max(abs(uH), [], 1) <= small, 1);", "            p = [];"),
+ ('M10r2: zero-reading truck position not named', A, "            p = find(all(zero | ~known, 1) & any(known, 1), 1);", "            p = [];"),
+ # M10 review round 3 (faults 74-)
+ ('M10r3: + Add ignores the 6-digit rounding', A, "near = 1e-5 * max(abs(limits)) + tol;", "near = tol;"),
+ ('M10r3: + Add may put a sensor on a support', A, "taken = [taken, app.ModelInfo.supportX(:)' / app.Units.length.toSI];", "taken = taken;"),
+ ('M10r3: single zero readings left to the engine message', A, "            [s, p] = find(zero, 1);\n", "            return\n"),
+ ('M10r3: missing readings counted as zero', A, "known = ~isnan(uObs);", "known = true(size(uH));"),
+ ('M10r3: determinacy not used for the sensitivity status', A, "determinate = numel(restrained) == 2 && code(1) ~= 'v';", "determinate = false;"),
+ ('M10r3: deflections called independent of EI', A, "determinate = numel(restrained) == 2 && code(1) ~= 'v';", "determinate = numel(restrained) == 2;"),
+ ('M10r3: unit switch ignores a pending support edit', A, "isequal(a.restraint, b.restraint)", "true"),
+ ('M10r3: quiet preview error overwrites the status', A, "                if ~quiet                                % a redraw keeps the status (e.g. a run's summary)", "                if true"),
 ]
 src = (repo / A).read_text()
 for name, f, old, new in M:
