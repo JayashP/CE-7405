@@ -1395,8 +1395,10 @@ Model: one 20 m span (16 elements), A Pin, B Roller, steel E = 200 GPa, Is = 0.0
 | Zoom on the drawings (`..._zoom_bridge_model.png`, `..._zoom_vehicle.png`) | Node and element numbers stay inside the axes after a zoom (M9c label clipping, `3ac60ac`) | as designed |
 | Vehicle, SI (`..._vehicle_SI.png`) | x_v = 3.277 m, 1 of 3 axles on the bridge; the rear axle out of view has no label outside the axes; R_A = 66.893, R_B = 13.107 kN | as designed, but see below |
 
-**New finding (cosmetic, from M6):** the bending-moment diagram on the Vehicle tab labels a minimum of "-1.164e-13" at x = 20 m. `plotDiagram` labels any value below zero, so round-off at a pinned end gets a label. Fix below.
+**New finding (cosmetic, from M6):** the bending-moment diagram on the Vehicle tab labels a minimum of "-1.164e-13" at x = 20 m. `plotDiagram` labels any value below zero, so round-off at a pinned end gets a label.
+
+**Fix (M10b, `d21d2d0`):** `plotDiagram` labels a maximum or minimum only when it exceeds 1e-9 of the diagram's largest magnitude (relative, so the same in every unit). testGuiHelpers adds the screenshot case (219.2 and -1.164e-13: one label), a round-off maximum, a small real minimum (-1e-6, still labelled) and the diagram scaled by 1e-12. In Octave 8.4.0 on `d21d2d0`: main suite **162 passed, 0 failed** (`..._M10b_octave-8.4.0_runAllTests.log`), app check **118/118 PASS** (`..._M10b_octave-8.4.0_gui_mock_check.log`), 4 new mutants **4/4 detected** (added to `..._M10_mutation_check_octave-8.4.0.txt`). **Not yet seen in MATLAB:** the Vehicle tab of a simple span should show no "-1e-13"-type label at the supports.
 
 Not seen: the M9c axle-label merge (`aacbc26`, two off-bridge HL-93 axles in US units sharing a label), because the screenshot uses the SI 3-axle truck.
 
-**Status of M10:** verified in Octave (V-029) and in MATLAB R2026b (V-030 parts 1-3): test suite 162/162, app check every row PASS, all requested screens as designed.
+**Status of M10:** verified in Octave (V-029) and in MATLAB R2026b (V-030 parts 1-3): test suite 162/162, app check every row PASS, all requested screens as designed. Open: the round-off label fix (M10b) and the M9c axle-label merge, both not yet seen in MATLAB.
