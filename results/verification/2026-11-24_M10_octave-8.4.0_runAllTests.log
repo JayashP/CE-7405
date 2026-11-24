@@ -1547,3 +1547,14 @@ US damage comparison, two-span beam: minimum reaction at node 1 (lift-off)
 --- PASS
 
 === testUnitsDisplay / Candidate table and summary of the Stage 3 search: regions in ft, RMSE and absolute noise in in ===
+  Method: noise-based region (95 % likelihood ratio), stated noise 1 % of each reading + 0.0019685 in; 15 readings, 101 structures analysed.
+  Best fit (smallest noise-weighted misfit S): element 7 (x = 19.685-22.9659 ft), loss d = 29.1 % (remaining EI x 0.709), RMSE 0.00716 in, J_N 1.38 %.
+  Region of uncertainty: 13.1234-16.4042 ft, 19.685-22.9659 ft (2 candidate region(s)); loss in the best region 25.0-33.0 %.
+  PASS table and summary: SI unchanged; US regions in ft, RMSE and absolute noise in in
+--- PASS
+
+=== testUnitsDisplay / Inches keep about the resolution of millimetres: deflection tables show one decimal more in US units ===
+  PASS inches: critical v to 4, sensitivity and RMSE to 5 decimals (mm: 3 and 4); M, V, R unchanged
+--- PASS
+
+=== testUnitsDisplay / Fit profile, fit chart and readings chart in US units ===
