@@ -1999,9 +1999,11 @@ classdef BridgeConditionApp < handle
                     '(no axle inside a span). Remove it, or state Reading noise [%s] > 0.'], p, ...
                     positions(p) / U.length.toSI, U.length.unit, U.deflection.unit);
             end
-            % A sensor on a support (as typed from the 6-digit display it may sit a few micrometres off it, and
-            % its readings straddle the zero bound) is named as such.
-            onSupport = any(abs(sensors(:) - app.supportedX()) <= 1e-6 * (x(end) - x(1)), 2);
+            % A sensor on a support is named as such. Typed from the 6-digit display it may sit up to 5e-6 of
+            % its coordinate off the support (123 um at 131.234 ft), and its readings then straddle the zero
+            % bound; the tolerance is the one + Add uses.
+            onSupport = any(abs(sensors(:) - app.supportedX()) <= 1e-5 * max(abs(x([1 end]))) + ...
+                1e-9 * (x(end) - x(1)), 2);
             s = find((all(zeroH, 2) | onSupport) & any(zero, 2), 1);
             if ~isempty(s)
                 if onSupport(s)

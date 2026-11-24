@@ -807,8 +807,26 @@ c.ReadingsTable.Data = readings;
 okNearB = app.runIdentification();
 errNearB = app.LastError;
 app.setUnitSystem('SI');
-rows(end+1) = flag('US, B Fixed: a sensor typed at B as shown (39.3701 ft) is named "on a support", not "no axle loads its span"', ...
+spansKeep = c.SpansTable.Data;
+c.SpansTable.Data = {40, 8; 40, 8};        % B at 40 m = 131.2335958 ft, shown as 131.234 ft: 123 um off
+okLong = app.applyModelInputs();
+app.setUnitSystem('US');
+c.SensorsTable.Data = {65.6168; 131.234; 196.85};
+c.PositionsTable.Data = {131.5; 196.85; 262.467};
+app.generateSyntheticReadings();
+readings = c.ReadingsTable.Data;
+readings(1, 2:3) = NaN;
+c.ReadingsTable.Data = readings;
+okNearB40 = app.runIdentification();
+errNearB40 = app.LastError;
+app.setUnitSystem('SI');
+c.SpansTable.Data = spansKeep;
+okBack = app.applyModelInputs();
+rows(end+1) = flag(['US, B Fixed: a sensor typed at B as shown (39.3701 ft; 131.234 ft on 40 + 40 m, 123 um off) is ' ...
+    'named "on a support", not "no axle loads its span"'], ...
     ~okNearB && strcmp(errNearB, ['Sensor 2 (x = 39.3701 ft) reads zero for every truck position (it is on a ' ...
+    'support). Remove it, or state Reading noise [in] > 0.']) && okLong && okBack && ~okNearB40 ...
+    && strcmp(errNearB40, ['Sensor 2 (x = 131.234 ft) reads zero for every truck position (it is on a ' ...
     'support). Remove it, or state Reading noise [in] > 0.']));
 c.SupportsTable.Data{1, 3} = 'Free';       % A Free, B Fixed: the tip at A is uncoupled from span 2
 okFreeFixed = app.applyModelInputs();

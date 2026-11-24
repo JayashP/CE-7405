@@ -3,7 +3,7 @@
 Usage: python3 -I tools/app_mutation_check.py <repo_root> <empty_scratch_dir> [i,j,...]
 Copies the repository once per fault (without .git and results), injects one fault, runs
 tools/gui_mock/runGuiMockCheck in GNU Octave (3 at a time) and prints one JSON line per fault
-with the first FAIL row or error. Never modifies <repo_root>. M9: faults 0-30, M9c: 31-40, M10: 41-60, M10 review round 2: 61-73, round 3: 74-81, round 4: 82-85, round 5: 86-87; see
+with the first FAIL row or error. Never modifies <repo_root>. M9: faults 0-30, M9c: 31-40, M10: 41-60, M10 review round 2: 61-73, round 3: 74-81, round 4: 82-85, round 5: 86-88; see
 results/verification/2026-11-19_M9_mutation_check_octave-8.4.0.txt.
 """
 import shutil, subprocess, sys, pathlib, json
@@ -105,6 +105,7 @@ M = [
  ('M10r4: dead sensor test ignores missing readings', A, "            s = find((all(zeroH, 2) | onSupport) & any(zero, 2), 1);", "            s = find((all(zero | ~known, 2) | onSupport) & any(known, 2), 1);"),
  # M10 review round 5 (faults 86-)
  ('M10r5: + Add avoids Free span ends too', A, "taken = [taken, app.supportedX() / app.Units.length.toSI];", "taken = [taken, app.ModelInfo.supportX(:)' / app.Units.length.toSI];"),
+ ('M10r5: on-support tolerance below the 6-digit display rounding', A, "<= 1e-5 * max(abs(x([1 end]))) + ...\n                1e-9 * (x(end) - x(1)), 2);", "<= 1e-6 * (x(end) - x(1)), 2);"),
  ('M10r5: a sensor on a support named only when every reading is below the bound', A, "            s = find((all(zeroH, 2) | onSupport) & any(zero, 2), 1);", "            s = find(all(zeroH, 2) & any(zero, 2), 1);"),
 ]
 src = (repo / A).read_text()
