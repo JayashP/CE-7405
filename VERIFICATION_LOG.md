@@ -1415,4 +1415,16 @@ Not seen: the M9c axle-label merge (`aacbc26`, two off-bridge HL-93 axles in US 
 
 The M9c axle-label merge (`aacbc26`) is not exercised here: HL-93 axles are 14 ft apart, so their labels never overlap. The case seen in V-028 was the illustrative 3-axle truck in US units (two 26.9771 kip axles 1.4 m = 4.59 ft apart, off the bridge). That rule is verified in Octave only (V-027 addendum: testInputTables, 6 mutants detected).
 
-**Status of M10:** verified in Octave (V-029) and in MATLAB R2026b (V-030 parts 1-4): test suite 162/162, app check every row PASS, all requested screens as designed, round-off label fix (M10b) seen. Only the M9c axle-label merge is not yet seen in MATLAB.
+### V-030 part 5 (2026-11-24): the M9c axle-label merge in MATLAB (screenshot by the user)
+
+`results/verification/2026-11-24_M9c_matlab_app_vehicle_spec_US_axle_label.png`: same 65.6168 ft span, US units, illustrative 3-axle truck applied (17.9847, 26.9771, 26.9771 kip at 13.7795, 4.5932 ft), x_v = 0.420 ft, 1 of 3 axles on the bridge.
+
+| Item | Seen in MATLAB | Result |
+|---|---|---|
+| Off-bridge axles | The two rear 26.9771 kip axles, 4.59 ft apart, share one label "2 x 26.9771 kip" (V-028 showed "26.9771 k26.9771 kip"); front axle "17.9847 kip" | as designed (`aacbc26`) |
+| Numbers | R_A = 17.9847 x (65.617 - 0.420) / 65.617 = 17.870 kip, R_B = 0.115 kip; M max = 0.1151 x 65.197 = 7.505 kip*ft | as computed by hand |
+| Peak labels | Moment "7.505" only; shear "17.87" and "-0.1151"; no round-off label | as designed (M10b) |
+
+**Status of M9c:** verified in Octave (V-027) and in MATLAB R2026b (V-028, V-030 part 5): every change seen.
+
+**Status of M10:** verified in Octave (V-029) and in MATLAB R2026b (V-030 parts 1-5): test suite 162/162, app check every row PASS, all requested screens as designed, round-off label fix (M10b) seen.
