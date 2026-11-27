@@ -230,5 +230,5 @@ results/verification/  raw test logs
 
 ## Ownership
 
-- **Claude Code** owns source and tests, and records technical decisions and executed results.
-- **Claude Cowork** writes human documentation from `DECISIONS.md`, `VERIFICATION_LOG.md` and `CHANGELOG.md`. It never claims capability that has no logged evidence.
+- **Author:** Jayash Pradhananga set the specification (`PROJECT_SPEC.md`), decided every design question and ran every MATLAB verification recorded in `VERIFICATION_LOG.md`.
+- **AI assistance:** the source code, tests and project records were written with **Claude Code** (Anthropic), the only AI tool used. It records technical decisions and executed results, and no capability is claimed without logged evidence.
